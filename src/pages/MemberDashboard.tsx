@@ -151,7 +151,7 @@ const MemberDashboard = () => {
 
   if (funnelLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#09090b]">
+      <div className="min-h-screen flex items-center justify-center bg-hero-bg">
         <Loader2 className="animate-spin text-primary" size={32} />
       </div>
     );
@@ -159,7 +159,7 @@ const MemberDashboard = () => {
 
   if (!funnel) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#09090b] text-white p-6 text-center">
+      <div className="min-h-screen flex items-center justify-center bg-hero-bg text-white p-6 text-center">
         <div>
           <h1 className="text-xl font-bold mb-2">Program not found</h1>
           <p className="text-sm text-slate-400 mb-4">
@@ -175,9 +175,9 @@ const MemberDashboard = () => {
   const continueToProgram = () => navigate(`/f/${funnel.slug}`);
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-white">
+    <div className="min-h-screen bg-hero-bg text-white">
       {/* Top bar */}
-      <header className="sticky top-0 z-30 bg-[#09090b]/80 backdrop-blur border-b border-white/10">
+      <header className="sticky top-0 z-30 bg-hero-bg/80 backdrop-blur border-b border-white/10">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
           <Link to={`/f/${funnel.slug}`} className="flex items-center gap-2 text-sm text-slate-300 hover:text-white">
             <ArrowLeft size={16} /> Back to program
@@ -216,7 +216,7 @@ const MemberDashboard = () => {
             />
 
             {/* Progress card */}
-            <div className="rounded-2xl p-6 bg-[#141419] border border-white/10">
+            <div className="rounded-2xl p-6 bg-hero-surface border border-white/10">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold">Your progress</h3>
                 <span className="text-sm font-bold text-primary">
@@ -274,13 +274,13 @@ const MemberDashboard = () => {
                 return (
                   <div
                     key={s.id}
-                    className="rounded-xl p-4 bg-[#141419] border border-white/10 flex items-center gap-3"
+                    className="rounded-xl p-4 bg-hero-surface border border-white/10 flex items-center gap-3"
                   >
                     <div
                       className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
                       style={{
                         background: isDone ? "hsl(var(--primary) / 0.2)" : "rgba(255,255,255,0.05)",
-                        color: isDone ? "hsl(var(--primary))" : "#94a3b8",
+                        color: isDone ? "hsl(var(--primary))" : "var(--color-hero-muted)",
                       }}
                     >
                       {isDone ? <CheckCircle2 size={18} /> : i + 1}
@@ -303,7 +303,7 @@ const MemberDashboard = () => {
 
           {/* TRAININGS */}
           <TabsContent value="trainings" className="mt-0">
-            <div className="rounded-2xl p-10 bg-[#141419] border border-white/10 text-center">
+            <div className="rounded-2xl p-10 bg-hero-surface border border-white/10 text-center">
               <div className="w-16 h-16 mx-auto rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mb-4">
                 <GraduationCap size={28} className="text-primary" />
               </div>
@@ -316,7 +316,7 @@ const MemberDashboard = () => {
 
           {/* PROFILE */}
           <TabsContent value="profile" className="space-y-4 mt-0">
-            <div className="rounded-2xl p-6 bg-[#141419] border border-white/10">
+            <div className="rounded-2xl p-6 bg-hero-surface border border-white/10">
               <div className="flex items-center gap-3 mb-5">
                 <div className="w-12 h-12 rounded-full bg-primary/15 flex items-center justify-center text-primary font-bold text-lg">
                   {memberName.charAt(0).toUpperCase()}
