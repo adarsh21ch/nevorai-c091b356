@@ -16,8 +16,16 @@ interface PrivateLeadFormProps {
   isDark: boolean;
 }
 
-export const PrivateLeadForm = ({ funnelId, funnelTitle, requiredFields, onSuccess, isDark }: PrivateLeadFormProps) => {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", city: "", state: "", whatsapp: "" });
+export const PrivateLeadForm = ({
+  funnelId,
+  funnelTitle,
+  requiredFields,
+  onSuccess,
+  isDark,
+}: PrivateLeadFormProps) => {
+  const [form, setForm] = useState({
+    name: "", phone: "", email: "", city: "", state: "", whatsapp: "",
+  });
   const [website, setWebsite] = useState("");
   const formMountedAt = useState(() => Date.now())[0];
   const [loading, setLoading] = useState(false);
@@ -25,10 +33,28 @@ export const PrivateLeadForm = ({ funnelId, funnelTitle, requiredFields, onSucce
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (website.trim() !== "") { setShowSuccess(true); setTimeout(() => onSuccess(), 1500); return; }
-    if (Date.now() - formMountedAt < 2000) { setShowSuccess(true); setTimeout(() => onSuccess(), 1500); return; }
-    if (!form.name.trim() || !form.phone.trim()) { toast.error("Name and phone are required"); return; }
-    if (!isValidPhone(form.phone)) { toast.error("Please enter a valid phone number"); return; }
+
+    if (website.trim() !== "") {
+      console.warn("[PrivateLeadForm] honeypot triggered");
+      setShowSuccess(true);
+      setTimeout(() => onSuccess(), 1500);
+      return;
+    }
+    if (Date.now() - formMountedAt < 2000) {
+      console.warn("[PrivateLeadForm] submit-too-fast trap");
+      setShowSuccess(true);
+      setTimeout(() => onSuccess(), 1500);
+      return;
+    }
+
+    if (!form.name.trim() || !form.phone.trim()) {
+      toast.error("Name and phone are required");
+      return;
+    }
+    if (!isValidPhone(form.phone)) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
 
     const cleanName = sanitizeText(form.name);
     const cleanCity = sanitizeText(form.city);
@@ -40,18 +66,32 @@ export const PrivateLeadForm = ({ funnelId, funnelTitle, requiredFields, onSucce
     setLoading(true);
     try {
       const { error } = await supabase.from("funnel_leads").insert({
-        funnel_id: funnelId, name: cleanName, phone: cleanPhone, email: cleanEmail,
+        funnel_id: funnelId,
+        name: cleanName,
+        phone: cleanPhone,
+        email: cleanEmail,
         city: cleanCity || null,
         custom_value: JSON.stringify({ state: cleanState, whatsapp: cleanWhatsapp }),
         device_type: /Mobi/.test(navigator.userAgent) ? "mobile" : "desktop",
-        user_agent: navigator.userAgent, status: "new",
+        user_agent: navigator.userAgent,
+        status: "new",
       });
+
       if (error) throw error;
-      localStorage.setItem(`nf_lead_${funnelId}`, JSON.stringify({ name: cleanName, phone: cleanPhone, submittedAt: Date.now() }));
+
+      localStorage.setItem(
+        `nf_lead_${funnelId}`,
+        JSON.stringify({ name: cleanName, phone: cleanPhone, submittedAt: Date.now() })
+      );
+
       setShowSuccess(true);
-      setTimeout(() => onSuccess(), 2500);
-    } catch (err) {
-      console.error(err); toast.error("Something went wrong. Please try again."); setLoading(false);
+      setTimeout(() => {
+        onSuccess();
+      }, 2500);
+    } catch (err: any) {
+      console.error("[PrivateLeadForm] insert failed", err);
+      toast.error("Something went wrong. Please try again.");
+      setLoading(false);
     }
   };
 
@@ -66,10 +106,21 @@ export const PrivateLeadForm = ({ funnelId, funnelTitle, requiredFields, onSucce
     return (
       <div className="min-h-screen flex items-center justify-center p-4" style={{ background: bg }}>
         <div className="text-center animate-in fade-in zoom-in-95 duration-500">
-          <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-5"><Check size={36} className="text-primary" /></div>
-          <h2 className="text-2xl font-heading font-bold mb-2" style={{ color: text }}>Access Confirmed!</h2>
-          <p className="text-sm mb-1" style={{ color: textMuted }}>Welcome to the program, {form.name.split(" ")[0]}</p>
-          <div className="flex items-center justify-center gap-2 mt-4"><Sparkles size={14} className="text-primary animate-pulse" /><p className="text-xs font-medium" style={{ color: textMuted }}>Unlocking your content…</p></div>
+          <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-5">
+            <Check size={36} className="text-primary" />
+          </div>
+          <h2 className="text-2xl font-heading font-bold mb-2" style={{ color: text }}>
+            Access Confirmed!
+          </h2>
+          <p className="text-sm mb-1" style={{ color: textMuted }}>
+            Welcome to the program, {form.name.split(" ")[0]}
+          </p>
+          <div className="flex items-center justify-center gap-2 mt-4">
+            <Sparkles size={14} className="text-primary animate-pulse" />
+            <p className="text-xs font-medium" style={{ color: textMuted }}>
+              Unlocking your content…
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -85,20 +136,109 @@ export const PrivateLeadForm = ({ funnelId, funnelTitle, requiredFields, onSucce
             <span className="font-heading font-extrabold" style={{ color: text }}>Flow</span>
           </div>
         </div>
+
         <div className="rounded-2xl p-6" style={{ background: cardBg, border: `1px solid ${border}` }}>
           <div className="text-center mb-5">
             <h3 className="text-lg font-heading font-bold mb-1" style={{ color: text }}>{funnelTitle}</h3>
             <p className="text-sm" style={{ color: textMuted }}>Enter your details to get started</p>
           </div>
+
           <form onSubmit={handleSubmit} className="space-y-3">
-            <input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }} aria-hidden="true" />
-            <div><Label className="text-xs font-medium" style={{ color: textMuted }}>Full Name *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Your full name" required className="mt-1 h-11" style={{ background: inputBg, borderColor: border, color: text }} /></div>
-            <div><Label className="text-xs font-medium" style={{ color: textMuted }}>Phone Number *</Label><div className="flex gap-2 mt-1"><div className="flex items-center px-3 rounded-md text-sm shrink-0 h-11" style={{ background: inputBg, border: `1px solid ${border}`, color: textMuted }}>+91</div><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="9876543210" required className="h-11" style={{ background: inputBg, borderColor: border, color: text }} /></div></div>
-            {requiredFields.email && <div><Label className="text-xs font-medium" style={{ color: textMuted }}>Email Address</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="your@email.com" className="mt-1 h-11" style={{ background: inputBg, borderColor: border, color: text }} /></div>}
-            {requiredFields.city && <div><Label className="text-xs font-medium" style={{ color: textMuted }}>City</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="Your city" className="mt-1 h-11" style={{ background: inputBg, borderColor: border, color: text }} /></div>}
-            {requiredFields.state && <div><Label className="text-xs font-medium" style={{ color: textMuted }}>State</Label><Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} placeholder="Your state" className="mt-1 h-11" style={{ background: inputBg, borderColor: border, color: text }} /></div>}
-            {requiredFields.whatsapp && <div><Label className="text-xs font-medium" style={{ color: textMuted }}>WhatsApp Number</Label><Input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="WhatsApp number" className="mt-1 h-11" style={{ background: inputBg, borderColor: border, color: text }} /></div>}
-            <Button type="submit" className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl mt-2" disabled={loading}>
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+              aria-hidden="true"
+            />
+            <div>
+              <Label className="text-xs font-medium" style={{ color: textMuted }}>Full Name *</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Your full name"
+                required
+                className="mt-1 h-11"
+                style={{ background: inputBg, borderColor: border, color: text }}
+              />
+            </div>
+
+            <div>
+              <Label className="text-xs font-medium" style={{ color: textMuted }}>Phone Number *</Label>
+              <div className="flex gap-2 mt-1">
+                <div className="flex items-center px-3 rounded-md text-sm shrink-0 h-11" style={{ background: inputBg, border: `1px solid ${border}`, color: textMuted }}>+91</div>
+                <Input
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="9876543210"
+                  required
+                  className="h-11"
+                  style={{ background: inputBg, borderColor: border, color: text }}
+                />
+              </div>
+            </div>
+
+            {requiredFields.email && (
+              <div>
+                <Label className="text-xs font-medium" style={{ color: textMuted }}>Email Address</Label>
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="your@email.com"
+                  className="mt-1 h-11"
+                  style={{ background: inputBg, borderColor: border, color: text }}
+                />
+              </div>
+            )}
+
+            {requiredFields.city && (
+              <div>
+                <Label className="text-xs font-medium" style={{ color: textMuted }}>City</Label>
+                <Input
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  placeholder="Your city"
+                  className="mt-1 h-11"
+                  style={{ background: inputBg, borderColor: border, color: text }}
+                />
+              </div>
+            )}
+
+            {requiredFields.state && (
+              <div>
+                <Label className="text-xs font-medium" style={{ color: textMuted }}>State</Label>
+                <Input
+                  value={form.state}
+                  onChange={(e) => setForm({ ...form, state: e.target.value })}
+                  placeholder="Your state"
+                  className="mt-1 h-11"
+                  style={{ background: inputBg, borderColor: border, color: text }}
+                />
+              </div>
+            )}
+
+            {requiredFields.whatsapp && (
+              <div>
+                <Label className="text-xs font-medium" style={{ color: textMuted }}>WhatsApp Number</Label>
+                <Input
+                  value={form.whatsapp}
+                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+                  placeholder="WhatsApp number"
+                  className="mt-1 h-11"
+                  style={{ background: inputBg, borderColor: border, color: text }}
+                />
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full h-12 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl mt-2"
+              disabled={loading}
+            >
               {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> Unlocking access...</> : "Continue to Program →"}
             </Button>
           </form>
