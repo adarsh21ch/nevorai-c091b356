@@ -138,9 +138,9 @@ const MemberDashboard = () => {
   // Derived stats
   const stats = useMemo(() => {
     const totalSteps = steps.length;
-    const completedSteps = progress.filter((p) => p.status === "completed").length;
-    const videosWatched = progress.filter((p) => (p.max_watched_seconds || 0) > 5).length;
-    const daysActive = new Set(activity.map((a) => a.activity_date)).size || 1;
+    const completedSteps = progress.filter((p: any) => p.status === "completed").length;
+    const videosWatched = progress.filter((p: any) => (p.max_watched_seconds || 0) > 5).length;
+    const daysActive = new Set(activity.map((a: any) => a.activity_date)).size || 1;
     const memberSince = storedLead?.submittedAt
       ? new Date(storedLead.submittedAt)
       : null;
@@ -268,7 +268,7 @@ const MemberDashboard = () => {
               <p className="text-sm text-slate-400">No steps yet.</p>
             ) : (
               steps.map((s, i) => {
-                const p = progress.find((pp) => pp.funnel_step_id === s.id);
+                const p = progress.find((pp: any) => pp.funnel_step_id === s.id);
                 const isDone = p?.status === "completed";
                 const watched = p?.watched_percentage || 0;
                 return (

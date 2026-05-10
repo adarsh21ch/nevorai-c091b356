@@ -15,7 +15,7 @@ export function getStripe(): Promise<Stripe | null> {
     }
     stripePromise = loadStripe(clientToken);
   }
-  return stripePromise;
+  return stripePromise!;
 }
 
 export async function createStripeCheckoutSession(opts: {

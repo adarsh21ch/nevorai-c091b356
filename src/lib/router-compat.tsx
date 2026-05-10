@@ -1,9 +1,13 @@
 import * as React from "react";
-import { Link as TLink, useLocation as useTLocation, useRouter, useParams as useTParams } from "@tanstack/react-router";
+import {
+  Link as TLink,
+  useLocation as useTLocation,
+  useRouter,
+  useParams as useTParams,
+  useSearch,
+} from "@tanstack/react-router";
 
-// Drop-in replacement for react-router-dom Link that accepts any string `to`.
-// Falls back to a plain anchor (full reload) if the path isn't a registered
-// TanStack route — that's fine for ported pages we haven't reached yet.
+// Drop-in Link
 export const Link = React.forwardRef<HTMLAnchorElement, any>(
   ({ to, children, replace, state, ...rest }, ref) => {
     return (
@@ -15,7 +19,33 @@ export const Link = React.forwardRef<HTMLAnchorElement, any>(
 );
 Link.displayName = "Link";
 
-// react-router-dom-style useNavigate
+// NavLink — react-router-dom style with active/pending render-prop className
+export interface NavLinkProps {
+  to: string;
+  className?: string | ((args: { isActive: boolean; isPending: boolean }) => string);
+  children?: React.ReactNode | ((args: { isActive: boolean; isPending: boolean }) => React.ReactNode);
+  end?: boolean;
+  replace?: boolean;
+  state?: any;
+  [key: string]: any;
+}
+
+export const NavLink = React.forwardRef<HTMLAnchorElement, NavLinkProps>(
+  ({ to, className, children, end, ...rest }, ref) => {
+    const loc = useTLocation();
+    const isActive = end ? loc.pathname === to : loc.pathname === to || loc.pathname.startsWith(to + "/");
+    const args = { isActive, isPending: false };
+    const cls = typeof className === "function" ? className(args) : className;
+    const kids = typeof children === "function" ? (children as any)(args) : children;
+    return (
+      <TLink ref={ref as any} to={to as any} className={cls} {...rest}>
+        {kids}
+      </TLink>
+    );
+  },
+);
+NavLink.displayName = "NavLink";
+
 export const useNavigate = () => {
   const router = useRouter();
   return (path: string | number, opts?: any) => {
@@ -37,11 +67,30 @@ export const useParams = <T extends Record<string, string> = Record<string, stri
   return params as T;
 };
 
-// react-router-dom-style <Navigate to="..." replace />
-export const Navigate = ({ to, replace }: { to: string; replace?: boolean }) => {
+// react-router-dom-style useSearchParams
+export const useSearchParams = (): [URLSearchParams, (next: URLSearchParams | Record<string, string>) => void] => {
+  const router = useRouter();
+  const loc = useTLocation();
+  const params = React.useMemo(() => {
+    if (typeof window === "undefined") return new URLSearchParams();
+    return new URLSearchParams(window.location.search);
+  }, [loc.search]);
+  const setParams = (next: URLSearchParams | Record<string, string>) => {
+    const sp = next instanceof URLSearchParams ? next : new URLSearchParams(next);
+    const search = sp.toString();
+    router.navigate({ to: loc.pathname as any, search: search ? Object.fromEntries(sp) : ({} as any) });
+  };
+  return [params, setParams];
+};
+
+// <Navigate to="..." replace state={...} />
+export const Navigate = ({ to, replace }: { to: string; replace?: boolean; state?: any }) => {
   const router = useRouter();
   React.useEffect(() => {
     router.navigate({ to: to as any, replace });
   }, [to, replace]);
   return null;
 };
+
+// <Outlet /> compat — alias TanStack's Outlet
+export { Outlet } from "@tanstack/react-router";
