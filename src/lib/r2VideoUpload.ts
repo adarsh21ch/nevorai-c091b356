@@ -101,7 +101,7 @@ export const uploadVideoToR2 = async ({
     }
 
     return {
-      videoId,
+      videoId: videoId!,
       publicUrl: confirmData.publicUrl,
     };
   } catch (error) {

@@ -120,7 +120,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
       const result = await uploadVideoToR2({
         file,
         title: cleanTitle,
-        onProgress: (percent, meta) => {
+        onProgress: (percent: number, meta?: { loaded: number; total: number }) => {
           setProgress(percent);
           if (meta && meta.loaded > 0) {
             const elapsedSec = (Date.now() - startTimeRef.current) / 1000;
