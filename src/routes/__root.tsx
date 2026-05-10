@@ -10,6 +10,7 @@ import {
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
+import { CurrencyProvider } from "@/hooks/useCurrency";
 
 import appCss from "../styles.css?url";
 
@@ -121,8 +122,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <AuthProvider>
-          <Outlet />
-          <Toaster />
+          <CurrencyProvider>
+            <Outlet />
+            <Toaster />
+          </CurrencyProvider>
         </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
