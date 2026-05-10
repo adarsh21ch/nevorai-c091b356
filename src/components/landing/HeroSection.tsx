@@ -28,12 +28,13 @@ export const HeroSection = () => {
   const isTrialEnabled = trial?.isTrialEnabled ?? false;
   const trialDays = trial?.trialDays ?? 7;
   const ctaLabel = isTrialEnabled ? `Start Free ${trialDays}-Day Trial →` : "Get Started →";
-  return (
-    <section className="hero-section relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden" style={{ background: "#060C1A" }}>
-      <FlowParticles />
-      <div className="absolute inset-0 gradient-bg-subtle pointer-events-none" />
 
-      <div className="container relative z-10">
+  return (
+    <section className="hero-section relative min-h-screen flex items-center pt-20 pb-16 overflow-hidden bg-hero-bg">
+      <FlowParticles />
+      <div className="absolute inset-0 bg-gradient-hero-glow pointer-events-none" />
+
+      <div className="container-app relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -49,15 +50,9 @@ export const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
           >
-            <div
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6"
-              style={{
-                background: "rgba(0,200,150,0.1)",
-                border: "1px solid rgba(0,200,150,0.3)",
-              }}
-            >
-              <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#00C896" }} />
-              <span className="text-xs font-medium" style={{ color: "#00C896" }}>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 bg-brand-emerald/10 border border-brand-emerald/30">
+              <span className="w-2 h-2 rounded-full animate-pulse bg-brand-emerald" />
+              <span className="text-xs font-medium text-brand-emerald">
                 2,400+ network marketers converting more prospects
               </span>
             </div>
@@ -65,13 +60,9 @@ export const HeroSection = () => {
 
           <div className="relative mb-6">
             <div className="hero-glow" aria-hidden="true" />
-            <h1
-              className="font-heading font-extrabold tracking-tight text-white relative"
-              style={{ lineHeight: 1.1 }}
-            >
+            <h1 className="font-heading font-extrabold tracking-tight text-white relative leading-[1.1]">
               <motion.span
-                className="hero-line-1 block text-white"
-                style={{ fontSize: "clamp(36px, 6vw, 56px)" }}
+                className="block text-white text-4xl sm:text-5xl md:text-6xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
@@ -79,8 +70,7 @@ export const HeroSection = () => {
                 Same Effort.
               </motion.span>
               <motion.span
-                className="hero-line-2 hero-gradient-text block"
-                style={{ fontSize: "clamp(40px, 7.2vw, 72px)", marginTop: "0.1em" }}
+                className="block text-gradient-brand text-5xl sm:text-6xl md:text-7xl mt-1"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.5 }}
@@ -88,8 +78,7 @@ export const HeroSection = () => {
                 Twice the Conversions.
               </motion.span>
               <motion.span
-                className="hero-line-3 block"
-                style={{ fontSize: "clamp(24px, 3.5vw, 36px)", color: "rgba(255,255,255,0.78)", marginTop: "0.2em" }}
+                className="block text-2xl sm:text-3xl md:text-4xl mt-2 text-white/80"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.8 }}
@@ -100,14 +89,13 @@ export const HeroSection = () => {
           </div>
 
           <motion.p
-            className="hero-sub text-base md:text-lg max-w-xl mx-auto mb-10"
-            style={{ color: "#8896B3" }}
+            className="text-base md:text-lg max-w-xl mx-auto mb-10 text-hero-muted"
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 1.0 }}
           >
             Most people share a YouTube link and <span className="text-white">hope</span> for the best.
-            nFlow <span style={{ color: "#00C896" }}>controls</span> what your prospect sees,
+            nFlow <span className="text-brand-emerald">controls</span> what your prospect sees,
             keeps them focused, captures their details, and follows up — <span className="text-white">automatically</span>.
           </motion.p>
 
@@ -120,12 +108,7 @@ export const HeroSection = () => {
             <Link to="/auth?tab=signup">
               <Button
                 size="xl"
-                className="rounded-full text-white font-semibold border-0"
-                style={{
-                  background: "linear-gradient(135deg, #00C896, #0066FF)",
-                  boxShadow: "0 0 30px rgba(0,200,150,0.4)",
-                  padding: "16px 40px",
-                }}
+                className="rounded-full text-white font-semibold border-0 bg-gradient-brand shadow-glow-brand-lg px-10 py-4 min-h-11"
               >
                 {ctaLabel}
               </Button>
@@ -134,8 +117,7 @@ export const HeroSection = () => {
               <Button
                 size="xl"
                 variant="outline"
-                className="rounded-full bg-transparent text-white"
-                style={{ border: "1px solid rgba(255,255,255,0.18)", padding: "16px 32px" }}
+                className="rounded-full bg-transparent text-white border-white/20 px-8 py-4 min-h-11"
               >
                 <Play size={18} />
                 See How It Works
@@ -144,8 +126,7 @@ export const HeroSection = () => {
           </motion.div>
           {isTrialEnabled && (
             <motion.p
-              className="text-xs -mt-10 mb-14"
-              style={{ color: "#8896B3" }}
+              className="text-xs -mt-10 mb-14 text-hero-muted"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.6 }}
@@ -154,7 +135,6 @@ export const HeroSection = () => {
             </motion.p>
           )}
 
-          {/* Live stats */}
           <motion.div
             className="flex flex-wrap items-center justify-center gap-6 sm:gap-10"
             initial={{ opacity: 0, y: 12 }}
@@ -172,17 +152,14 @@ export const HeroSection = () => {
                     to={stat.v}
                     suffix={stat.s}
                     decimals={stat.decimals || 0}
-                    className="hero-stat-number block hero-gradient-text font-extrabold text-3xl"
+                    className="block text-gradient-brand font-extrabold text-3xl"
                   />
-                  <div
-                    className="text-[11px] uppercase mt-1"
-                    style={{ color: "#8896B3", letterSpacing: "1px" }}
-                  >
+                  <div className="text-[11px] uppercase mt-1 text-hero-muted tracking-[1px]">
                     {stat.l}
                   </div>
                 </div>
                 {i < arr.length - 1 && (
-                  <div className="hidden sm:block h-10 w-px" style={{ background: "rgba(255,255,255,0.1)" }} />
+                  <div className="hidden sm:block h-10 w-px bg-white/10" />
                 )}
               </div>
             ))}
