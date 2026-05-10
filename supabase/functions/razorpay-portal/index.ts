@@ -352,16 +352,11 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "Only Basic and Pro subscriptions support tier upgrades" }, 400);
       }
 
-      // Trial users can't upgrade tiers
       const { data: profileRow } = await serviceClient
         .from("profiles")
         .select("subscription_status, selected_tier_id, selected_daily_views")
         .eq("id", user.id)
         .maybeSingle();
-
-      if (profileRow?.subscription_status === "trial") {
-        return jsonResponse({ error: "Trial users already have Pro limits" }, 400);
-      }
 
       // New tier
       const { data: newTier } = await serviceClient
@@ -589,7 +584,8 @@ Deno.serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      const planKey = sub?.plan_key || "free";
+      const rawPlanKey = sub?.plan_key || "free";
+      const planKey = rawPlanKey.split("_")[0];
 
       const { data: planRow } = await serviceClient
         .from("plan_config")
@@ -755,7 +751,8 @@ Deno.serve(async (req) => {
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      const planKey = sub?.plan_key || "free";
+      const rawPlanKey = sub?.plan_key || "free";
+      const planKey = rawPlanKey.split("_")[0];
 
       const { data: planRow } = await serviceClient
         .from("plan_config")
