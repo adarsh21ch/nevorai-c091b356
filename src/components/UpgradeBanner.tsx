@@ -19,7 +19,7 @@ export const UpgradeBanner = () => {
             <p className="text-xs text-muted-foreground">Renew now to keep using premium features.</p>
           </div>
         </div>
-        <Link to="/upgrade">
+        <Link to="/billing">
           <Button size="sm" variant="destructive" className="gap-1.5 shrink-0">
             Renew <ArrowRight size={14} />
           </Button>
@@ -38,7 +38,7 @@ export const UpgradeBanner = () => {
             <p className="text-xs text-muted-foreground">Renew to avoid losing access.</p>
           </div>
         </div>
-        <Link to="/upgrade">
+        <Link to="/billing">
           <Button size="sm" variant="outline" className="gap-1.5 border-amber-500 text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20 shrink-0">
             Renew Now
           </Button>
@@ -56,7 +56,7 @@ export const UpgradeBanner = () => {
           <p className="text-xs text-muted-foreground">Get more funnels, landing pages, live sessions, and premium tools.</p>
         </div>
       </div>
-      <Link to="/upgrade">
+      <Link to="/billing">
         <Button size="sm" className="gap-1.5 shrink-0">
           Upgrade <ArrowRight size={14} />
         </Button>
