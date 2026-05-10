@@ -131,8 +131,15 @@ Deno.serve(async (req) => {
 
       if (!orderRes.ok) {
         const err = await orderRes.text();
-        console.error("Razorpay order error:", err);
-        return jsonResponse({ error: "Failed to create order" }, 500);
+        console.error("Razorpay order error:", orderRes.status, err);
+        let detail: any = err;
+        try { detail = JSON.parse(err); } catch {}
+        return jsonResponse({
+          error: "Failed to create order",
+          razorpay_status: orderRes.status,
+          razorpay_error: detail,
+          key_id_prefix: RAZORPAY_KEY_ID ? RAZORPAY_KEY_ID.slice(0, 8) : null,
+        }, 500);
       }
 
       const order = await orderRes.json();
