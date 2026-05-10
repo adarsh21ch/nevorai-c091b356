@@ -128,12 +128,15 @@ export function ViewCapacityCard() {
                 razorpay_signature: response.razorpay_signature,
               },
             });
-            if (vErr || !vData?.success) throw vErr || new Error("Verification failed");
+            if (vErr || !vData?.success) {
+              const msg = await getSupabaseFunctionErrorMessage(vErr, vData?.error || "Verification failed");
+              throw new Error(msg);
+            }
             toast.success(`You're all set — now ${tier.daily_views} views/day!`);
             setConfirmTier(null);
             setTimeout(() => window.location.reload(), 1200);
-          } catch {
-            toast.error("Payment received but not yet activated. Contact support.");
+          } catch (err: any) {
+            toast.error(err?.message || "Payment received but not yet activated. Contact support.");
           }
         },
         prefill: {
