@@ -44,7 +44,7 @@ const faqs = [
 export const FAQSection = () => {
   return (
     <section id="faq" className="py-24">
-      <div className="container max-w-3xl">
+      <div className="container-app max-w-3xl">
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 20 }}

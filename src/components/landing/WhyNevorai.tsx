@@ -33,7 +33,7 @@ export const WhyNevorai = () => {
     <section className="py-24 relative overflow-hidden">
       <div className="absolute inset-0 gradient-bg-subtle" />
 
-      <div className="container relative z-10">
+      <div className="container-app relative z-10">
         {/* Header */}
         <motion.div
           className="text-center mb-14"

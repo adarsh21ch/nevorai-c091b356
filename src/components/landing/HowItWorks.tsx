@@ -22,7 +22,7 @@ const steps = [
 export const HowItWorks = () => {
   return (
     <section id="how-it-works" className="py-24 relative">
-      <div className="container">
+      <div className="container-app">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}

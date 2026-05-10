@@ -405,7 +405,7 @@ export const PricingSection = () => {
 
   return (
     <section id="pricing" className="py-24 relative">
-      <div className="container">
+      <div className="container-app">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}

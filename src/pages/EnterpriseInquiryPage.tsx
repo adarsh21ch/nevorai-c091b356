@@ -108,7 +108,7 @@ const EnterpriseInquiryPage = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-1 pt-24 pb-16">
-        <div className="container max-w-5xl">
+        <div className="container-app max-w-5xl">
           {/* Header */}
           <motion.div
             className="text-center mb-10"

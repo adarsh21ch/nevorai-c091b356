@@ -7,7 +7,7 @@ const TermsPage = () => {
     <div className="min-h-screen">
       <Navbar />
       <section className="pt-32 pb-16">
-        <div className="container max-w-3xl">
+        <div className="container-app max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 pb-8 border-b border-border">
             <h1 className="text-3xl md:text-4xl font-heading font-bold mb-2">Terms of Service</h1>
             <p className="text-sm text-muted-foreground mb-6">Last updated: May 2026</p>

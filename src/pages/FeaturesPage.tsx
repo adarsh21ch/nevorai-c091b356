@@ -46,7 +46,7 @@ const FeaturesPage = () => {
     <div className="min-h-screen">
       <Navbar />
       <section className="pt-32 pb-16">
-        <div className="container max-w-5xl">
+        <div className="container-app max-w-5xl">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
