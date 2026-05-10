@@ -129,33 +129,23 @@ export const ProspectJourney = () => {
           return (
             <Fragment key={i}>
               <motion.div
-                className="flex flex-col items-center relative"
+                className={`flex flex-col items-center relative ${step.leak ? "pt-7" : ""}`}
                 initial={{ opacity: 0, scale: 0.5 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.1, duration: 0.4 }}
-                style={{ paddingTop: step.leak ? 26 : 0 }}
               >
-                {step.leak && (
-                  <span className="leak-badge">−{step.leak}</span>
-                )}
+                {step.leak && <span className="leak-badge">−{step.leak}</span>}
                 <div
-                  className={nodeClass}
-                  style={
+                  className={
                     !isYT && step.isEnd
-                      ? {
-                          background:
-                            "linear-gradient(135deg, rgba(0,200,150,0.3), rgba(0,102,255,0.3))",
-                        }
-                      : undefined
+                      ? `${nodeClass} bg-gradient-to-br from-brand-emerald/30 to-brand-blue/30`
+                      : nodeClass
                   }
                 >
                   {step.icon}
                 </div>
-                <span
-                  className="text-[11px] mt-2 text-center max-w-[80px] leading-tight"
-                  style={{ color: "#1A202C" }}
-                >
+                <span className="text-[11px] mt-2 text-center max-w-[80px] leading-tight text-slate-900">
                   {step.label}
                 </span>
               </motion.div>
@@ -179,34 +169,20 @@ export const ProspectJourney = () => {
   const isYT = activeRoute === "youtube";
 
   return (
-    <section
-      className="py-24 px-4 relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #F0FFF8, #EFF6FF)" }}
-    >
+    <section className="py-20 sm:py-24 px-4 relative overflow-hidden bg-gradient-to-br from-emerald-50 to-blue-50">
       <style>{journeyStyles}</style>
-      <div className="container max-w-6xl">
+      <div className="container-app max-w-6xl">
         <motion.div
           className="text-center mb-12"
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2
-            className="text-3xl md:text-4xl font-heading font-bold mb-3"
-            style={{ color: "#0A1628" }}
-          >
+          <h2 className="text-3xl md:text-4xl font-heading font-bold mb-3 text-slate-900">
             Same Prospect.{" "}
-            <span
-              style={{
-                background: "linear-gradient(90deg, #00C896, #0066FF)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Two Very Different Routes.
-            </span>
+            <span className="text-gradient-brand">Two Very Different Routes.</span>
           </h2>
-          <p style={{ color: "#4A5568" }} className="max-w-xl mx-auto">
+          <p className="text-slate-600 max-w-xl mx-auto">
             See exactly where the YouTube route goes wrong — and how nFlow keeps them on track.
           </p>
         </motion.div>
@@ -219,20 +195,16 @@ export const ProspectJourney = () => {
             viewport={{ once: true }}
           >
             <div className="flex items-center gap-3 mb-6">
-              <span className="font-bold text-lg" style={{ color: "#DC2626" }}>
-                ❌ YouTube Route
-              </span>
-              <span className="text-sm" style={{ color: "rgba(220,38,38,0.7)" }}>
-                — 6–8% conversion
-              </span>
+              <span className="font-bold text-lg text-red-600">❌ YouTube Route</span>
+              <span className="text-sm text-red-600/70">— 6–8% conversion</span>
             </div>
             {renderDesktopRoute(youtubeRoute, "youtube")}
           </motion.div>
 
           <div className="flex items-center gap-3 my-2">
-            <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
-            <span className="text-xs uppercase tracking-widest" style={{ color: "#6B7A99" }}>vs</span>
-            <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.08)" }} />
+            <div className="flex-1 h-px bg-slate-900/10" />
+            <span className="text-xs uppercase tracking-widest text-slate-500">vs</span>
+            <div className="flex-1 h-px bg-slate-900/10" />
           </div>
 
           <motion.div
@@ -241,19 +213,8 @@ export const ProspectJourney = () => {
             viewport={{ once: true }}
           >
             <div className="flex items-center gap-3 mb-6">
-              <span
-                className="font-bold text-lg"
-                style={{
-                  background: "linear-gradient(90deg, #00C896, #0066FF)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-              >
-                ✅ nFlow Route
-              </span>
-              <span className="text-sm" style={{ color: "rgba(0,150,100,0.8)" }}>
-                — 16–18% conversion
-              </span>
+              <span className="font-bold text-lg text-gradient-brand">✅ nFlow Route</span>
+              <span className="text-sm text-emerald-700/80">— 16–18% conversion</span>
             </div>
             {renderDesktopRoute(nflowRoute, "nflow")}
           </motion.div>
@@ -264,7 +225,7 @@ export const ProspectJourney = () => {
           <div className="flex justify-center gap-3 mb-8">
             <button
               onClick={() => setActiveRoute("youtube")}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all min-h-11 ${
                 isYT
                   ? "bg-red-500/15 border border-red-500/50 text-red-600"
                   : "bg-white border border-gray-200 text-gray-500"
@@ -274,7 +235,7 @@ export const ProspectJourney = () => {
             </button>
             <button
               onClick={() => setActiveRoute("nflow")}
-              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all ${
+              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all min-h-11 ${
                 !isYT
                   ? "bg-emerald-500/15 border border-emerald-500/50 text-emerald-600"
                   : "bg-white border border-gray-200 text-gray-500"
@@ -297,20 +258,14 @@ export const ProspectJourney = () => {
                   <div
                     className={`w-12 h-12 rounded-full flex items-center justify-center text-xl flex-shrink-0 ${
                       isYT
-                        ? `bg-red-500/10 border-2 border-red-500/50 ${
-                            step.isEnd ? "youtube-end-node" : ""
-                          }`
-                        : `bg-emerald-500/10 border-2 border-emerald-500/50 ${
-                            step.isEnd ? "nflow-end-node" : ""
-                          }`
+                        ? `bg-red-500/10 border-2 border-red-500/50 ${step.isEnd ? "youtube-end-node" : ""}`
+                        : `bg-emerald-500/10 border-2 border-emerald-500/50 ${step.isEnd ? "nflow-end-node" : ""}`
                     }`}
                   >
                     {step.icon}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium" style={{ color: "#0A1628" }}>
-                      {step.label}
-                    </p>
+                    <p className="text-sm font-medium text-slate-900">{step.label}</p>
                     {step.leak && (
                       <p className="text-red-500 text-xs mt-0.5">↓ {step.leak}</p>
                     )}
@@ -337,13 +292,10 @@ export const ProspectJourney = () => {
                 : "bg-emerald-500/10 border border-emerald-500/20"
             }`}
           >
-            <p
-              className="text-2xl font-bold"
-              style={{ color: isYT ? "#DC2626" : "#00C896" }}
-            >
+            <p className={`text-2xl font-bold ${isYT ? "text-red-600" : "text-brand-emerald"}`}>
               {isYT ? "6–8%" : "16–18%"}
             </p>
-            <p className="text-sm" style={{ color: "#4A5568" }}>
+            <p className="text-sm text-slate-600">
               {isYT ? "conversion rate 📉" : "conversion rate 📈"}
             </p>
           </div>
