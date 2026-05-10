@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as LiveRouteImport } from './routes/live'
+import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LandingPagesRouteImport } from './routes/landing-pages'
 import { Route as FunnelsRouteImport } from './routes/funnels'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -38,6 +39,11 @@ const VideosRoute = VideosRouteImport.update({
 const LiveRoute = LiveRouteImport.update({
   id: '/live',
   path: '/live',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LandingPagesRoute = LandingPagesRouteImport.update({
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/funnels': typeof FunnelsRouteWithChildren
   '/landing-pages': typeof LandingPagesRouteWithChildren
+  '/leads': typeof LeadsRoute
   '/live': typeof LiveRouteWithChildren
   '/videos': typeof VideosRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/funnels': typeof FunnelsRouteWithChildren
   '/landing-pages': typeof LandingPagesRouteWithChildren
+  '/leads': typeof LeadsRoute
   '/live': typeof LiveRouteWithChildren
   '/videos': typeof VideosRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -182,6 +190,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/funnels': typeof FunnelsRouteWithChildren
   '/landing-pages': typeof LandingPagesRouteWithChildren
+  '/leads': typeof LeadsRoute
   '/live': typeof LiveRouteWithChildren
   '/videos': typeof VideosRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/funnels'
     | '/landing-pages'
+    | '/leads'
     | '/live'
     | '/videos'
     | '/auth/reset-password'
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/funnels'
     | '/landing-pages'
+    | '/leads'
     | '/live'
     | '/videos'
     | '/auth/reset-password'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/funnels'
     | '/landing-pages'
+    | '/leads'
     | '/live'
     | '/videos'
     | '/auth/reset-password'
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   FunnelsRoute: typeof FunnelsRouteWithChildren
   LandingPagesRoute: typeof LandingPagesRouteWithChildren
+  LeadsRoute: typeof LeadsRoute
   LiveRoute: typeof LiveRouteWithChildren
   VideosRoute: typeof VideosRoute
   FSlugRoute: typeof FSlugRoute
@@ -295,6 +308,13 @@ declare module '@tanstack/react-router' {
       path: '/live'
       fullPath: '/live'
       preLoaderRoute: typeof LiveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/landing-pages': {
@@ -505,6 +525,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   FunnelsRoute: FunnelsRouteWithChildren,
   LandingPagesRoute: LandingPagesRouteWithChildren,
+  LeadsRoute: LeadsRoute,
   LiveRoute: LiveRouteWithChildren,
   VideosRoute: VideosRoute,
   FSlugRoute: FSlugRoute,
