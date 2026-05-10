@@ -30,6 +30,18 @@ function jsonResponse(data: unknown, status = 200) {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  // Public version probe — no auth required. Lets us confirm which build is live.
+  const url = new URL(req.url);
+  if (req.method === "GET" || url.searchParams.get("ping") === "1") {
+    return jsonResponse({
+      build: "v=2026-05-10c",
+      key_id_prefix: RAZORPAY_KEY_ID ? RAZORPAY_KEY_ID.slice(0, 8) : null,
+      key_id_len: RAZORPAY_KEY_ID.length,
+      key_secret_len: RAZORPAY_KEY_SECRET.length,
+      mode_guess: RAZORPAY_KEY_ID.startsWith("rzp_test") ? "test" : RAZORPAY_KEY_ID.startsWith("rzp_live") ? "live" : "unknown",
+    });
+  }
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return jsonResponse({ error: "Unauthorized" }, 401);
