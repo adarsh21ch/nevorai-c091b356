@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Link as TLink, useLocation as useTLocation, useRouter } from "@tanstack/react-router";
+import { Link as TLink, useLocation as useTLocation, useRouter, useParams as useTParams } from "@tanstack/react-router";
 
 // Drop-in replacement for react-router-dom Link that accepts any string `to`.
 // Falls back to a plain anchor (full reload) if the path isn't a registered
@@ -33,6 +33,6 @@ export const useLocation = () => {
 };
 
 export const useParams = <T extends Record<string, string> = Record<string, string>>() => {
-  // Best-effort: TanStack params come from per-route hooks; this is a fallback.
-  return {} as T;
+  const params = useTParams({ strict: false }) as Record<string, string>;
+  return params as T;
 };
