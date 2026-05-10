@@ -139,42 +139,44 @@ export const LeakyFunnel = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: i * 0.08 }}
-                    className="flex items-center gap-4 md:gap-6"
                   >
-                    {/* Number */}
-                    <div className="w-16 md:w-24 shrink-0 text-right">
-                      <span
-                        className={`funnel-count${step.isFinal ? " funnel-count-final" : ""} font-bold ${
-                          step.isFinal ? "text-red-600" : "text-gray-900"
-                        }`}
-                        style={{ fontSize: step.isFinal ? 48 : 32 }}
-                      >
-                        {step.count}
-                      </span>
+                    <div className="flex items-center gap-4 md:gap-6">
+                      <div className="w-16 md:w-24 shrink-0 text-right leading-none">
+                        <span
+                          className={`funnel-count${step.isFinal ? " funnel-count-final" : ""} font-bold ${
+                            step.isFinal ? "text-red-600" : "text-gray-900"
+                          }`}
+                          style={{ fontSize: step.isFinal ? 48 : 32, lineHeight: 1 }}
+                        >
+                          {step.count}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <motion.div
+                          className="funnel-bar rounded-r-lg flex items-center px-4"
+                          style={{
+                            height: 40,
+                            background: step.isFinal
+                              ? "linear-gradient(90deg, #ef4444, #dc2626)"
+                              : `rgba(239, 68, 68, ${0.25 + (i * 0.1)})`,
+                          }}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${step.barWidth}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.7, delay: 0.2 + i * 0.08, ease: "easeOut" }}
+                        >
+                          {step.isFinal && (
+                            <span className="text-white text-xs md:text-sm font-bold whitespace-nowrap">
+                              8% converted 📉
+                            </span>
+                          )}
+                        </motion.div>
+                      </div>
                     </div>
-
-                    {/* Bar + labels */}
-                    <div className="flex-1 min-w-0">
-                      <motion.div
-                        className="funnel-bar rounded-r-lg flex items-center px-4"
-                        style={{
-                          height: 40,
-                          background: step.isFinal
-                            ? "linear-gradient(90deg, #ef4444, #dc2626)"
-                            : `rgba(239, 68, 68, ${0.25 + (i * 0.1)})`,
-                        }}
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${step.barWidth}%` }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.7, delay: 0.2 + i * 0.08, ease: "easeOut" }}
-                      >
-                        {step.isFinal && (
-                          <span className="text-white text-xs md:text-sm font-bold whitespace-nowrap">
-                            8% converted 📉
-                          </span>
-                        )}
-                      </motion.div>
-                      <div className="text-sm md:text-base font-semibold text-gray-800 mt-2">{step.label}</div>
+                    <div className="mt-2 pl-20 md:pl-[120px]">
+                      <div className="text-sm md:text-base font-semibold text-gray-800">
+                        {step.label}
+                      </div>
                       {step.sublabel && (
                         <div className="text-xs md:text-sm text-red-600 mt-0.5">↓ {step.sublabel}</div>
                       )}
@@ -235,41 +237,42 @@ export const LeakyFunnel = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.4, delay: i * 0.08 }}
-                    className="flex items-center gap-4 md:gap-6"
                   >
-                    {/* Number */}
-                    <div className="w-16 md:w-24 shrink-0 text-right">
-                      <span
-                        className={`funnel-count${step.isFinal ? " funnel-count-final" : ""} font-bold ${
-                          step.isFinal ? "text-emerald-400" : "text-white"
-                        }`}
-                        style={{ fontSize: step.isFinal ? 48 : 32 }}
-                      >
-                        {step.count}
-                      </span>
+                    <div className="flex items-center gap-4 md:gap-6">
+                      <div className="w-16 md:w-24 shrink-0 text-right leading-none">
+                        <span
+                          className={`funnel-count${step.isFinal ? " funnel-count-final" : ""} font-bold ${
+                            step.isFinal ? "text-emerald-400" : "text-white"
+                          }`}
+                          style={{ fontSize: step.isFinal ? 48 : 32, lineHeight: 1 }}
+                        >
+                          {step.count}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <motion.div
+                          className="funnel-bar rounded-r-lg flex items-center px-4"
+                          style={{
+                            height: 40,
+                            background: step.isFinal
+                              ? "linear-gradient(90deg, #00C896, #0066FF)"
+                              : `linear-gradient(90deg, rgba(0,200,150,${0.25 + i * 0.12}), rgba(0,102,255,${0.25 + i * 0.12}))`,
+                          }}
+                          initial={{ width: 0 }}
+                          whileInView={{ width: `${step.barWidth}%` }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.7, delay: 0.2 + i * 0.08, ease: "easeOut" }}
+                        >
+                          {step.isFinal && (
+                            <span className="text-white text-xs md:text-sm font-bold whitespace-nowrap">
+                              16–18% converted 📈
+                            </span>
+                          )}
+                        </motion.div>
+                      </div>
                     </div>
-
-                    <div className="flex-1 min-w-0">
-                      <motion.div
-                        className="funnel-bar rounded-r-lg flex items-center px-4"
-                        style={{
-                          height: 40,
-                          background: step.isFinal
-                            ? "linear-gradient(90deg, #00C896, #0066FF)"
-                            : `linear-gradient(90deg, rgba(0,200,150,${0.25 + i * 0.12}), rgba(0,102,255,${0.25 + i * 0.12}))`,
-                        }}
-                        initial={{ width: 0 }}
-                        whileInView={{ width: `${step.barWidth}%` }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.7, delay: 0.2 + i * 0.08, ease: "easeOut" }}
-                      >
-                        {step.isFinal && (
-                          <span className="text-white text-xs md:text-sm font-bold whitespace-nowrap">
-                            16–18% converted 📈
-                          </span>
-                        )}
-                      </motion.div>
-                      <div className="text-sm md:text-base font-semibold text-gray-100 mt-2">{step.label}</div>
+                    <div className="mt-2 pl-20 md:pl-[120px]">
+                      <div className="text-sm md:text-base font-semibold text-gray-100">{step.label}</div>
                       {step.sublabel && (
                         <div className="text-xs md:text-sm text-emerald-300 mt-0.5">✓ {step.sublabel}</div>
                       )}

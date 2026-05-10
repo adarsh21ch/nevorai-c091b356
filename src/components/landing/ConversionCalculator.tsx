@@ -102,9 +102,9 @@ export const ConversionCalculator = () => {
             <span>500</span>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-2 gap-4 items-stretch">
             <div
-              className="rounded-xl p-5"
+              className="rounded-xl p-5 h-full flex flex-col"
               style={{
                 background: "rgba(239,68,68,0.08)",
                 border: "1px solid rgba(239,68,68,0.2)",
@@ -122,7 +122,7 @@ export const ConversionCalculator = () => {
             </div>
 
             <div
-              className="rounded-xl p-5 relative"
+              className="rounded-xl p-5 relative h-full flex flex-col"
               style={{
                 background: "rgba(0,200,150,0.08)",
                 border: "1px solid rgba(0,200,150,0.3)",
