@@ -33,12 +33,43 @@ export const useTrialSettings = () => {
 export const useTrialStatus = (): TrialStatus => {
   const { user, profile } = useAuth();
   const { data: settings, isLoading: settingsLoading } = useTrialSettings();
+  const { data: liveStatus, isLoading: statusLoading } = useQuery({
+    queryKey: ["trial-status", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+
+      const [{ data: profileRow }, { data: activePaidSubscription }] = await Promise.all([
+        (supabase as any)
+          .from("profiles")
+          .select("subscription_status, trial_start_date")
+          .eq("id", user.id)
+          .maybeSingle(),
+        (supabase as any)
+          .from("user_subscriptions")
+          .select("tier")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .neq("tier", "free")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      return {
+        subscriptionStatus: activePaidSubscription ? "active" : (profileRow as any)?.subscription_status || "trial",
+        trialStartDate: (profileRow as any)?.trial_start_date || null,
+      };
+    },
+    enabled: !!user,
+    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+  });
 
   const isTrialEnabled = settings?.isTrialEnabled ?? true;
   const trialDays = settings?.trialDays ?? 7;
 
-  const status = (profile as any)?.subscription_status || "trial";
-  const startRaw = (profile as any)?.trial_start_date;
+  const status = liveStatus?.subscriptionStatus || (profile as any)?.subscription_status || "trial";
+  const startRaw = liveStatus?.trialStartDate || (profile as any)?.trial_start_date;
 
   let daysRemaining: number | null = null;
   let isTrialExpired = false;
@@ -61,6 +92,6 @@ export const useTrialStatus = (): TrialStatus => {
     daysRemaining,
     isTrialExpired,
     subscriptionStatus: status,
-    isLoading: settingsLoading || (!!user && !profile),
+    isLoading: settingsLoading || (!!user && statusLoading),
   };
 };

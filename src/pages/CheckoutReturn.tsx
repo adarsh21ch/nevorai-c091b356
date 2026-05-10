@@ -15,7 +15,11 @@ const CheckoutReturn = () => {
   useEffect(() => {
     // Webhook updates user_subscriptions; refresh queries
     qc.invalidateQueries({ queryKey: ["subscription"] });
-    qc.invalidateQueries({ queryKey: ["plan"] });
+    qc.invalidateQueries({ queryKey: ["user-plan"] });
+    qc.invalidateQueries({ queryKey: ["plan-config"] });
+    qc.invalidateQueries({ queryKey: ["trial-status"] });
+    qc.invalidateQueries({ queryKey: ["monthly-views"] });
+    qc.invalidateQueries({ queryKey: ["user-daily-views-today"] });
   }, [qc]);
 
   return (

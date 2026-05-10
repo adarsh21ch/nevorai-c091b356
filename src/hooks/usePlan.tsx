@@ -147,6 +147,11 @@ export const usePlan = () => {
     queryClient.invalidateQueries({ queryKey: ["user-plan"] });
     queryClient.invalidateQueries({ queryKey: ["subscription"] });
     queryClient.invalidateQueries({ queryKey: ["plan-config"] });
+    queryClient.invalidateQueries({ queryKey: ["trial-status"] });
+    queryClient.invalidateQueries({ queryKey: ["monthly-views"] });
+    queryClient.invalidateQueries({ queryKey: ["user-daily-views-today"] });
+    queryClient.invalidateQueries({ queryKey: ["profile-daily-views-override"] });
+    queryClient.invalidateQueries({ queryKey: ["profile-unlimited"] });
   }, [queryClient]);
 
   return { plan, canAccess, canCreate, canUseMultiStep, isLoading, refreshPlan };

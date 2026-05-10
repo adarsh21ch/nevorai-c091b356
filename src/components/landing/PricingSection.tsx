@@ -141,7 +141,7 @@ const buildFeatures = (config: any) => {
 export const PricingSection = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const { plan: userPlan } = usePlan();
+  const { plan: userPlan, refreshPlan } = usePlan();
   const { isMember: isNevoraiMember } = useNevoraiMember();
   const { openSupport } = useWhatsAppSupport();
   const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
@@ -250,6 +250,7 @@ export const PricingSection = () => {
             });
             if (verifyError) throw verifyError;
             toast.success(`Payment successful! Welcome to ${planName} 🎉`, { duration: 6000 });
+            refreshPlan();
             setTimeout(() => navigate("/billing"), 1500);
           } catch {
             toast.error("Payment received but verification pending. Contact support.");
@@ -274,7 +275,7 @@ export const PricingSection = () => {
       toast.error(err.message || "Something went wrong");
       setLoadingPlan(null);
     }
-  }, [user, profile, planConfigs, navigate, openSupport]);
+  }, [user, profile, planConfigs, navigate, openSupport, refreshPlan]);
 
 
   const freeConfig = planConfigs.find((c: any) => c.plan_name === "free");

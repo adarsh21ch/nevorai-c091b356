@@ -302,6 +302,10 @@ Deno.serve(async (req) => {
         expires_at: expiresAt,
       });
 
+      await serviceClient.from("profiles").update({
+        subscription_status: "active",
+      }).eq("id", user.id);
+
       // Persist tier selection on profile so monthly limits derive correctly
       if (tierRow) {
         await serviceClient.from("profiles").update({
