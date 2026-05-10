@@ -669,26 +669,6 @@ const PricingFullPage = () => {
       </div>
       <Footer />
 
-      {/* Stripe Embedded Checkout dialog */}
-      <Dialog open={!!stripeCheckout} onOpenChange={(o) => !o && setStripeCheckout(null)}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden">
-          <DialogHeader className="p-6 pb-2">
-            <DialogTitle>Complete your subscription</DialogTitle>
-            <DialogDescription>
-              Secure checkout powered by Stripe. 7-day money-back guarantee.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="px-6 pb-6 max-h-[80vh] overflow-y-auto">
-            {stripeCheckout && (
-              <StripeEmbeddedCheckout
-                priceId={stripeCheckout.priceId}
-                customerEmail={user?.email}
-                userId={user?.id}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
