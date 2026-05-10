@@ -301,13 +301,11 @@ export default function AuthPage() {
       } catch { /* lockout RPC missing — proceed */ }
 
       const { error } = await signIn(form.email, form.password);
-      try {
-        await supabase.rpc("record_auth_attempt", { _email: form.email, _ip: null, _success: !error });
-      } catch { /* ignore */ }
+      void supabase.rpc("record_auth_attempt", { _email: form.email, _ip: null, _success: !error }).catch(() => undefined);
 
       if (error) { toast.error("Invalid email or password."); return; }
       toast.success("Welcome back!");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard", replace: true });
     } finally { setSubmitting(false); }
   };
 
@@ -319,7 +317,7 @@ export default function AuthPage() {
       const { error } = await supabase.auth.updateUser({ password: form.password });
       if (error) { toast.error(error.message || "Could not set password."); return; }
       toast.success("Password set.");
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/dashboard", replace: true });
     } finally { setSubmitting(false); }
   };
 
