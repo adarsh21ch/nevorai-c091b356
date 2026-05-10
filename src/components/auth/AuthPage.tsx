@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import { Route as AuthRoute } from "@/routes/auth";
 import { Button } from "@/components/ui/button";
@@ -78,8 +78,6 @@ export default function AuthPage() {
     setNevoraiInfo(null);
     setOtp("");
     setForm((f) => ({ ...f, password: "", name: "", phone: "" }));
-    setAutoCheckStatus("idle");
-    setAutoCheckInfo(null);
   };
 
   const handleContinue = async (e: React.FormEvent) => {
@@ -127,7 +125,7 @@ export default function AuthPage() {
       if (error) throw error;
       if (!data?.success) {
         setOtpShake(true); setTimeout(() => setOtpShake(false), 500);
-        setOtp(""); lastAutoSubmittedRef.current = "";
+        setOtp("");
         otpInputRef.current?.focus();
         toast.error(data?.error || "Incorrect code.");
         return;
@@ -387,7 +385,7 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-xs mt-6" style={{ color: "var(--color-hero-muted)" }}>
-          By continuing, you agree to our <Link to="/" className="text-primary hover:underline">Terms</Link> and <Link to="/" className="text-primary hover:underline">Privacy Policy</Link>.
+          By continuing, you agree to our <Link to="/terms" className="text-primary hover:underline">Terms</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
         </p>
       </div>
     </div>
