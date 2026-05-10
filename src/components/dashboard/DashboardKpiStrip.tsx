@@ -65,8 +65,7 @@ export const DashboardKpiStrip = () => {
 
   return (
     <div
-      className="flex flex-wrap items-center gap-4 rounded-2xl border border-emerald-500/15 px-5 py-4"
-      style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.06) 0%, hsl(var(--primary) / 0.02) 100%)" }}
+      className="flex flex-wrap items-center gap-4 rounded-2xl border border-emerald-500/15 px-5 py-4 bg-gradient-to-br from-primary/[0.06] to-primary/[0.02]"
     >
       <div className="flex min-w-[140px] items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10">
