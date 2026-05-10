@@ -312,7 +312,7 @@ const PricingFullPage = () => {
     // Clear the param so refreshes don't re-trigger
     const next = new URLSearchParams(searchParams);
     next.delete("plan");
-    setSearchParams(next, { replace: true });
+    setSearchParams(next);
     // Slight delay so the modal opens cleanly after mount
     setTimeout(() => handlePayment(target), 250);
   }, [searchParams, user, planConfigs, handlePayment, setSearchParams]);
