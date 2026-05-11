@@ -137,6 +137,9 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Latest video — share-first spotlight */}
+        {latestVideo && <LatestVideoShareCard video={latestVideo} />}
+
         {/* Plan + view limits strip */}
         <DashboardKpiStrip />
 
