@@ -6,7 +6,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { Video, Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2 } from "lucide-react";
+import { Video, Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { VideoLinkModal } from "@/components/VideoLinkModal";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VideoShareModal } from "@/components/VideoShareModal";
