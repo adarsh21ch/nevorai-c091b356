@@ -55,7 +55,9 @@ Deno.serve(async (req) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const publicKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
+    const publicProbeClient = createClient(supabaseUrl, publicKey);
     const callerUserId = await getCallerUserId(req, supabaseUrl);
 
     // Fetch funnel — explicit safe column list (NEVER include access_code_*
@@ -66,18 +68,53 @@ Deno.serve(async (req) => {
         "id, owner_id, title, slug, description, video_asset_id, thumbnail_url, is_published, visibility, intent_type, allow_seek, allow_speed_change, cta_enabled, cta_text, cta_timing_seconds, cta_url, lock_cta, audio_note_url, audio_note_timing, audio_note_autoplay, audio_lock_video, show_contact_buttons, contact_whatsapp, contact_phone, contact_instagram, show_contact_after_cta, whatsapp_auto_message, whatsapp_message_template, payment_enabled, upi_id, qr_code_url, payment_instructions, total_views, funnel_mode, required_fields, speaker_mode, speaker_name, speaker_photo_url, speaker_about, video_topics_enabled, video_topics"
       )
       .eq("slug", slug)
-      .single();
+      .maybeSingle();
+
+    const { data: publicVisibleRow, error: publicProbeErr } = await publicProbeClient
+      .from("funnels")
+      .select("id, slug, is_published, visibility")
+      .eq("slug", slug)
+      .maybeSingle();
+
+    let callerIsAdmin = false;
+    if (callerUserId) {
+      const { data } = await supabase.rpc("has_role", { _user_id: callerUserId, _role: "admin" });
+      callerIsAdmin = data === true;
+    }
+
+    const logNotFoundDiagnostics = (reason: string) => {
+      console.warn("[get-funnel-data] preview unavailable", {
+        reason,
+        requested_slug: slug,
+        row_exists_ignoring_status: !!funnel,
+        row_status: funnel
+          ? {
+              is_published: funnel.is_published ?? null,
+              visibility: funnel.visibility ?? null,
+            }
+          : null,
+        public_query_returned_zero_rows: !publicVisibleRow && !publicProbeErr,
+        public_query_error: publicProbeErr?.message ?? null,
+        caller_is_owner: !!callerUserId && funnel?.owner_id === callerUserId,
+        caller_is_admin: callerIsAdmin,
+      });
+    };
 
     if (funnelErr || !funnel) {
-      return new Response(JSON.stringify({ error: "Funnel not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      logNotFoundDiagnostics("no_row_for_slug");
+      return json({ error: "Funnel not found" }, 404);
+    }
+
+    const canPreviewDraft = !!callerUserId && (callerUserId === funnel.owner_id || callerIsAdmin);
+    if (funnel.is_published !== true && !canPreviewDraft) {
+      logNotFoundDiagnostics("not_published_for_public");
+      return json({ error: "Funnel not found" }, 404);
     }
 
     // View-limit gate (daily / monthly / both — driven by plan's view_limit_mode).
     // Returns blocked:true so the public viewer can render the calm "unavailable" gate.
     try {
+      if (funnel.is_published !== true) throw new Error("skip_limit_check_for_draft_preview");
       const { data: overLimit } = await supabase.rpc("is_funnel_over_monthly_limit", { _funnel_id: funnel.id });
       if (overLimit === true) {
         const { data: ownerProfile } = await supabase
@@ -276,7 +313,9 @@ Deno.serve(async (req) => {
     );
 
     // Atomic view count increment — fire-and-forget, non-blocking
-    supabase.rpc("increment_funnel_views", { _funnel_id: funnel.id }).then(() => {});
+    if (funnel.is_published === true) {
+      supabase.rpc("increment_funnel_views", { _funnel_id: funnel.id }).then(() => {});
+    }
 
     const results = await Promise.all(promises);
     const resultMap: Record<string, any> = {};
