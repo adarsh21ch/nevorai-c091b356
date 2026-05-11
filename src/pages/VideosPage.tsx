@@ -214,10 +214,25 @@ const VideosPage = () => {
             {filtered.map((v) => (
               <div key={v.id} className="premium-card p-3 sm:p-4 w-full max-w-full box-border min-w-0">
                 {/* Thumbnail */}
-                <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden w-full max-w-full">
+                <div className="relative aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden w-full max-w-full">
                   {v.thumbnail_url ? <img src={v.thumbnail_url} alt={v.title} className="w-full h-full object-cover rounded-lg block" /> :
                     v.public_url ? <video src={v.public_url} preload="metadata" playsInline muted className="w-full h-full object-cover rounded-lg block" /> :
                     <Video size={24} className="text-muted-foreground" />}
+                  {formatDuration(v.duration_seconds) && (
+                    <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/75 text-white tabular-nums">
+                      <Clock size={10} className="inline mr-1 -mt-0.5" />{formatDuration(v.duration_seconds)}
+                    </span>
+                  )}
+                  {v.status !== "ready" && v.status !== "failed" && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <Loader2 size={20} className="text-white animate-spin" />
+                    </div>
+                  )}
+                  {v.status === "failed" && (
+                    <div className="absolute inset-0 bg-destructive/30 flex items-center justify-center">
+                      <AlertTriangle size={22} className="text-destructive-foreground" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Title & meta */}
@@ -239,17 +254,26 @@ const VideosPage = () => {
                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setRenameVideo({ id: v.id, title: v.title })} title="Rename">
                     <Pencil size={15} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => copyLink(v.id)} title="Copy Link">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => copyLink(v.id)} title="Copy Link" disabled={v.status !== "ready"}>
                     <Copy size={15} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setShareVideo({ id: v.id, title: v.title })} title="Share">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setShareVideo({ id: v.id, title: v.title })} title="Share" disabled={v.status !== "ready"}>
                     <Share2 size={15} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => useInFunnel(v.id)} title="Use in Funnel">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => useInFunnel(v.id)} title="Use in Funnel" disabled={v.status !== "ready"}>
                     <Rocket size={15} />
                   </Button>
-                  {v._source === "linked" && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:text-destructive" onClick={() => removeLinkedVideo(v.id)} title="Remove">
+                  {v._source === "own" && v.status === "failed" && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-warning hover:text-warning" onClick={() => retryFailed(v.id)} title="Retry">
+                      <RefreshCw size={15} />
+                    </Button>
+                  )}
+                  {v._source === "linked" ? (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:text-destructive" onClick={() => removeLinkedVideo(v.id)} title="Remove from gallery">
+                      <Trash2 size={15} />
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:text-destructive" onClick={() => setDeleteVideo({ id: v.id, title: v.title })} title="Delete">
                       <Trash2 size={15} />
                     </Button>
                   )}
