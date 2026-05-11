@@ -29,6 +29,8 @@ const VideosPage = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
   const [renameVideo, setRenameVideo] = useState<{ id: string; title: string } | null>(null);
+  const [deleteVideo, setDeleteVideo] = useState<{ id: string; title: string } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "ready" | "processing" | "failed">("all");
 
   const { data: ownVideos = [], isLoading } = useQuery({
     queryKey: ["videos", user?.id],
