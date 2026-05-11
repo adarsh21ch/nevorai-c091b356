@@ -30,7 +30,7 @@ export interface PlanInfo {
   limits: PlanLimits;
 }
 
-const FREE_LIMITS: PlanLimits = {
+const FREE_LIMITS_FALLBACK: PlanLimits = {
   funnel_limit: 1,
   video_limit: 3,
   video_max_size_mb: 100,
@@ -86,6 +86,31 @@ export const usePlan = () => {
     gcTime: 15 * 60 * 1000,
   });
 
+  // Free-tier limits live in plan_config (admin-driven). Read once and fall
+  // back to constants if the row is missing so usePlan never returns null.
+  const { data: freePlanCfg } = useQuery({
+    queryKey: ["plan-config-free"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("plan_config")
+        .select("max_funnels, max_videos, max_storage_mb, max_landing_pages, max_live_sessions, multilevel_funnel_enabled")
+        .eq("plan_name", "free")
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 10 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+  });
+
+  const freeLimits: PlanLimits = freePlanCfg ? {
+    funnel_limit: freePlanCfg.max_funnels ?? FREE_LIMITS_FALLBACK.funnel_limit,
+    video_limit: freePlanCfg.max_videos ?? FREE_LIMITS_FALLBACK.video_limit,
+    video_max_size_mb: freePlanCfg.max_storage_mb ?? FREE_LIMITS_FALLBACK.video_max_size_mb,
+    landing_page_limit: freePlanCfg.max_landing_pages ?? FREE_LIMITS_FALLBACK.landing_page_limit,
+    live_session_limit: freePlanCfg.max_live_sessions ?? FREE_LIMITS_FALLBACK.live_session_limit,
+    multi_step_funnel_enabled: !!freePlanCfg.multilevel_funnel_enabled,
+  } : FREE_LIMITS_FALLBACK;
+
   const now = new Date();
   const expiresAt = subscription?.expires_at ? new Date(subscription.expires_at) : null;
   const isExpired = expiresAt ? expiresAt < now : false;
@@ -93,7 +118,7 @@ export const usePlan = () => {
   const isExpiringSoon = daysLeft !== null && daysLeft <= 7 && daysLeft > 0;
 
   const isActive = subscription?.status === "active" && !isExpired;
-  const isPaid = isActive && subscription?.tier !== "free";
+  const isPaid = isActive && subscription?.tier && subscription.tier !== "free";
   const tier = trialActive ? "trial" : (isActive ? (subscription?.tier || "free") : "free");
 
   const limits: PlanLimits = (isPaid || trialActive) && planConfig ? {
@@ -103,7 +128,7 @@ export const usePlan = () => {
     landing_page_limit: (planConfig as any).landing_page_limit ?? null,
     live_session_limit: (planConfig as any).live_session_limit ?? null,
     multi_step_funnel_enabled: (planConfig as any).multi_step_funnel_enabled ?? false,
-  } : FREE_LIMITS;
+  } : freeLimits;
 
   const plan: PlanInfo = {
     isActive,
