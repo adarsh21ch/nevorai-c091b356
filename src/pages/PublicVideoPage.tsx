@@ -135,6 +135,7 @@ const PublicVideoPage = () => {
           onSuccess={() => { setVideoError(false); setReuploadOpen(false); refetch(); }}
         />
       )}
+      <BrandingWatermark ownerId={video?.owner_id} />
     </div>
   );
 };
