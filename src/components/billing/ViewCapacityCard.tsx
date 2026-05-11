@@ -159,94 +159,67 @@ export function ViewCapacityCard() {
   };
 
   return (
-    <div ref={ref} id="view-capacity" className="glass-card p-6 space-y-5 scroll-mt-24">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-          <Eye size={18} className="text-primary" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold">View Capacity</h3>
-          <p className="text-sm text-muted-foreground">
-            Upgrade anytime. Pay only the prorated difference for the days remaining in your cycle.
-          </p>
-        </div>
-      </div>
-
-      {/* Current tier */}
-      {currentTier && (
-        <div className="rounded-2xl border border-primary/30 bg-primary/[0.06] p-4 flex flex-wrap items-center gap-3">
-          <span className="text-[10px] uppercase tracking-wider font-bold text-primary">Your current tier</span>
-          <div className="flex-1 min-w-[140px]">
-            <div className="text-lg font-heading font-bold">
-              {currentTier.daily_views === -1 ? "∞" : currentTier.daily_views}
-              <span className="text-xs font-normal text-muted-foreground"> views/day</span>
-            </div>
-            <p className="text-[11px] text-muted-foreground">
-              {currentTier.daily_views === -1 ? "Unlimited" : `${fmt(currentTier.daily_views * 30)} views/month`}
+    <div ref={ref} id="view-capacity" className="glass-card p-5 space-y-4 scroll-mt-24">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <Eye size={16} className="text-primary" />
+          <div>
+            <h3 className="font-semibold text-sm">Increase View Limit</h3>
+            <p className="text-xs text-muted-foreground">
+              Upgrade your daily view limit within your current plan. Pay only the prorated difference today.
             </p>
           </div>
-          <div className="text-right">
-            <div className="text-sm font-bold">₹{fmt(currentTier.monthly_price)}<span className="text-[11px] font-normal text-muted-foreground">/mo</span></div>
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-500"><Check size={10} /> Active</span>
-          </div>
         </div>
-      )}
+        {currentTier && (
+          <div className="text-xs px-2.5 py-1 rounded-md border border-border bg-muted/30 text-muted-foreground">
+            Current: <span className="font-semibold text-foreground">{currentTier.daily_views === -1 ? "∞" : currentTier.daily_views}</span>/day · ₹{fmt(currentTier.monthly_price)}/mo
+          </div>
+        )}
+      </div>
 
-      {/* Higher tiers */}
       {higherTiers.length > 0 ? (
-        <>
-          <div className="flex items-center gap-3">
-            <div className="h-px flex-1 bg-border" />
-            <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Upgrade to</span>
-            <div className="h-px flex-1 bg-border" />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {higherTiers.map((t) => (
-              <div
-                key={t.id}
-                className={`relative rounded-2xl border p-4 transition-all ${
-                  t.is_popular ? "border-primary/50 bg-primary/5" : "border-border bg-card/40 hover:border-border/80"
-                }`}
-              >
-                {t.is_popular && (
-                  <span className="absolute -top-2 right-3 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase text-primary-foreground">
-                    Most Popular
-                  </span>
-                )}
-                <div className="text-2xl font-heading font-extrabold">
-                  {t.daily_views === -1 ? "∞" : t.daily_views}
-                  <span className="text-sm font-normal text-muted-foreground"> /day</span>
-                </div>
-                <p className="text-[11px] text-muted-foreground">
-                  {t.daily_views === -1 ? "Unlimited" : `${fmt(t.daily_views * 30)} views/month`}
-                </p>
-                <div className="mt-3 mb-3 text-lg font-heading font-bold">
-                  ₹{fmt(t.monthly_price)}
-                  <span className="text-xs font-normal text-muted-foreground">/mo</span>
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full gap-1"
-                  onClick={() => setConfirmTier(t)}
-                >
-                  Upgrade <ArrowRight size={13} />
-                </Button>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
+          {higherTiers.map((t) => (
+            <div
+              key={t.id}
+              className={`relative rounded-xl border p-3 transition-all flex flex-col ${
+                t.is_popular ? "border-primary/50 bg-primary/5" : "border-border bg-card/40 hover:border-border/80"
+              }`}
+            >
+              {t.is_popular && (
+                <span className="absolute -top-2 right-2 rounded-full bg-primary px-1.5 py-0.5 text-[9px] font-bold uppercase text-primary-foreground">
+                  Popular
+                </span>
+              )}
+              <div className="text-lg font-heading font-extrabold leading-none">
+                {t.daily_views === -1 ? "∞" : t.daily_views}
+                <span className="text-[11px] font-normal text-muted-foreground"> /day</span>
               </div>
-            ))}
-          </div>
-        </>
+              <p className="text-[10px] text-muted-foreground mt-0.5">
+                {t.daily_views === -1 ? "Unlimited monthly" : `${fmt(t.daily_views * 30)} /mo`}
+              </p>
+              <div className="mt-2 mb-2.5 text-sm font-heading font-bold">
+                ₹{fmt(t.monthly_price)}<span className="text-[10px] font-normal text-muted-foreground">/mo</span>
+              </div>
+              <Button
+                size="sm"
+                variant={t.is_popular ? "default" : "outline"}
+                className="w-full h-8 text-xs gap-1 mt-auto"
+                onClick={() => setConfirmTier(t)}
+              >
+                Upgrade <ArrowRight size={11} />
+              </Button>
+            </div>
+          ))}
+        </div>
       ) : (
-        <div className="rounded-xl border border-border bg-muted/20 p-4 text-sm text-muted-foreground">
+        <div className="rounded-lg border border-border bg-muted/20 p-3 text-xs text-muted-foreground">
           You're on the highest {planBase} tier.
           {planBase === "basic" && (
-            <> <a className="text-primary underline" href="/pricing">Switch to Pro</a> for higher daily limits and more features.</>
+            <> <a className="text-primary underline" href="/pricing">Switch to Pro</a> for higher limits.</>
           )}
         </div>
       )}
-
-      <p className="text-[11px] text-muted-foreground">
-        Pay only for the days remaining in your current cycle. From the next renewal, you'll be charged the new tier's full price.
-      </p>
 
       {/* Confirm modal — prorated breakdown */}
       <Dialog open={!!confirmTier} onOpenChange={(o) => !o && !busy && setConfirmTier(null)}>

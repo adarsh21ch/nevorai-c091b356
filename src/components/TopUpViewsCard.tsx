@@ -106,59 +106,49 @@ export function TopUpViewsCard({ onPurchased }: { onPurchased?: () => void }) {
   };
 
   return (
-    <div className="glass-card p-6 space-y-5">
-      <div className="flex items-start gap-3">
-        <div className="w-10 h-10 rounded-full bg-amber-500/15 flex items-center justify-center shrink-0">
-          <Zap size={18} className="text-amber-500" />
-        </div>
-        <div className="flex-1">
-          <h3 className="font-semibold">Need more views this month?</h3>
-          <p className="text-sm text-muted-foreground">
-            Top up extra funnel views — valid until the end of the current month.
-          </p>
-          {config.extra_views_purchased > 0 && config.extra_views_expires_at && (
-            <p className="text-xs text-emerald-500 mt-1">
-              You have <strong>{config.extra_views_purchased.toLocaleString("en-IN")}</strong> extra views, valid until {format(new Date(config.extra_views_expires_at), "dd MMM yyyy")}.
+    <div className="glass-card p-5 space-y-4">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2.5">
+          <Zap size={16} className="text-amber-500" />
+          <div>
+            <h3 className="font-semibold text-sm">One-time extra views</h3>
+            <p className="text-xs text-muted-foreground">
+              One-time, valid until end of current month. Does not auto-renew.
             </p>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Units</p>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setUnits(Math.max(1, units - 1))} disabled={loading || units <= 1}>
-              <Minus size={14} />
-            </Button>
-            <div className="flex-1 text-center font-heading font-semibold text-lg">{units}</div>
-            <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => setUnits(Math.min(100, units + 1))} disabled={loading || units >= 100}>
-              <Plus size={14} />
-            </Button>
           </div>
-          <p className="text-[11px] text-muted-foreground mt-1">
-            {config.unit_size.toLocaleString("en-IN")} views per unit
-          </p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">You'll get</p>
-          <p className="font-heading text-xl font-bold">+{totalViews.toLocaleString("en-IN")}</p>
-          <p className="text-[11px] text-muted-foreground">views added immediately</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1.5">Total</p>
-          <p className="font-heading text-xl font-bold">₹{totalPrice.toLocaleString("en-IN")}</p>
-          <p className="text-[11px] text-muted-foreground">one-time, no auto-renew</p>
-        </div>
+        {config.extra_views_purchased > 0 && config.extra_views_expires_at && (
+          <span className="text-[11px] text-emerald-500 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+            +{config.extra_views_purchased.toLocaleString("en-IN")} active · until {format(new Date(config.extra_views_expires_at), "dd MMM")}
+          </span>
+        )}
       </div>
 
-      <Button onClick={handleBuy} disabled={loading} className="w-full md:w-auto gap-2">
-        <Zap size={16} />
-        {loading ? "Opening checkout…" : `Buy ${totalViews.toLocaleString("en-IN")} views for ₹${totalPrice.toLocaleString("en-IN")}`}
-      </Button>
-      <p className="text-[11px] text-muted-foreground">
-        Extra views expire at the end of this month and don't roll over. Unused views are not refundable.
-      </p>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5">
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setUnits(Math.max(1, units - 1))} disabled={loading || units <= 1}>
+            <Minus size={12} />
+          </Button>
+          <div className="w-10 text-center font-heading font-semibold">{units}</div>
+          <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setUnits(Math.min(100, units + 1))} disabled={loading || units >= 100}>
+            <Plus size={12} />
+          </Button>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          ×&nbsp;{config.unit_size.toLocaleString("en-IN")} views
+        </div>
+        <div className="text-sm">
+          = <span className="font-heading font-bold text-foreground">+{totalViews.toLocaleString("en-IN")}</span> views
+        </div>
+        <div className="text-sm ml-auto">
+          <span className="font-heading font-bold text-foreground">₹{totalPrice.toLocaleString("en-IN")}</span>
+          <span className="text-[11px] text-muted-foreground"> total</span>
+        </div>
+        <Button onClick={handleBuy} disabled={loading} size="sm" className="gap-1.5">
+          <Zap size={13} />
+          {loading ? "Opening…" : "Buy now"}
+        </Button>
+      </div>
     </div>
   );
 }
