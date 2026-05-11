@@ -41,6 +41,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const monthly = useMonthlyViews();
   const daily = useDailyViews();
+  const { hasVideos, latestVideo, isLoading: videosLoading } = useHasVideos();
+
+  // Upload-first onboarding: brand-new users with zero videos go straight to upload.
+  if (user && !videosLoading && !hasVideos) {
+    return <Navigate to="/onboarding-upload" />;
+  }
+
 
   const { data: funnels = [] } = useQuery({
     queryKey: ["my-funnels", user?.id],
