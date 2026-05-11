@@ -1,6 +1,6 @@
 import { useParams, Link } from "@/lib/router-compat";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseProjectUrl, supabasePublishableKey } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -721,11 +721,40 @@ const PublicFunnel = () => {
   const { data: bundle, isLoading } = useQuery({
     queryKey: ["public-funnel-bundle", slug],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("get-funnel-data", {
-        body: { slug },
+      console.info("[PublicFunnel] loading slug", {
+        slug,
+        path: typeof window !== "undefined" ? window.location.pathname : null,
       });
-      if (error) throw new Error(error.message || "Not found");
-      return data;
+
+      const requestUrl = `${supabaseProjectUrl}/functions/v1/get-funnel-data?slug=${encodeURIComponent(slug ?? "")}`;
+      const response = await fetch(requestUrl, {
+        method: "GET",
+        headers: {
+          apikey: supabasePublishableKey,
+          Authorization: `Bearer ${supabasePublishableKey}`,
+        },
+      });
+
+      let payload: any = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = null;
+      }
+
+      console.info("[PublicFunnel] get-funnel-data response", {
+        slug,
+        requestUrl,
+        status: response.status,
+        ok: response.ok,
+        data: payload,
+      });
+
+      if (!response.ok) {
+        throw new Error(payload?.error || payload?.message || `Request failed (${response.status})`);
+      }
+
+      return payload;
     },
     enabled: !!slug,
     staleTime: 5 * 60 * 1000,
