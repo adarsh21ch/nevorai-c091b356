@@ -125,6 +125,31 @@ const PublicVideoPage = () => {
         </div>
 
         <h1 className="text-2xl font-heading font-bold mb-2">{video.title}</h1>
+
+        {/* Creator strip — YouTube-style */}
+        {creator && (
+          <div className="mb-4 flex items-center gap-3 rounded-xl border border-border bg-card/40 p-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-primary">
+              {creator.avatar_url ? (
+                <img src={creator.avatar_url} alt={creator.full_name || "Creator"} className="h-full w-full object-cover" />
+              ) : (
+                <UserIcon size={18} />
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <p className="truncate text-sm font-heading font-semibold">{creator.full_name || "Creator"}</p>
+                {creator.kyc_status === "verified" && (
+                  <span title="Verified creator" className="inline-flex items-center text-primary">
+                    <BadgeCheck size={15} />
+                  </span>
+                )}
+              </div>
+              {creator.city && <p className="truncate text-xs text-muted-foreground">{creator.city}</p>}
+            </div>
+          </div>
+        )}
+
         {video.description && <p className="text-sm text-muted-foreground mb-4">{video.description}</p>}
         {video.duration_seconds && (
           <p className="text-xs text-muted-foreground">
