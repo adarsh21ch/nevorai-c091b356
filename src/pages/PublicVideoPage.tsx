@@ -3,7 +3,7 @@ import { useParams } from "@/lib/router-compat";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/landing/Logo";
-import { Video, AlertTriangle } from "lucide-react";
+import { Video, AlertTriangle, BadgeCheck, User as UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
