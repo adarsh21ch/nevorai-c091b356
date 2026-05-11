@@ -275,7 +275,17 @@ Deno.serve(async (req) => {
     // Manual/free billing types are also treated as active (admin-granted).
     const manualGrant = !!sub && sub.status === "active" && sub.billing_type === "manual";
 
-    const creatorActive = hasPaidSub || trialActive || manualGrant;
+    // Default to ACTIVE unless we can prove the creator's access has lapsed.
+    // Quota / view-limit gating is handled separately by is_funnel_over_monthly_limit
+    // above, so we should never block legit free-tier or unsubscribed creators
+    // here. Only an explicit "expired"/"cancelled" status counts as inactive.
+    const explicitlyInactive =
+      creator.subscription_status === "expired" ||
+      creator.subscription_status === "cancelled" ||
+      (sub && sub.status === "payment_failed");
+
+    const creatorActive =
+      hasPaidSub || trialActive || manualGrant || !explicitlyInactive;
 
     const payload = {
       funnel,
