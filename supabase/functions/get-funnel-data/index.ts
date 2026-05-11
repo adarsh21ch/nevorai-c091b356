@@ -6,6 +6,33 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "GET, OPTIONS",
 };
 
+const json = (body: unknown, status = 200, extraHeaders: Record<string, string> = {}) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "application/json",
+      ...extraHeaders,
+    },
+  });
+
+async function getCallerUserId(req: Request, supabaseUrl: string) {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader?.startsWith("Bearer ")) return null;
+
+  const authClient = createClient(
+    supabaseUrl,
+    Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!,
+    { global: { headers: { Authorization: authHeader } } },
+  );
+
+  const {
+    data: { user },
+  } = await authClient.auth.getUser();
+
+  return user?.id ?? null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -13,17 +40,23 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const slug = url.searchParams.get("slug");
+    let slug = url.searchParams.get("slug");
+    if (!slug && req.method !== "GET") {
+      try {
+        const body = await req.json();
+        slug = body?.slug ?? null;
+      } catch (_) {
+        slug = null;
+      }
+    }
     if (!slug) {
-      return new Response(JSON.stringify({ error: "slug is required" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return json({ error: "slug is required" }, 400);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceKey);
+    const callerUserId = await getCallerUserId(req, supabaseUrl);
 
     // Fetch funnel — explicit safe column list (NEVER include access_code_*
     // or password_hash; verification happens server-side only).
