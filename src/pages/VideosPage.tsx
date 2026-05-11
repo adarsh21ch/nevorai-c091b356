@@ -6,7 +6,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { Video, Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2 } from "lucide-react";
+import { Video, Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Clock, AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { VideoLinkModal } from "@/components/VideoLinkModal";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VideoShareModal } from "@/components/VideoShareModal";
@@ -25,6 +29,8 @@ const VideosPage = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
   const [renameVideo, setRenameVideo] = useState<{ id: string; title: string } | null>(null);
+  const [deleteVideo, setDeleteVideo] = useState<{ id: string; title: string } | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "ready" | "processing" | "failed">("all");
 
   const { data: ownVideos = [], isLoading } = useQuery({
     queryKey: ["videos", user?.id],
@@ -52,13 +58,31 @@ const VideosPage = () => {
     ...sharedVideos.filter((sv) => !ownVideos.find((ov) => ov.id === sv.id)).map((v) => ({ ...v, _source: "linked" as const })),
   ];
 
-  const filtered = allVideos.filter((v) => !search || v.title.toLowerCase().includes(search.toLowerCase()));
+  const counts = {
+    all: allVideos.length,
+    ready: allVideos.filter((v) => v.status === "ready").length,
+    processing: allVideos.filter((v) => v.status !== "ready" && v.status !== "failed").length,
+    failed: allVideos.filter((v) => v.status === "failed").length,
+  };
+
+  const filtered = allVideos
+    .filter((v) => statusFilter === "all" ? true
+      : statusFilter === "processing" ? (v.status !== "ready" && v.status !== "failed")
+      : v.status === statusFilter)
+    .filter((v) => !search || v.title.toLowerCase().includes(search.toLowerCase()));
 
   const formatSize = (bytes: number | null) => {
     if (!bytes) return "—";
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
     if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+  };
+
+  const formatDuration = (sec: number | null | undefined) => {
+    if (!sec || sec <= 0) return null;
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
   };
 
   const useInFunnel = (videoId: string) => {
@@ -85,10 +109,31 @@ const VideosPage = () => {
     }
   };
 
-  const invalidateVideos = () => {
+  const deleteOwnedVideo = async (videoId: string) => {
+    if (!user) return;
+    // Detach from any funnels using this video first to avoid FK / orphaned references.
+    await supabase.from("funnels").update({ video_asset_id: null }).eq("video_asset_id", videoId).eq("owner_id", user.id);
+    await supabase.from("video_asset_access").delete().eq("video_id", videoId);
+    const { error } = await supabase.from("video_assets").delete().eq("id", videoId).eq("owner_id", user.id);
+    if (error) {
+      toast.error("Failed to delete video");
+    } else {
+      toast.success("Video deleted");
+      invalidateVideos();
+    }
+    setDeleteVideo(null);
+  };
+
+  const retryFailed = async (videoId: string) => {
+    const { error } = await supabase.from("video_assets").update({ status: "pending" }).eq("id", videoId).eq("owner_id", user!.id);
+    if (error) toast.error("Could not retry");
+    else { toast.success("Retry queued"); invalidateVideos(); }
+  };
+
+  function invalidateVideos() {
     queryClient.invalidateQueries({ queryKey: ["videos"] });
     queryClient.invalidateQueries({ queryKey: ["shared-videos"] });
-  };
+  }
 
   return (
     <DashboardLayout>
@@ -129,6 +174,26 @@ const VideosPage = () => {
           </div>
         </div>
 
+        {/* Status tabs */}
+        <div className="flex gap-1 p-1 bg-muted rounded-lg w-fit overflow-x-auto max-w-full">
+          {([
+            { k: "all", label: "All", icon: null },
+            { k: "ready", label: "Ready", icon: <CheckCircle2 size={13} className="text-success" /> },
+            { k: "processing", label: "Processing", icon: <Loader2 size={13} className="text-warning animate-spin" /> },
+            { k: "failed", label: "Failed", icon: <AlertTriangle size={13} className="text-destructive" /> },
+          ] as const).map((t) => (
+            <button
+              key={t.k}
+              onClick={() => setStatusFilter(t.k)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${statusFilter === t.k ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {t.icon}
+              {t.label}
+              <span className="text-[10px] tabular-nums opacity-70">({counts[t.k]})</span>
+            </button>
+          ))}
+        </div>
+
         {/* Empty state */}
         {filtered.length === 0 ? (
           <div className="glass-card p-8 sm:p-12 text-center w-full max-w-full">
@@ -149,10 +214,25 @@ const VideosPage = () => {
             {filtered.map((v) => (
               <div key={v.id} className="premium-card p-3 sm:p-4 w-full max-w-full box-border min-w-0">
                 {/* Thumbnail */}
-                <div className="aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden w-full max-w-full">
+                <div className="relative aspect-video bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden w-full max-w-full">
                   {v.thumbnail_url ? <img src={v.thumbnail_url} alt={v.title} className="w-full h-full object-cover rounded-lg block" /> :
                     v.public_url ? <video src={v.public_url} preload="metadata" playsInline muted className="w-full h-full object-cover rounded-lg block" /> :
                     <Video size={24} className="text-muted-foreground" />}
+                  {formatDuration(v.duration_seconds) && (
+                    <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-black/75 text-white tabular-nums">
+                      <Clock size={10} className="inline mr-1 -mt-0.5" />{formatDuration(v.duration_seconds)}
+                    </span>
+                  )}
+                  {v.status !== "ready" && v.status !== "failed" && (
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <Loader2 size={20} className="text-white animate-spin" />
+                    </div>
+                  )}
+                  {v.status === "failed" && (
+                    <div className="absolute inset-0 bg-destructive/30 flex items-center justify-center">
+                      <AlertTriangle size={22} className="text-destructive-foreground" />
+                    </div>
+                  )}
                 </div>
 
                 {/* Title & meta */}
@@ -174,17 +254,26 @@ const VideosPage = () => {
                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setRenameVideo({ id: v.id, title: v.title })} title="Rename">
                     <Pencil size={15} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => copyLink(v.id)} title="Copy Link">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => copyLink(v.id)} title="Copy Link" disabled={v.status !== "ready"}>
                     <Copy size={15} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setShareVideo({ id: v.id, title: v.title })} title="Share">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setShareVideo({ id: v.id, title: v.title })} title="Share" disabled={v.status !== "ready"}>
                     <Share2 size={15} />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => useInFunnel(v.id)} title="Use in Funnel">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => useInFunnel(v.id)} title="Use in Funnel" disabled={v.status !== "ready"}>
                     <Rocket size={15} />
                   </Button>
-                  {v._source === "linked" && (
-                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:text-destructive" onClick={() => removeLinkedVideo(v.id)} title="Remove">
+                  {v._source === "own" && v.status === "failed" && (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-warning hover:text-warning" onClick={() => retryFailed(v.id)} title="Retry">
+                      <RefreshCw size={15} />
+                    </Button>
+                  )}
+                  {v._source === "linked" ? (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:text-destructive" onClick={() => removeLinkedVideo(v.id)} title="Remove from gallery">
+                      <Trash2 size={15} />
+                    </Button>
+                  ) : (
+                    <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg text-destructive hover:text-destructive" onClick={() => setDeleteVideo({ id: v.id, title: v.title })} title="Delete">
                       <Trash2 size={15} />
                     </Button>
                   )}
@@ -225,6 +314,23 @@ const VideosPage = () => {
             onSuccess={invalidateVideos}
           />
         )}
+
+        <AlertDialog open={!!deleteVideo} onOpenChange={(o) => !o && setDeleteVideo(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this video?</AlertDialogTitle>
+              <AlertDialogDescription>
+                "{deleteVideo?.title}" will be permanently removed. Any funnels using it will be detached. This cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => deleteVideo && deleteOwnedVideo(deleteVideo.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DashboardLayout>
   );
