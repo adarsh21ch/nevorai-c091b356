@@ -313,10 +313,14 @@ const AdminSubscriptionsPage = () => {
   const getSettingValue = (key: string) => settings.find(s => s.key === key)?.value || "";
 
   const PLAN_META: Record<string, { label: string; badge: string; desc: string }> = {
+    free: { label: "Free", badge: "bg-muted text-muted-foreground", desc: "Forever free · entry tier" },
     basic: { label: "Basic", badge: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400", desc: "For Individuals" },
     pro: { label: "Pro", badge: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400", desc: "For Team Leaders" },
     enterprise: { label: "Enterprise", badge: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400", desc: "For Large Networks" },
   };
+
+  const freeConfig = planConfigs.find(c => c.plan_name === "free") as any;
+  const [planFilter, setPlanFilter] = useState<"all" | "free" | "basic" | "pro">("all");
 
   const renderPlanCard = (planName: string, config: any) => {
     const meta = PLAN_META[planName];
