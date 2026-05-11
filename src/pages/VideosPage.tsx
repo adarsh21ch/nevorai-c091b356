@@ -129,9 +129,11 @@ const VideosPage = () => {
     if (error) toast.error("Could not retry");
     else { toast.success("Retry queued"); invalidateVideos(); }
   };
+
+  function invalidateVideos() {
     queryClient.invalidateQueries({ queryKey: ["videos"] });
     queryClient.invalidateQueries({ queryKey: ["shared-videos"] });
-  };
+  }
 
   return (
     <DashboardLayout>
