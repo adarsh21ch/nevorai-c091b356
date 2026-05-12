@@ -15,6 +15,7 @@ import { Upload, X, FileVideo, Loader2, Info, AlertCircle, RotateCcw, ChevronDow
 import { Switch } from "@/components/ui/switch";
 import { sanitizeText, sanitizeFilename } from "@/lib/sanitize";
 import { Link } from "@/lib/router-compat";
+import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 
 interface Props {
   open: boolean;
@@ -218,12 +219,13 @@ export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <WhatsAppShareButton url={publicUrl} className="w-full" />
               <a href={publicUrl} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="w-full"><ExternalLink size={14} /> Open Public Page</Button>
+                <Button variant="outline" className="w-full"><ExternalLink size={14} /> Open</Button>
               </a>
               <Link to={`/videos/${doneVideoId}` as any} onClick={finishAndClose}>
-                <Button variant="outline" className="w-full"><FileVideo size={14} /> Edit Details</Button>
+                <Button variant="outline" className="w-full"><FileVideo size={14} /> Edit</Button>
               </Link>
             </div>
 
