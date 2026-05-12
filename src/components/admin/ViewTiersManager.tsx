@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { adminWrite } from "@/lib/adminWrite";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -74,29 +75,42 @@ export const ViewTiersManager = ({ planName }: { planName: "basic" | "pro" }) =>
   const refresh = () => qc.invalidateQueries({ queryKey: ["plan-view-tiers", planName] });
 
   const updateTier = async (id: string, patch: Partial<Tier>) => {
-    const { error } = await supabase.from("plan_view_tiers" as any).update(patch as any).eq("id", id);
-    if (error) toast.error(error.message); else { toast.success("Updated"); refresh(); }
+    const { error } = await adminWrite(() =>
+      (supabase.from("plan_view_tiers" as any) as any).update(patch as any).eq("id", id).select(),
+    );
+    if (error) toast.error(error.message);
+    else { toast.success("Updated"); refresh(); qc.invalidateQueries({ queryKey: ["plan-pricing"] }); }
   };
 
   const setPopular = async (id: string, val: boolean) => {
     if (val) {
-      // Only one popular per plan
-      await supabase.from("plan_view_tiers" as any).update({ is_popular: false } as any).eq("plan_name", planName);
+      await adminWrite(() =>
+        (supabase.from("plan_view_tiers" as any) as any)
+          .update({ is_popular: false } as any).eq("plan_name", planName).select(),
+        { expectRows: false },
+      );
     }
     await updateTier(id, { is_popular: val });
   };
 
   const setBase = async (id: string, val: boolean) => {
     if (val) {
-      await supabase.from("plan_view_tiers" as any).update({ is_base: false } as any).eq("plan_name", planName);
+      await adminWrite(() =>
+        (supabase.from("plan_view_tiers" as any) as any)
+          .update({ is_base: false } as any).eq("plan_name", planName).select(),
+        { expectRows: false },
+      );
     }
     await updateTier(id, { is_base: val });
   };
 
   const deleteTier = async (id: string) => {
     if (!confirm("Delete this tier? Users on this tier will fall back to the popular tier.")) return;
-    const { error } = await supabase.from("plan_view_tiers" as any).delete().eq("id", id);
-    if (error) toast.error(error.message); else { toast.success("Deleted"); refresh(); }
+    const { error } = await adminWrite(() =>
+      (supabase.from("plan_view_tiers" as any) as any).delete().eq("id", id).select(),
+    );
+    if (error) toast.error(error.message);
+    else { toast.success("Deleted"); refresh(); qc.invalidateQueries({ queryKey: ["plan-pricing"] }); }
   };
 
   const saveNewTier = async () => {
@@ -107,26 +121,32 @@ export const ViewTiersManager = ({ planName }: { planName: "basic" | "pro" }) =>
       toast.error("All numeric fields required");
       return;
     }
-    const { error } = await supabase.from("plan_view_tiers" as any).insert({
-      plan_name: planName,
-      daily_views: dv,
-      monthly_price: mp,
-      yearly_price: yp,
-      is_popular: newTier.is_popular,
-      display_order: tiers.length + 1,
-    } as any);
+    const { error } = await adminWrite(() =>
+      (supabase.from("plan_view_tiers" as any) as any).insert({
+        plan_name: planName,
+        daily_views: dv,
+        monthly_price: mp,
+        yearly_price: yp,
+        is_popular: newTier.is_popular,
+        display_order: tiers.length + 1,
+      } as any).select(),
+    );
     if (error) { toast.error(error.message); return; }
     toast.success("Tier added");
     if (newTier.is_popular) {
-      // ensure single popular
-      await supabase.from("plan_view_tiers" as any)
-        .update({ is_popular: false } as any)
-        .eq("plan_name", planName)
-        .neq("display_order", tiers.length + 1);
+      await adminWrite(() =>
+        (supabase.from("plan_view_tiers" as any) as any)
+          .update({ is_popular: false } as any)
+          .eq("plan_name", planName)
+          .neq("display_order", tiers.length + 1)
+          .select(),
+        { expectRows: false },
+      );
     }
     setNewTier({ daily_views: "", monthly_price: "", yearly_price: "", is_popular: false });
     setAdding(false);
     refresh();
+    qc.invalidateQueries({ queryKey: ["plan-pricing"] });
   };
 
   return (
@@ -165,8 +185,10 @@ export const ViewTiersManager = ({ planName }: { planName: "basic" | "pro" }) =>
             <tbody>
               {tiers.map(t => (
                 <tr key={t.id} className="border-b border-border/30">
-                  <td className="py-1.5 font-semibold">{t.daily_views}/d</td>
-                  <td className="py-1.5 text-muted-foreground">{compact(t.monthly_views)}</td>
+                  <td className="py-1.5">
+                    <EditableNumberCell value={t.daily_views} onSave={(v) => updateTier(t.id, { daily_views: v })} />
+                  </td>
+                  <td className="py-1.5 text-muted-foreground">{compact(t.daily_views * 30)}</td>
                   <td className="py-1.5">
                     <EditableNumberCell value={t.monthly_price} prefix="₹" onSave={(v) => updateTier(t.id, { monthly_price: v })} />
                   </td>

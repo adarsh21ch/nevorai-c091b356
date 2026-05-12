@@ -13,6 +13,7 @@ import type { PlanConfig } from "@/hooks/usePlanLimits";
 import { EnterpriseCardSettings } from "@/components/admin/EnterpriseCardSettings";
 import { TrialSettingsStrip } from "@/components/admin/TrialSettingsStrip";
 import { AdminOverrideAuditTable } from "@/components/admin/AdminOverrideAuditTable";
+import { adminWrite } from "@/lib/adminWrite";
 
 const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
 const RefundsTab = lazy(() => import("@/components/admin/RefundsTab").then((m) => ({ default: m.RefundsTab })));
@@ -270,25 +271,30 @@ const AdminSubscriptionsPage = () => {
 
   const saveField = useCallback(async (planName: string, field: string, value: any) => {
     const updateObj: Record<string, any> = { [field]: value, updated_at: new Date().toISOString() };
-    const { error } = await supabase
-      .from("plan_config")
-      .update(updateObj as any)
-      .eq("plan_name", planName);
+    const { error } = await adminWrite(() =>
+      (supabase.from("plan_config") as any)
+        .update(updateObj)
+        .eq("plan_name", planName)
+        .select(),
+    );
     if (error) {
-      toast.error("Failed to save");
+      toast.error(error.message || "Failed to save");
     } else {
       toast.success("Updated!");
       queryClient.invalidateQueries({ queryKey: ["admin-plan-configs"] });
       queryClient.invalidateQueries({ queryKey: ["plan-configs"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-pricing"] });
     }
   }, [queryClient]);
 
   const handleTogglePlan = async (planName: string, enabled: boolean) => {
-    const { error } = await supabase
-      .from("plan_config")
-      .update({ is_enabled: enabled, updated_at: new Date().toISOString() } as any)
-      .eq("plan_name", planName);
-    if (error) toast.error("Failed to update");
+    const { error } = await adminWrite(() =>
+      (supabase.from("plan_config") as any)
+        .update({ is_enabled: enabled, updated_at: new Date().toISOString() })
+        .eq("plan_name", planName)
+        .select(),
+    );
+    if (error) toast.error(error.message || "Failed to update");
     else {
       toast.success(`${planName.charAt(0).toUpperCase() + planName.slice(1)} plan ${enabled ? "enabled" : "disabled"}`);
       queryClient.invalidateQueries({ queryKey: ["admin-plan-configs"] });
