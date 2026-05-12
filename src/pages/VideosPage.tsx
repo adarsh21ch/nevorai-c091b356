@@ -29,7 +29,7 @@ const getDisplayTitle = (raw?: string | null): string => {
   return t;
 };
 
-const VideoStatusBadge = ({ status }: { status: string }) => {
+const VideoStatusBadge = ({ status }: { status: string | null | undefined }) => {
   const map: Record<string, { label: string; className: string }> = {
     ready:      { label: "✓ Ready",       className: "bg-success/10 text-success border border-success/20" },
     processing: { label: "⏳ Processing",  className: "bg-warning/10 text-warning border border-warning/20" },
