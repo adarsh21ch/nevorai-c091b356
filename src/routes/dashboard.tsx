@@ -130,38 +130,80 @@ function DashboardPage() {
         <MonthlyViewsBanner />
         <GettingStartedChecklist />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-heading font-bold">Dashboard</h1>
-            <div className="page-header-accent" />
-            <p className="mt-2 text-sm text-muted-foreground">
-              Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}! Here's your Nevorai Flow overview.
-            </p>
+        {(() => {
+          const hour = new Date().getHours();
+          const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+          const firstName = profile?.full_name?.split(" ")[0] || "there";
+          return (
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <h1 className="text-2xl font-heading font-bold">{greet}, {firstName} 👋</h1>
+                <p className="mt-1 text-sm text-muted-foreground">Here's what's happening on Flow today.</p>
+              </div>
+              <div className="flex gap-2">
+                <Link to="/funnels/create"><Button variant="hero" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
+                <Link to="/videos"><Button variant="outline" size="sm"><Eye size={14} /> Add Video</Button></Link>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Hero KPI: Views Today */}
+        <Link
+          to="/insights"
+          className="block rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/10 via-card to-accent/5 p-6 transition-all hover:border-primary/40"
+        >
+          <div className="flex items-center gap-2">
+            <BarChart3 size={16} className="text-primary" />
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Views Today</span>
           </div>
-          <div className="flex gap-2">
-            <Link to="/funnels/create"><Button variant="hero" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
-            <Link to="/videos"><Button variant="outline" size="sm"><Eye size={14} /> Add Video</Button></Link>
-          </div>
-        </div>
+          <div className="mt-2 text-5xl font-heading font-extrabold tracking-tight text-foreground">{fmt(daily.used)}</div>
+          <p className="mt-1 text-sm text-muted-foreground">{remainingToday} remaining today · {daily.isUnlimited ? "Unlimited plan" : `Daily limit ${fmt(daily.limit)}`}</p>
+        </Link>
 
         <DashboardKpiStrip />
 
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-          {stats.map((s) => (
+        {/* Secondary KPIs */}
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {stats.slice(1, 5).map((s) => (
             <Link
               key={s.label}
               to={s.href}
-              className={`group flex flex-col gap-1.5 rounded-2xl border border-border bg-card/40 p-4 transition-all hover:-translate-y-0.5 hover:border-border/80 hover:bg-card/70 ${accentClass[s.color]}`}
+              className={`group flex flex-col gap-1.5 rounded-xl border border-border bg-card/60 p-3 transition-all hover:border-primary/40 ${accentClass[s.color]}`}
             >
               <div className="flex items-center gap-2">
-                <s.icon size={14} className={iconClass[s.color]} />
+                <s.icon size={13} className={iconClass[s.color]} />
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
               </div>
-              <div className="text-2xl font-heading font-extrabold leading-none">{s.value}</div>
-              <p className="text-[11px] text-muted-foreground">{s.sub}</p>
+              <div className="text-xl font-heading font-bold leading-none">{s.value}</div>
+              <p className="text-[10px] text-muted-foreground">{s.sub}</p>
             </Link>
           ))}
         </div>
+
+        {/* Collapsible deeper analytics */}
+        <details className="group rounded-xl border border-border bg-card/40 p-4">
+          <summary className="cursor-pointer list-none text-sm font-semibold text-foreground flex items-center justify-between">
+            <span>View more insights</span>
+            <ArrowRight size={14} className="transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 pt-4">
+            {[stats[5], stats[4], stats[2]].map((s) => (
+              <Link
+                key={s.label}
+                to={s.href}
+                className={`group flex flex-col gap-1.5 rounded-xl border border-border bg-card/60 p-3 transition-all hover:border-primary/40 ${accentClass[s.color]}`}
+              >
+                <div className="flex items-center gap-2">
+                  <s.icon size={13} className={iconClass[s.color]} />
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
+                </div>
+                <div className="text-xl font-heading font-bold leading-none">{s.value}</div>
+                <p className="text-[10px] text-muted-foreground">{s.sub}</p>
+              </Link>
+            ))}
+          </div>
+        </details>
 
         <DashboardContentRow />
 

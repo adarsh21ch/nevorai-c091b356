@@ -26,9 +26,9 @@ export const MobileCreateAction = () => {
         <SheetTrigger asChild>
           <button
             aria-label="Create"
-            className="-mt-7 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-brand-rich text-white shadow-glow transition-transform active:scale-95"
+            className="-mt-5 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-primary-foreground ring-2 ring-primary/25 ring-offset-2 ring-offset-card shadow-md transition-transform active:scale-95 hover:bg-primary/90"
           >
-            <Plus size={24} />
+            <Plus size={20} />
           </button>
         </SheetTrigger>
         <SheetContent side="bottom" className="rounded-t-2xl border-border p-0">

@@ -7,6 +7,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Video, Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Clock, AlertTriangle, CheckCircle2, Loader2, Settings } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/lib/router-compat";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -21,12 +22,13 @@ import { useNavigate } from "@/lib/router-compat";
 import { toast } from "sonner";
 
 const VideosPage = () => {
-  useDocumentTitle("Video Gallery");
+  useDocumentTitle("My Videos");
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
-  const [view, setView] = useState<"grid" | "list">("grid");
+  const [view, setView] = useState<"grid" | "list">(isMobile ? "list" : "grid");
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
@@ -143,7 +145,7 @@ const VideosPage = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full max-w-full">
           <div className="min-w-0">
-            <h1 className="text-2xl font-heading font-bold">Video Gallery</h1>
+            <h1 className="text-2xl font-heading font-bold">My Videos</h1>
             <div className="page-header-accent" />
           </div>
           <div className="flex gap-2 w-full sm:w-auto">

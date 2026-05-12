@@ -11,7 +11,10 @@ import { toast } from "sonner";
 import {
   User, Crown, ArrowRight, Lock, Check, CreditCard, FileCheck,
   Bell, Settings, Download, ChevronRight, ChevronDown, Pencil,
+  Sun, Moon, HelpCircle, LogOut,
 } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
+import { Switch } from "@/components/ui/switch";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "@/lib/router-compat";
@@ -22,8 +25,9 @@ import { sanitizeFields, normalizePhone } from "@/lib/sanitize";
 
 const ProfilePage = () => {
   useDocumentTitle("Profile");
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile, signOut } = useAuth();
   const { plan } = usePlan();
+  const { theme, toggleTheme } = useTheme();
   const { isFree, config, counts, tier, canUseMultilevel } = usePlanLimits();
   const [loading, setLoading] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -184,6 +188,23 @@ const ProfilePage = () => {
           </div>
         </Collapsible>
 
+        {/* Appearance */}
+        <div className="premium-card p-4">
+          <p className="px-1 pb-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Appearance</p>
+          <div className="flex items-center justify-between rounded-lg px-2 py-2">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                {theme === "dark" ? <Moon size={14} className="text-primary" /> : <Sun size={14} className="text-primary" />}
+              </div>
+              <div>
+                <p className="text-sm font-medium">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
+                <p className="text-[10px] text-muted-foreground">Switch your interface theme</p>
+              </div>
+            </div>
+            <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
+          </div>
+        </div>
+
         {/* Account Quick Links */}
         <div className="premium-card p-2 space-y-0.5">
           <p className="px-4 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Account</p>
@@ -191,6 +212,7 @@ const ProfilePage = () => {
             { icon: CreditCard, label: "Billing", path: "/billing", desc: "Subscription & payments" },
             { icon: FileCheck, label: "Get Verified", path: "/kyc", desc: "KYC for payouts" },
             { icon: Bell, label: "Notifications", path: "/notifications", desc: "Alerts & updates" },
+            { icon: HelpCircle, label: "Help & Support", path: "/help", desc: "Tutorials, FAQs and contact support" },
             { icon: Settings, label: "Settings", path: "/settings", desc: "App preferences" },
             { icon: Download, label: "Install App", path: "/install", desc: "Add to home screen" },
           ].map((item) => (
@@ -206,6 +228,18 @@ const ProfilePage = () => {
               <ChevronRight size={14} className="text-muted-foreground group-hover:text-foreground transition-colors" />
             </Link>
           ))}
+          <button
+            onClick={async () => { await signOut(); }}
+            className="flex w-full items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-destructive/10 transition-colors text-left"
+          >
+            <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+              <LogOut size={14} className="text-destructive" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-destructive">Logout</p>
+              <p className="text-[10px] text-muted-foreground">Sign out of your account</p>
+            </div>
+          </button>
         </div>
       </div>
     </DashboardLayout>
