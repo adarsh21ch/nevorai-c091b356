@@ -5,10 +5,10 @@ type Theme = "dark" | "light";
 const ThemeContext = createContext<{
   theme: Theme;
   toggleTheme: () => void;
-}>({ theme: "dark", toggleTheme: () => {} });
+}>({ theme: "light", toggleTheme: () => {} });
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
-  const [theme, setTheme] = useState<Theme>("dark");
+  const [theme, setTheme] = useState<Theme>("light");
 
   useEffect(() => {
     try {

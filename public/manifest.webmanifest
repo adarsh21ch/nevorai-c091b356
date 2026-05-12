@@ -1,7 +1,7 @@
 {
-  "name": "nFlow by Nevorai",
-  "short_name": "nFlow",
-  "description": "Share videos. Track every view. Never lose your flow.",
+  "name": "Nevorai Flow",
+  "short_name": "Flow",
+  "description": "Upload a video, share a smart link, capture leads. Flow by Nevorai turns every video into a sales funnel.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
