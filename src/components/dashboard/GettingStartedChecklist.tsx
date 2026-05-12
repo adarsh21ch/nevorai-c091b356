@@ -129,10 +129,10 @@ export function GettingStartedChecklist() {
         <div>
           <div className="flex items-center gap-2">
             <Sparkles className="text-primary" size={18} />
-            <h2 className="text-base font-heading font-bold">Get to your first lead in 5 minutes</h2>
+            <h2 className="text-base font-heading font-bold">Set up your account</h2>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Finish these steps to launch your first Nevorai Flow funnel.
+            Finish these quick steps to start sharing videos and capturing contacts.
           </p>
         </div>
         <div className="text-xs font-semibold text-muted-foreground">
