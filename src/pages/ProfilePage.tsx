@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import {
   User, Crown, ArrowRight, Lock, Check, CreditCard, FileCheck,
   Bell, Settings, Download, ChevronRight, ChevronDown, Pencil,
-  Sun, Moon, HelpCircle, LogOut,
+  Sun, Moon, HelpCircle, LogOut, FileText, Radio,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Switch } from "@/components/ui/switch";
