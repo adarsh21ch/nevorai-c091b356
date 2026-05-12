@@ -884,7 +884,8 @@ const PublicLivePage = () => {
               <Button variant="outline" size="sm" onClick={handleCopy}><Copy size={14} /> Copy link</Button>
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Footer */}
         <div className="text-center pt-4">
