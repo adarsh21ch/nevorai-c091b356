@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 
 const LandingPagesPage = () => {
   const navigate = useNavigate();
@@ -147,10 +148,11 @@ const LandingPagesPage = () => {
                   <span className="flex items-center gap-1"><Users size={14} /> {page.total_registrations || 0} registrations</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Created {format(new Date(page.created_at), "d MMM yyyy")}</p>
-                <div className="flex gap-2 pt-1">
+                <div className="flex flex-wrap gap-2 pt-1">
                   <Button variant="outline" size="sm" onClick={() => navigate(`/landing-pages/${page.id}/edit`)}>Edit</Button>
                   <Button variant="outline" size="sm" onClick={() => navigate(`/landing-pages/${page.id}`)}>Registrations</Button>
                   <Button variant="outline" size="sm" onClick={() => window.open(`/l/${page.slug}`, "_blank")}>Preview</Button>
+                  <WhatsAppShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/l/${page.slug}`} message={`Check this out: ${page.title}`} size="sm" iconOnly />
                 </div>
               </Card>
             ))}

@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Eye, Users, TrendingUp, IndianRupee, Edit, Copy, ExternalLink, Search, Download, Phone, MessageCircle, Check, X, Lock } from "lucide-react";
 import { LeadProgressTab } from "@/components/funnel/LeadProgressTab";
 import { ViewersAnalyticsTab } from "@/components/funnel/ViewersAnalyticsTab";
+import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 
 const FunnelDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -99,11 +100,12 @@ const FunnelDetail = () => {
             </div>
             <p className="text-sm text-muted-foreground mt-1">/f/{funnel.slug}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/f/${funnel.slug}`); toast.success("Copied!"); }}>
               <Copy size={14} /> Copy Link
             </Button>
             <Link to={`/f/${funnel.slug}`} target="_blank"><Button variant="outline" size="sm"><ExternalLink size={14} /> Preview</Button></Link>
+            <WhatsAppShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/f/${funnel.slug}`} message={`Watch this short video: ${funnel.title}`} size="sm" />
             <Link to={`/funnels/${id}/edit`}><Button variant="default" size="sm"><Edit size={14} /> Edit</Button></Link>
           </div>
         </div>

@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Pencil, Eye, Users, Mail, Download, Search } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 
 const LandingPageDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -84,9 +85,16 @@ const LandingPageDetail = () => {
             <h1 className="text-xl font-bold">{(page as any).title}</h1>
             <p className="text-sm text-muted-foreground">{window.location.origin}/l/{(page as any).slug}</p>
           </div>
-          <Button variant="outline" onClick={() => navigate(`/landing-pages/${id}/edit`)}>
-            <Pencil size={14} className="mr-2" /> Edit
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <WhatsAppShareButton
+              url={`${typeof window !== "undefined" ? window.location.origin : ""}/l/${(page as any).slug}`}
+              message={`Check this out: ${(page as any).title}`}
+              size="sm"
+            />
+            <Button variant="outline" onClick={() => navigate(`/landing-pages/${id}/edit`)}>
+              <Pencil size={14} className="mr-2" /> Edit
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
