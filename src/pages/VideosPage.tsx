@@ -315,7 +315,7 @@ const VideosPage = () => {
                         <Rocket size={13} className="mr-2" /> Use in Funnel
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => navigate(`/leads`)}>
-                        <Users size={13} className="mr-2" /> View Contacts
+                        <Users size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
                       {v._source === "own" && isFailed && (
                         <DropdownMenuItem onSelect={() => retryFailed(v.id)}>

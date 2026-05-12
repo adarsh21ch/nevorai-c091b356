@@ -347,13 +347,18 @@ const LeadsPage = () => {
     </>
   );
 
+  const weekCount = useMemo(() => {
+    const wk = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return recentFeed.filter((l) => l.when && new Date(l.when).getTime() > wk).length;
+  }, [recentFeed]);
+
   return (
     <DashboardLayout>
       <div className="space-y-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-heading font-bold">My Leads</h1>
-            <p className="text-sm text-muted-foreground mt-1">{totalContacts} contacts captured from your content</p>
+            <h1 className="text-2xl font-heading font-bold">Insights</h1>
+            <p className="text-sm text-muted-foreground mt-1">See who's watching your content and how much</p>
           </div>
           {!drillItem && totalContacts > 0 && (
             <Button variant="outline" size="sm" onClick={exportCsv}>
@@ -361,6 +366,17 @@ const LeadsPage = () => {
             </Button>
           )}
         </div>
+
+        {!drillItem && (
+          <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex-shrink-0 px-3 py-1.5 rounded-full bg-primary-subtle">
+              <span className="text-xs font-semibold text-primary-text">{weekCount} this week</span>
+            </div>
+            <div className="flex-shrink-0 px-3 py-1.5 rounded-full bg-muted">
+              <span className="text-xs font-medium text-muted-foreground">{totalContacts} total contacts</span>
+            </div>
+          </div>
+        )}
 
         {drillItem ? (
           renderDrilled()
