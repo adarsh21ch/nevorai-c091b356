@@ -204,7 +204,7 @@ Deno.serve(async (req) => {
       promises.push(
         supabase
           .from("video_assets")
-          .select("id, title, public_url, thumbnail_url, duration_seconds, status, allow_copy_link")
+          .select("id, title, public_url, thumbnail_url, duration_seconds, status, allow_copy_link, allow_seek, allow_playback_speed")
           .eq("id", funnel.video_asset_id)
           .single()
           .then((r) => ({ key: "video", data: r.data }))
