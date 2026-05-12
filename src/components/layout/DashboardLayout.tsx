@@ -292,7 +292,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
             </div>
 
             {[
-              { icon: Users, label: "Leads", path: "/leads" },
+              { icon: Layers, label: "Funnels", path: "/funnels" },
               { icon: User, label: "Profile", path: "/profile" },
             ].map((item) => {
               const active = location.pathname.startsWith(item.path);
@@ -314,7 +314,6 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
           </div>
         </nav>
       </div>
-      <SupportFAB />
     </div>
   );
 };
