@@ -26,6 +26,7 @@ import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as KycRouteImport } from './routes/kyc'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as HelpRouteImport } from './routes/help'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EnterpriseRouteImport } from './routes/enterprise'
@@ -150,6 +151,11 @@ const InsightsRoute = InsightsRouteImport.update({
   path: '/insights',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/insights.lazy').then((d) => d.Route))
+const HelpRoute = HelpRouteImport.update({
+  id: '/help',
+  path: '/help',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FeaturesRoute = FeaturesRouteImport.update({
   id: '/features',
   path: '/features',
@@ -364,6 +370,7 @@ export interface FileRoutesByFullPath {
   '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/help': typeof HelpRoute
   '/insights': typeof InsightsRoute
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
@@ -419,6 +426,7 @@ export interface FileRoutesByTo {
   '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/help': typeof HelpRoute
   '/insights': typeof InsightsRoute
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
@@ -475,6 +483,7 @@ export interface FileRoutesById {
   '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
+  '/help': typeof HelpRoute
   '/insights': typeof InsightsRoute
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
@@ -532,6 +541,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/faq'
     | '/features'
+    | '/help'
     | '/insights'
     | '/install'
     | '/kyc'
@@ -587,6 +597,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/faq'
     | '/features'
+    | '/help'
     | '/insights'
     | '/install'
     | '/kyc'
@@ -642,6 +653,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/faq'
     | '/features'
+    | '/help'
     | '/insights'
     | '/install'
     | '/kyc'
@@ -698,6 +710,7 @@ export interface RootRouteChildren {
   EnterpriseRoute: typeof EnterpriseRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
+  HelpRoute: typeof HelpRoute
   InsightsRoute: typeof InsightsRoute
   InstallRoute: typeof InstallRoute
   KycRoute: typeof KycRoute
@@ -856,6 +869,13 @@ declare module '@tanstack/react-router' {
       path: '/insights'
       fullPath: '/insights'
       preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help': {
+      id: '/help'
+      path: '/help'
+      fullPath: '/help'
+      preLoaderRoute: typeof HelpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/features': {
@@ -1181,6 +1201,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnterpriseRoute: EnterpriseRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
+  HelpRoute: HelpRoute,
   InsightsRoute: InsightsRoute,
   InstallRoute: InstallRoute,
   KycRoute: KycRoute,
