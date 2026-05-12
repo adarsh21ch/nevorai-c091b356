@@ -3,7 +3,7 @@ import { Logo } from "@/components/landing/Logo";
 import {
   LayoutDashboard, Layers, Video, Users, IndianRupee, BarChart3,
   User, Bell, LogOut, ChevronLeft, ChevronRight, Shield, Sun, Moon,
-  Radio, FileText, Menu, Crown,
+  Radio, FileText, Menu, Crown, HelpCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -33,7 +33,10 @@ const navItems = [
   { icon: IndianRupee, label: "Payments", path: "/payments" },
 ];
 
-const bottomItems = [{ icon: User, label: "Profile", path: "/profile" }];
+const bottomItems = [
+  { icon: HelpCircle, label: "Help Center", path: "/help" },
+  { icon: User, label: "Profile", path: "/profile" },
+];
 
 export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
