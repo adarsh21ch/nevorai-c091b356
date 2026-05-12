@@ -1086,8 +1086,8 @@ const PublicFunnel = () => {
                 <CustomVideoPlayer
                   src={videoUrl}
                   poster={funnel.thumbnail_url || videoAsset?.thumbnail_url || undefined}
-                  allowSeek={funnel.allow_seek !== false}
-                  allowSpeed={funnel.allow_speed_change !== false}
+                  allowSeek={(videoAsset as any)?.allow_seek !== undefined ? (videoAsset as any).allow_seek !== false : funnel.allow_seek !== false}
+                  allowSpeed={(videoAsset as any)?.allow_playback_speed !== undefined ? (videoAsset as any).allow_playback_speed !== false : funnel.allow_speed_change !== false}
                   autoplay={true}
                   onTimeUpdate={(ct, dur) => { setWatchSeconds(Math.floor(ct)); setVideoDuration(dur); }}
                   onPlay={() => setVideoPlaying(true)}
