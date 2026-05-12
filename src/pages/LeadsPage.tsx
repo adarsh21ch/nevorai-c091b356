@@ -122,12 +122,6 @@ const LeadsPage = () => {
     enabled: (liveSessions as any[]).length > 0,
   });
 
-  const updateStatus = useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: string }) => {
-      await supabase.from("funnel_leads").update({ status }).eq("id", id);
-    },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["all-funnel-leads"] }); toast.success("Updated"); },
-  });
 
   // Build unified recent feed
   const recentFeed = useMemo(() => {
