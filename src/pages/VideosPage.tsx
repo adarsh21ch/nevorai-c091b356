@@ -16,6 +16,7 @@ import { VideoLinkModal } from "@/components/VideoLinkModal";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
+import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 import { useNavigate } from "@/lib/router-compat";
 import { toast } from "sonner";
 
@@ -271,6 +272,15 @@ const VideosPage = () => {
                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => copyLink(v.id)} title="Copy Link" disabled={v.status !== "ready"}>
                     <Copy size={15} />
                   </Button>
+                  {v.status === "ready" && typeof window !== "undefined" && (
+                    <WhatsAppShareButton
+                      url={`${window.location.origin}/v/${v.id}`}
+                      message={`Watch this short video: ${v.title}`}
+                      variant="ghost"
+                      iconOnly
+                      className="h-8 w-8 rounded-lg text-muted-foreground hover:text-foreground"
+                    />
+                  )}
                   <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg" onClick={() => setShareVideo({ id: v.id, title: v.title })} title="Share" disabled={v.status !== "ready"}>
                     <Share2 size={15} />
                   </Button>
