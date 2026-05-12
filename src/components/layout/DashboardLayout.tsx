@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from "@/lib/router-compat";
 import { Logo } from "@/components/landing/Logo";
 import {
   LayoutDashboard, Layers, Video, Users, IndianRupee, BarChart3,
-  User, Bell, LogOut, ChevronLeft, ChevronRight, Shield, Sun, Moon,
+  User, Bell, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Menu, Crown, HelpCircle,
 } from "lucide-react";
 import { useState } from "react";
@@ -11,13 +11,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useTheme } from "@/hooks/useTheme";
+// theme handled in ProfilePage
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTrialStatus } from "@/hooks/useTrialStatus";
 import { TrialExpiredGate } from "@/components/TrialExpiredGate";
 import { TrialBanner } from "@/components/TrialBanner";
 import { usePlan } from "@/hooks/usePlan";
-import { SupportFAB } from "@/components/SupportFAB";
+// SupportFAB removed from global mount — moved to Profile page
 import { MobileCreateAction } from "@/components/layout/MobileCreateAction";
 import { useRouter } from "@tanstack/react-router";
 
@@ -46,7 +46,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const { isAdmin } = useAdmin();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { theme, toggleTheme } = useTheme();
+  // theme toggle moved to Profile page
   const { isTrialExpired, trialDays } = useTrialStatus();
   const { plan } = usePlan();
   const isAdminUser = isAdmin;
