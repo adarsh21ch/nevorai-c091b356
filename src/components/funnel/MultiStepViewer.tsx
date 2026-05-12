@@ -29,6 +29,8 @@ interface FunnelStep {
   video_url?: string | null;
   video_thumbnail?: string | null;
   video_allow_copy_link?: boolean;
+  video_allow_seek?: boolean;
+  video_allow_playback_speed?: boolean;
   access_code_enabled?: boolean;
   access_code_plain?: string | null;
   access_code_message?: string | null;
