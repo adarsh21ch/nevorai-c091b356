@@ -16,6 +16,7 @@ import {
   Layers, FileText, Radio, Save, Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
+import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 
 type AnyVideo = {
   id: string;
@@ -175,6 +176,7 @@ const VideoDetailPage = () => {
             <a href={publicUrl} target="_blank" rel="noopener noreferrer">
               <Button variant="outline" size="sm"><ExternalLink size={14} /> Open</Button>
             </a>
+            <WhatsAppShareButton url={publicUrl} size="sm" />
           </div>
         </div>
 
@@ -225,9 +227,10 @@ const VideoDetailPage = () => {
               </div>
               <div>
                 <Label>Public link</Label>
-                <div className="mt-1.5 flex gap-2">
-                  <Input readOnly value={publicUrl} className="bg-muted border-border" />
-                  <Button variant="outline" size="icon" onClick={copyLink}><Copy size={14} /></Button>
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  <Input readOnly value={publicUrl} className="bg-muted border-border min-w-0 flex-1" />
+                  <Button variant="outline" size="icon" onClick={copyLink} title="Copy"><Copy size={14} /></Button>
+                  <WhatsAppShareButton url={publicUrl} iconOnly />
                 </div>
               </div>
               <div className="flex justify-end">
