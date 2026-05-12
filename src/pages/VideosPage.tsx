@@ -6,20 +6,23 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
-import { Video, Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Clock, AlertTriangle, CheckCircle2, Loader2, Settings } from "lucide-react";
+import { Video, Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Clock, AlertTriangle, CheckCircle2, Loader2, Settings, Play, MoreVertical, Users } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Link } from "@/lib/router-compat";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { VideoLinkModal } from "@/components/VideoLinkModal";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
-import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 import { useNavigate } from "@/lib/router-compat";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const VideosPage = () => {
   useDocumentTitle("My Videos");
