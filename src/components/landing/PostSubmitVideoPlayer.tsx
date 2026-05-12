@@ -4,9 +4,12 @@ import { Volume2, VolumeX, Play, Pause, Maximize } from "lucide-react";
 interface PostSubmitVideoPlayerProps {
   videoUrl: string;
   thumbnailUrl?: string | null;
+  allowSeek?: boolean;
+  allowSpeed?: boolean;
 }
 
-export const PostSubmitVideoPlayer = ({ videoUrl, thumbnailUrl }: PostSubmitVideoPlayerProps) => {
+export const PostSubmitVideoPlayer = ({ videoUrl, thumbnailUrl, allowSeek = true, allowSpeed = true }: PostSubmitVideoPlayerProps) => {
+  const maxWatchedRef = useRef(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const seekBarRef = useRef<HTMLDivElement>(null);
