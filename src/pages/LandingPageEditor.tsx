@@ -145,6 +145,7 @@ const LandingPageEditor = () => {
   const [previewStage, setPreviewStage] = useState<"form" | "after-submit">("form");
   const [videoToggle, setVideoToggle] = useState(false);
   const [funnelToggle, setFunnelToggle] = useState(false);
+  const [videoPickerOpen, setVideoPickerOpen] = useState(false);
 
   const { data: existing, isLoading } = useQuery({
     queryKey: ["landing-page", id],
