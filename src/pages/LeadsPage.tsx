@@ -55,9 +55,9 @@ const LeadsPage = () => {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-heading font-bold">All Leads</h1>
+            <h1 className="text-2xl font-heading font-bold">My Leads</h1>
             <div className="page-header-accent" />
-            <p className="text-sm text-muted-foreground mt-1">{leads.length} total leads across all funnels</p>
+            <p className="text-sm text-muted-foreground mt-1">{leads.length} contacts captured from your videos and funnels</p>
           </div>
           <Button variant="outline" size="sm" onClick={() => {
             const csv = "Name,Phone,Email,City,Funnel,Status,Date\n" + leads.map((l) => `"${l.name || ""}","${l.phone || ""}","${l.email || ""}","${l.city || ""}","${getFunnelTitle(l.funnel_id)}","${l.status}","${l.submitted_at}"`).join("\n");
