@@ -266,7 +266,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
             {[
               { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
               { icon: Video, label: "My Videos", path: "/videos" },
-              { icon: Users, label: "My Leads", path: "/leads" },
+              { icon: BarChart2, label: "Insights", path: "/leads" },
               { icon: Layers, label: "Funnels", path: "/funnels" },
               { icon: User, label: "Profile", path: "/profile" },
             ].map((item) => {
