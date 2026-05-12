@@ -13,6 +13,7 @@ import type { PlanConfig } from "@/hooks/usePlanLimits";
 import { EnterpriseCardSettings } from "@/components/admin/EnterpriseCardSettings";
 import { TrialSettingsStrip } from "@/components/admin/TrialSettingsStrip";
 import { AdminOverrideAuditTable } from "@/components/admin/AdminOverrideAuditTable";
+import { adminWrite } from "@/lib/adminWrite";
 
 const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
 const RefundsTab = lazy(() => import("@/components/admin/RefundsTab").then((m) => ({ default: m.RefundsTab })));
