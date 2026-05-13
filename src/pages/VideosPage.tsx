@@ -55,6 +55,7 @@ const VideosPage = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 200);
   const [view, setView] = useState<"grid" | "list">("list");
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
@@ -100,7 +101,7 @@ const VideosPage = () => {
     .filter((v) => statusFilter === "all" ? true
       : statusFilter === "processing" ? (v.status !== "ready" && v.status !== "failed")
       : v.status === statusFilter)
-    .filter((v) => !search || v.title.toLowerCase().includes(search.toLowerCase()));
+    .filter((v) => !debouncedSearch || v.title.toLowerCase().includes(debouncedSearch.toLowerCase()));
 
   const formatSize = (bytes: number | null) => {
     if (!bytes) return "—";
