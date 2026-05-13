@@ -20,12 +20,14 @@ import {
   computeSessionSlots, currentLiveSlot, nextSlot as nextSlotFn,
   sessionDurationSec, googleCalendarUrl, buildICS, downloadICS,
 } from "@/lib/liveSession";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const LiveDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [editingUrl, setEditingUrl] = useState(false);
   const [meetingUrl, setMeetingUrl] = useState("");
 
@@ -192,13 +194,13 @@ const LiveDetailPage = () => {
             </Button>
             {!isCancelled && liveNow && (
               <Button variant="outline" size="sm"
-                onClick={() => { if (confirm("Stop the current live slot now?")) updateSession.mutate({ status: "ended" }); }}>
+                onClick={async () => { if (await confirm({ title: "Stop the current live slot?", description: "Attendees will be notified the session has ended.", confirmLabel: "Stop now", destructive: true })) updateSession.mutate({ status: "ended" }); }}>
                 <Square size={14} /> Stop now
               </Button>
             )}
             {!isCancelled && (
               <Button variant="outline" size="sm" className="text-destructive"
-                onClick={() => { if (confirm("Cancel this entire session?")) updateSession.mutate({ status: "cancelled" }); }}>
+                onClick={async () => { if (await confirm({ title: "Cancel this entire session?", description: "All scheduled slots will be cancelled.", confirmLabel: "Cancel session", destructive: true })) updateSession.mutate({ status: "cancelled" }); }}>
                 <Ban size={14} /> Cancel
               </Button>
             )}

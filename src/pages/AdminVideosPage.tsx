@@ -12,11 +12,13 @@ import { Progress } from "@/components/ui/progress";
 import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
 import { useNavigate } from "@/lib/router-compat";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const AdminVideosPage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const confirm = useConfirm();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -214,7 +216,7 @@ const AdminVideosPage = () => {
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyLink(v.id)}><Link2 size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => useInFunnel(v.id)}><Rocket size={14} /></Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => { if (confirm("Delete?")) deleteMutation.mutate(v.id); }}><Trash2 size={14} /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={async () => { if (await confirm({ title: "Delete this video?", description: "This permanently removes the video file and analytics.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(v.id); }}><Trash2 size={14} /></Button>
                         </div>
                       </td>
                     </tr>
@@ -300,7 +302,7 @@ const AdminVideosPage = () => {
                     variant="ghost"
                     size="icon"
                     className="h-11 w-full rounded-lg text-destructive hover:text-destructive"
-                    onClick={() => { if (confirm("Delete?")) deleteMutation.mutate(v.id); }}
+                    onClick={async () => { if (await confirm({ title: "Delete this video?", description: "This permanently removes the video file and analytics.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(v.id); }}
                     title="Delete"
                     aria-label="Delete video"
                   >
