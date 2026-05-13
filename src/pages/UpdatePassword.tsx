@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/landing/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Lock, Eye, EyeOff, AlertTriangle } from "lucide-react";
+import { useCapsLock } from "@/hooks/useCapsLock";
 
 const UpdatePassword = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const UpdatePassword = () => {
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
+  const { capsOn, handlers } = useCapsLock();
 
   useEffect(() => {
     // Supabase places the recovery session in the URL hash (#access_token=...).
@@ -81,6 +83,7 @@ const UpdatePassword = () => {
                   required
                   minLength={8}
                   autoComplete="new-password"
+                  {...handlers}
                 />
                 <button
                   type="button"
@@ -91,6 +94,11 @@ const UpdatePassword = () => {
                   {show ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+              {capsOn && (
+                <p className="text-[11px] -mt-2 flex items-center gap-1 text-amber-500">
+                  <AlertTriangle size={11} /> Caps Lock is on
+                </p>
+              )}
               <Input
                 type={show ? "text" : "password"}
                 placeholder="Confirm new password"

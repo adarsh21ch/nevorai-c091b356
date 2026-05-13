@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/landing/Logo";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Eye, EyeOff, Mail, Lock, User as UserIcon, Phone, Sparkles, ArrowLeft, ShieldCheck, Loader2, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User as UserIcon, Phone, Sparkles, ArrowLeft, ShieldCheck, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useCapsLock } from "@/hooks/useCapsLock";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -154,6 +155,14 @@ export default function AuthPage() {
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => { e.preventDefault(); await verifyOtpCode(otp); };
+
+  // Auto-submit OTP when 6 digits are entered (typing or paste)
+  useEffect(() => {
+    if (stage === "nevorai-otp" && otp.length === 6 && !submitting) {
+      void verifyOtpCode(otp);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [otp, stage]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -369,7 +378,7 @@ export default function AuthPage() {
                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
                     <Input type={showPassword ? "text" : "password"} placeholder="At least 8 characters" className="auth-input pl-9 pr-10" autoFocus
                       value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }}>
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }}>
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
@@ -394,19 +403,27 @@ export default function AuthPage() {
   );
 }
 
-const PasswordField = ({ form, setForm, showPassword, setShowPassword, showForgot }: any) => (
-  <div className="space-y-2">
-    <div className="flex items-center justify-between">
-      <Label htmlFor="password" className="text-sm">Password <span className="text-destructive">*</span></Label>
-      {showForgot && <Link to="/auth/reset-password" className="text-xs text-primary hover:underline">Forgot password?</Link>}
+const PasswordField = ({ form, setForm, showPassword, setShowPassword, showForgot }: any) => {
+  const { capsOn, handlers } = useCapsLock();
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label htmlFor="password" className="text-sm">Password <span className="text-destructive">*</span></Label>
+        {showForgot && <Link to="/auth/reset-password" className="text-xs text-primary hover:underline">Forgot password?</Link>}
+      </div>
+      <div className="relative">
+        <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
+        <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="auth-input pl-9 pr-10" required
+          value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} {...handlers} />
+        <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground" style={{ color: "var(--color-hero-muted)" }}>
+          {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+        </button>
+      </div>
+      {capsOn && (
+        <p className="text-[11px] flex items-center gap-1 text-amber-500">
+          <AlertTriangle size={11} /> Caps Lock is on
+        </p>
+      )}
     </div>
-    <div className="relative">
-      <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
-      <Input id="password" type={showPassword ? "text" : "password"} placeholder="••••••••" className="auth-input pl-9 pr-10" required
-        value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 hover:text-foreground" style={{ color: "var(--color-hero-muted)" }}>
-        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-      </button>
-    </div>
-  </div>
-);
+  );
+};

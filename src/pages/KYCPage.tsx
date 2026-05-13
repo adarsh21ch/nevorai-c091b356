@@ -326,10 +326,12 @@ const KYCPage = () => {
                   <div>
                     <Label className="text-xs font-medium">Aadhaar Number <span className="text-destructive">*</span></Label>
                     <Input
-                      value={form.aadhar_number}
-                      onChange={(e) => setForm({ ...form, aadhar_number: e.target.value.replace(/\D/g, "") })}
+                      value={form.aadhar_number.replace(/(\d{4})(?=\d)/g, "$1 ").trim()}
+                      onChange={(e) => setForm({ ...form, aadhar_number: e.target.value.replace(/\D/g, "").slice(0, 12) })}
                       placeholder="1234 5678 9012"
-                      maxLength={12}
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={14}
                       className="mt-1.5 h-11 bg-muted border-border font-mono tracking-wider"
                     />
                     {form.aadhar_number && form.aadhar_number.length < 12 && (
