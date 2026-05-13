@@ -23,6 +23,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 import { StepCodeGate } from "@/components/funnel/StepCodeGate";
 

@@ -31,6 +31,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 import { BrandingWatermark } from "@/components/BrandingWatermark";
 
 /* ─── Speed Popover ─── */

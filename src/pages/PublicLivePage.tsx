@@ -24,6 +24,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 type ViewerState = "waiting" | "live" | "ended" | "replay";
 
