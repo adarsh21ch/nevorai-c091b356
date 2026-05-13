@@ -1,10 +1,10 @@
 export const brand = {
   name: "nFlow by Nevorai",
-  nameShort: "Flow",
-  nameAccent: "Flow",
+  nameShort: "nFlow",
+  nameAccent: "nFlow",
   fullBrand: "nFlow by Nevorai",
   parent: "Nevorai",
-  tagline: "Turn every video into a smart sales funnel.",
+  tagline: "See who's watching.",
   description:
     "Upload a video, share a smart link, capture leads. nFlow by Nevorai turns every video into a sales funnel.",
   domain: "flow.nevorai.com",
