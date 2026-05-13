@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const FunnelsPage = () => {
   useDocumentTitle("Funnels");
@@ -24,6 +25,7 @@ const FunnelsPage = () => {
   const [modalType, setModalType] = useState<"upgrade" | "limit">("upgrade");
 
   const { isFree, canCreateFunnel, config, counts, tier } = usePlanLimits();
+  const confirm = useConfirm();
 
   const { data: funnels = [], isLoading } = useQuery({
     queryKey: ["my-funnels", user?.id],
@@ -166,7 +168,9 @@ const FunnelsPage = () => {
                       <DropdownMenuItem onClick={() => navigate(`/funnels/${f.id}`)}>
                         <Eye size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive" onClick={() => { if (confirm("Delete this funnel?")) deleteMutation.mutate(f.id); }}>
+                      <DropdownMenuItem className="text-destructive" onClick={async () => {
+                        if (await confirm({ title: "Delete this funnel?", description: "This will permanently remove the funnel and its leads.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(f.id);
+                      }}>
                         <Trash2 size={13} className="mr-2" /> Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>

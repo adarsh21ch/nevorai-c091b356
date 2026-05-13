@@ -19,6 +19,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 interface PrivateLeadFormProps {
   funnelId: string;
@@ -338,6 +339,7 @@ export const PrivateLeadForm = ({
             >
               {loading ? <><Loader2 size={16} className="animate-spin mr-2" /> Submitting…</> : "Continue to Program →"}
             </Button>
+            <PrivacyMicrocopy color={textMuted} />
           </form>
         </div>
       </div>

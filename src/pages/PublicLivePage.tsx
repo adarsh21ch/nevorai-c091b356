@@ -24,6 +24,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 type ViewerState = "waiting" | "live" | "ended" | "replay";
 
@@ -993,6 +994,7 @@ const RegistrationForm = ({
       <Button variant="hero" className="w-full" onClick={onSubmit} disabled={submitting}>
         {submitting ? <><Loader2 size={16} className="animate-spin mr-2 inline" /> Submitting…</> : "Register & Continue"}
       </Button>
+      <PrivacyMicrocopy />
     </div>
   );
 };

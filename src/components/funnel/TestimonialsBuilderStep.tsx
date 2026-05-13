@@ -10,6 +10,7 @@ import { Trash2, GripVertical, Star, Loader2, MessageSquare, Video, FileText } f
 import { toast } from "sonner";
 import { TestimonialPhotoUpload } from "@/components/funnel/TestimonialPhotoUpload";
 import { TestimonialVideoUpload } from "@/components/funnel/TestimonialVideoUpload";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface TestimonialsBuilderStepProps {
   landingPageId: string | undefined;
@@ -77,6 +78,7 @@ export const TestimonialsBuilderStep = ({
   landingPageId, userId, testimonialsEnabled, testimonialsSectionTitle, onToggleEnabled, onTitleChange,
 }: TestimonialsBuilderStepProps) => {
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const MAX_PER_PAGE = 4;
 
   const { data: platformSettings = [] } = useQuery({
@@ -153,9 +155,9 @@ export const TestimonialsBuilderStep = ({
     onError: (e: any) => toast.error(e.message),
   });
 
-  const handleDelete = useCallback((id: string) => {
-    if (confirm("Delete this testimonial?")) deleteMutation.mutate(id);
-  }, [deleteMutation]);
+  const handleDelete = useCallback(async (id: string) => {
+    if (await confirm({ title: "Delete this testimonial?", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(id);
+  }, [deleteMutation, confirm]);
 
   if (!landingPageId) {
     return (

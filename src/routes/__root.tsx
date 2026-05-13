@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
+import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { CurrencyProvider } from "@/hooks/useCurrency";
@@ -188,10 +189,12 @@ function RootComponent() {
       <ThemeProvider>
         <AuthProvider>
           <CurrencyProvider>
-            <ErrorBoundary>
-              <Outlet />
-            </ErrorBoundary>
-            <Toaster />
+            <ConfirmDialogProvider>
+              <ErrorBoundary>
+                <Outlet />
+              </ErrorBoundary>
+              <Toaster />
+            </ConfirmDialogProvider>
           </CurrencyProvider>
         </AuthProvider>
       </ThemeProvider>

@@ -31,6 +31,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 import { BrandingWatermark } from "@/components/BrandingWatermark";
 
 /* ─── Speed Popover ─── */
@@ -1057,6 +1058,7 @@ const PublicFunnel = () => {
         >
           {submitLead.isPending ? <><Loader2 size={16} className="animate-spin mr-2 inline" /> Submitting…</> : <>{funnel.cta_text || "Get Started"} →</>}
         </Button>
+        <PrivacyMicrocopy color={tc.textMuted} />
       </form>
     </div>
   );

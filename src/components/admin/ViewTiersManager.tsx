@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2, Star, Save, Loader2 } from "lucide-react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface Tier {
   id: string;
@@ -55,6 +56,7 @@ const EditableNumberCell = ({
 
 export const ViewTiersManager = ({ planName }: { planName: "basic" | "pro" }) => {
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [adding, setAdding] = useState(false);
   const [newTier, setNewTier] = useState({
     daily_views: "", monthly_price: "", yearly_price: "", is_popular: false,
@@ -105,7 +107,7 @@ export const ViewTiersManager = ({ planName }: { planName: "basic" | "pro" }) =>
   };
 
   const deleteTier = async (id: string) => {
-    if (!confirm("Delete this tier? Users on this tier will fall back to the popular tier.")) return;
+    if (!(await confirm({ title: "Delete this tier?", description: "Users on this tier will fall back to the popular tier.", confirmLabel: "Delete", destructive: true }))) return;
     const { error } = await adminWrite(() =>
       (supabase.from("plan_view_tiers" as any) as any).delete().eq("id", id).select(),
     );

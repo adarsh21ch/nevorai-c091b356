@@ -21,6 +21,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { computeSessionSlots, currentLiveSlot, nextSlot as nextSlotFn, sessionDurationSec } from "@/lib/liveSession";
 import { VideoPickerModal } from "@/components/VideoPickerModal";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 const generateSlug = (title: string) =>
   title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60) || "my-session";
@@ -195,6 +196,7 @@ const LivePage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [step, setStep] = useState(1);
@@ -994,8 +996,8 @@ const LivePage = () => {
                         onClick={() => togglePublishMutation.mutate({ id: s.id, val: s.is_published === false })}>
                         <Globe size={14} className={s.is_published === false ? "opacity-40" : ""} />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="Delete" onClick={() => {
-                        if (confirm("Delete this session? This action cannot be undone.")) deleteMutation.mutate(s.id);
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" title="Delete" onClick={async () => {
+                        if (await confirm({ title: "Delete this session?", description: "This action cannot be undone.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(s.id);
                       }}>
                         <Trash2 size={14} />
                       </Button>
