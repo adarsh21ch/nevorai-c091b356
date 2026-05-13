@@ -38,7 +38,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen landing-page overflow-x-clip">
+    <div data-theme="dark" className="min-h-screen landing-page overflow-x-clip bg-hero-bg text-white">
       <Navbar />
       <HeroSection />
       <LeakyFunnel />

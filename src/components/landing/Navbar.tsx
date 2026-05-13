@@ -1,16 +1,14 @@
 import { Link, useLocation, useNavigate } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./Logo";
-import { Menu, X, Sun, Moon } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useTheme } from "@/hooks/useTheme";
 
 export const Navbar = () => {
   const [open, setOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === "/";
-  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (location.hash) {
@@ -49,9 +47,6 @@ export const Navbar = () => {
           <a href="/#features" onClick={(e) => handleSectionClick(e, "#features")} className="text-sm text-white/80 hover:text-white transition-colors cursor-pointer">Features</a>
           <a href="/#pricing" onClick={(e) => handleSectionClick(e, "#pricing")} className="text-sm text-white/80 hover:text-white transition-colors cursor-pointer">Pricing</a>
           <a href="/#faq" onClick={(e) => handleSectionClick(e, "#faq")} className="text-sm text-white/80 hover:text-white transition-colors cursor-pointer">FAQ</a>
-          <button onClick={toggleTheme} className="text-white/80 hover:text-white p-2 rounded-lg hover:bg-white/10 transition-colors min-h-11 min-w-11 flex items-center justify-center" title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
           <Link to="/auth">
             <Button variant="ghost" size="sm" className="text-white/80 hover:text-white hover:bg-white/10 min-h-11">Log in</Button>
           </Link>
@@ -61,9 +56,6 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          <button onClick={toggleTheme} className="text-white/80 hover:text-white p-2 rounded-lg min-h-11 min-w-11 flex items-center justify-center">
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </button>
           <button className="text-white p-2 min-h-11 min-w-11 flex items-center justify-center" onClick={() => setOpen(!open)} aria-label={open ? "Close menu" : "Open menu"}>
             {open ? <X size={24} /> : <Menu size={24} />}
           </button>
