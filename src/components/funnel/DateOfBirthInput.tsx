@@ -55,6 +55,16 @@ export const DateOfBirthInput = ({ value, onChange, required, hasError, size = "
     }
   };
 
+  const handleBlur = (key: "d" | "mo") => {
+    const v = parts[key];
+    if (v.length === 1 && v !== "0") {
+      const padded = pad(v, 2);
+      const next = { ...parts, [key]: padded };
+      setParts(next);
+      emit(next);
+    }
+  };
+
   const handleKeyDown = (key: "d" | "mo" | "y", e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "") {
       if (key === "mo") dRef.current?.focus();
@@ -67,9 +77,9 @@ export const DateOfBirthInput = ({ value, onChange, required, hasError, size = "
 
   return (
     <div className="flex items-center gap-2 w-full">
-      <input ref={dRef} type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="bday-day" placeholder="DD" aria-label="Day" maxLength={2} value={parts.d} onChange={(e) => handleChange("d", e.target.value)} onKeyDown={(e) => handleKeyDown("d", e)} required={required} className={`${baseCls} flex-1 min-w-0`} />
+      <input ref={dRef} type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="bday-day" placeholder="DD" aria-label="Day" maxLength={2} value={parts.d} onChange={(e) => handleChange("d", e.target.value)} onBlur={() => handleBlur("d")} onKeyDown={(e) => handleKeyDown("d", e)} required={required} className={`${baseCls} flex-1 min-w-0`} />
       <span className="text-muted-foreground select-none">/</span>
-      <input ref={mRef} type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="bday-month" placeholder="MM" aria-label="Month" maxLength={2} value={parts.mo} onChange={(e) => handleChange("mo", e.target.value)} onKeyDown={(e) => handleKeyDown("mo", e)} required={required} className={`${baseCls} flex-1 min-w-0`} />
+      <input ref={mRef} type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="bday-month" placeholder="MM" aria-label="Month" maxLength={2} value={parts.mo} onChange={(e) => handleChange("mo", e.target.value)} onBlur={() => handleBlur("mo")} onKeyDown={(e) => handleKeyDown("mo", e)} required={required} className={`${baseCls} flex-1 min-w-0`} />
       <span className="text-muted-foreground select-none">/</span>
       <input ref={yRef} type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="bday-year" placeholder="YYYY" aria-label="Year" maxLength={4} value={parts.y} onChange={(e) => handleChange("y", e.target.value)} onKeyDown={(e) => handleKeyDown("y", e)} required={required} className={`${baseCls} flex-[1.4] min-w-0`} />
     </div>
