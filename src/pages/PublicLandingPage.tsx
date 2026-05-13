@@ -456,8 +456,7 @@ const PublicLandingPage = () => {
                   ))}
 
                   <Button type="submit" className="w-full" disabled={submitting} style={{ backgroundColor: page.theme_color }}>
-                    {submitting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                    {page.form_button_text} →
+                    {submitting ? <><Loader2 className="animate-spin mr-2" size={16} /> Submitting…</> : <>{page.form_button_text} →</>}
                   </Button>
                 </form>
 
