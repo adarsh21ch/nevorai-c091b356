@@ -411,13 +411,46 @@ const PublicLandingPage = () => {
                           required={f.required}
                         />
                       ) : (
-                        <Input
-                          type={(f as any).type || "text"}
-                          placeholder={(f as any).prefix ? `${(f as any).prefix} ` : ""}
-                          value={formData[f.key] || ""}
-                          onChange={(e) => setFormData((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                          required={f.required}
-                        />
+                        (() => {
+                          const k = f.key;
+                          const isPhone = k === "phone";
+                          const isEmail = k === "email";
+                          const isName = k === "name";
+                          const isCity = k === "city";
+                          const isAge = k === "age";
+                          const extra = isPhone ? phoneInputProps
+                            : isEmail ? emailInputProps
+                            : isName ? nameInputProps
+                            : isCity ? cityInputProps
+                            : isAge ? { type: "number" as const, inputMode: "numeric" as const, min: 1, max: 120 }
+                            : {};
+                          const err = fieldErrors[k];
+                          const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+                            const v = isPhone ? normalizePhone(e.target.value) : e.target.value;
+                            setFormData((prev) => ({ ...prev, [k]: v }));
+                            if (err) setFieldErrors((p) => ({ ...p, [k]: null }));
+                          };
+                          const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+                            if (isName || isCity) setFormData((prev) => ({ ...prev, [k]: trimSmart(e.target.value) }));
+                            else if (isEmail) setFormData((prev) => ({ ...prev, [k]: e.target.value.trim() }));
+                          };
+                          return (
+                            <>
+                              <Input
+                                ref={(el) => { fieldRefs.current[k] = el; }}
+                                {...(extra as any)}
+                                type={(extra as any).type || (f as any).type || "text"}
+                                placeholder={(f as any).prefix ? `${(f as any).prefix} ` : ""}
+                                value={formData[k] || ""}
+                                onChange={onChange}
+                                onBlur={onBlur}
+                                aria-invalid={!!err}
+                                className={err ? "border-destructive" : ""}
+                              />
+                              {err && <p className="text-xs text-destructive mt-1">{err}</p>}
+                            </>
+                          );
+                        })()
                       )}
                     </div>
                   ))}
