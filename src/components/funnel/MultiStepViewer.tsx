@@ -298,22 +298,50 @@ export const MultiStepViewer = ({
     toast.success("Step completed!");
   };
 
+  const validateLead = (): Record<string, string | null> => {
+    const e: Record<string, string | null> = {};
+    if (formConfig?.show_name && (formConfig.name_required || leadForm.name)) e.name = formConfig.name_required ? validateRequired(leadForm.name, "Name") : null;
+    if (formConfig?.show_phone && (formConfig.phone_required || leadForm.phone)) e.phone = validatePhone(leadForm.phone);
+    if (formConfig?.show_email && (formConfig.email_required || leadForm.email)) e.email = validateEmail(leadForm.email);
+    if (formConfig?.show_city && formConfig.city_required) e.city = validateRequired(leadForm.city, "City");
+    return e;
+  };
+
+  const setLeadField = (k: keyof typeof leadForm, v: string) => {
+    setLeadForm((p) => ({ ...p, [k]: v }));
+    if (leadErrors[k]) setLeadErrors((p) => ({ ...p, [k]: null }));
+  };
+
   const handleLeadSubmit = async (stepIndex: number) => {
     if (leadForm.website) return;
+    if (leadSubmitting) return;
+    const fe = validateLead();
+    setLeadErrors(fe);
+    if (Object.values(fe).some(Boolean)) {
+      scrollToFirstError(fe, leadRefs.current, ["name", "phone", "email", "city"]);
+      return;
+    }
+    setLeadSubmitting(true);
     const s = (v: string | null | undefined) => (v ? sanitizeText(v) : null);
-    await supabase.from("funnel_leads").insert({
-      funnel_id: funnel.id,
-      name: s(leadForm.name),
-      phone: leadForm.phone ? normalizePhone(leadForm.phone) : null,
-      email: s(leadForm.email),
-      city: s(leadForm.city),
-      custom_value: s(leadForm.custom_value),
-      device_type: /Mobi/.test(navigator.userAgent) ? "mobile" : "desktop",
-      user_agent: navigator.userAgent,
-    });
-    setLeadSubmitted(true);
-    await completeStep(stepIndex);
-    toast.success("Details submitted!");
+    try {
+      await supabase.from("funnel_leads").insert({
+        funnel_id: funnel.id,
+        name: s(trimSmart(leadForm.name)),
+        phone: leadForm.phone ? normalizePhone(leadForm.phone) : null,
+        email: s(leadForm.email?.trim()),
+        city: s(trimSmart(leadForm.city)),
+        custom_value: s(leadForm.custom_value),
+        device_type: /Mobi/.test(navigator.userAgent) ? "mobile" : "desktop",
+        user_agent: navigator.userAgent,
+      });
+      setLeadSubmitted(true);
+      await completeStep(stepIndex);
+      toast.success("Details submitted!");
+    } catch (err: any) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLeadSubmitting(false);
+    }
   };
 
   const handlePaymentSubmit = async (stepIndex: number) => {
