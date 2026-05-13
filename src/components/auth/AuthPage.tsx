@@ -377,8 +377,7 @@ export default function AuthPage() {
                   <div className="relative">
                     <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
                     <Input type={showPassword ? "text" : "password"} placeholder="At least 8 characters" className="auth-input pl-9 pr-10" autoFocus
-                      value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      onKeyDown={(e) => e.getModifierState && setShowPassword((s) => s)} />
+                      value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
                     <button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }}>
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
