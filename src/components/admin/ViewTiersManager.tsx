@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Plus, Trash2, Star, Save, Loader2 } from "lucide-react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface Tier {
   id: string;

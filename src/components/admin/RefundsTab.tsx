@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { CheckCircle2, XCircle, Loader2, Shield, AlertCircle } from "lucide-react";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface RefundRow {
   id: string;
@@ -24,6 +25,7 @@ interface RefundRow {
 
 export const RefundsTab = () => {
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [rejectModal, setRejectModal] = useState<{ open: boolean; row: RefundRow | null }>({ open: false, row: null });
   const [rejectNote, setRejectNote] = useState("");
   const [actioning, setActioning] = useState<string | null>(null);
@@ -70,7 +72,14 @@ export const RefundsTab = () => {
   };
 
   const handleApprove = async (row: RefundRow) => {
-    if (!confirm(`Approve refund of ₹${row.amount} for ${profileMap[row.user_id]?.full_name || "user"}?`)) return;
+    const ok = await confirm({
+      title: `Approve refund of ₹${row.amount}?`,
+      description: `For ${profileMap[row.user_id]?.full_name || "user"}. You'll still need to process the actual refund in Razorpay.`,
+      confirmLabel: "Approve refund",
+      destructive: true,
+      typeToConfirm: "APPROVE",
+    });
+    if (!ok) return;
     setActioning(row.id);
     const { data, error } = await supabase.functions.invoke("refund-request", {
       body: { action: "approve", refund_id: row.id },
