@@ -80,10 +80,40 @@ const PublicLandingPage = () => {
     load();
   }, [slug]);
 
+  const validateLeadFields = (): Record<string, string | null> => {
+    const e: Record<string, string | null> = {};
+    const fields = (page ? [
+      { key: "name", enabled: page.field_name_enabled, required: page.field_name_required },
+      { key: "phone", enabled: page.field_phone_enabled, required: page.field_phone_required },
+      { key: "email", enabled: page.field_email_enabled, required: page.field_email_required },
+      { key: "city", enabled: page.field_city_enabled, required: page.field_city_required },
+      { key: "state", enabled: page.field_state_enabled, required: page.field_state_required },
+      { key: "occupation", enabled: page.field_occupation_enabled, required: page.field_occupation_required },
+    ] : []).filter((f) => f.enabled);
+    for (const f of fields) {
+      const v = formData[f.key] || "";
+      if (f.key === "phone") {
+        if (f.required || v) e[f.key] = validatePhone(v);
+      } else if (f.key === "email") {
+        if (f.required || v) e[f.key] = validateEmail(v);
+      } else if (f.required) {
+        e[f.key] = validateRequired(v, f.key.charAt(0).toUpperCase() + f.key.slice(1));
+      }
+    }
+    return e;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!page || submitting) return;
     if (honeypot) { setSubmitted(true); return; }
+
+    const fe = validateLeadFields();
+    setFieldErrors(fe);
+    if (Object.values(fe).some(Boolean)) {
+      scrollToFirstError(fe, fieldRefs.current);
+      return;
+    }
 
     const minAgeEnabled = !!(page as any).min_age_enabled;
     const minAge = Number((page as any).min_age) || 0;
