@@ -18,7 +18,19 @@ import { PrivateLeadForm } from "@/components/funnel/PrivateLeadForm";
 import { FunnelDailyLimitGate } from "@/components/funnel/FunnelDailyLimitGate";
 import { CreatorInactiveGate } from "@/components/funnel/CreatorInactiveGate";
 import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
-import { sanitizeText, normalizePhone } from "@/lib/sanitize";
+import { sanitizeText } from "@/lib/sanitize";
+import {
+  normalizePhone,
+  trimSmart,
+  validatePhone,
+  validateEmail,
+  validateRequired,
+  phoneInputProps,
+  emailInputProps,
+  nameInputProps,
+  cityInputProps,
+  scrollToFirstError,
+} from "@/lib/leadInputs";
 import { BrandingWatermark } from "@/components/BrandingWatermark";
 
 /* ─── Speed Popover ─── */
