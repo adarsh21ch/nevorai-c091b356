@@ -123,6 +123,8 @@ const BillingPage = () => {
           )}
         </div>
 
+        {/* Storage usage */}
+        <StorageUsageCard />
 
         {/* Existing refund-request status banner */}
         {existingRefund && (
