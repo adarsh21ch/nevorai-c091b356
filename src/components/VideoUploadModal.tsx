@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,8 @@ import { Switch } from "@/components/ui/switch";
 import { sanitizeText, sanitizeFilename } from "@/lib/sanitize";
 import { Link } from "@/lib/router-compat";
 import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
+import { useStorageUsage } from "@/hooks/useStorageUsage";
+import { StorageLimitModal } from "@/components/StorageLimitModal";
 
 interface Props {
   open: boolean;
@@ -57,6 +60,7 @@ const FORMAT_REJECT_MSG =
 
 export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const startTimeRef = useRef<number>(0);
   const [file, setFile] = useState<File | null>(null);
@@ -71,6 +75,8 @@ export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
   const [tipOpen, setTipOpen] = useState(false);
   const [allowCopyLink, setAllowCopyLink] = useState(true);
   const [doneVideoId, setDoneVideoId] = useState<string | null>(null);
+  const [storageLimitOpen, setStorageLimitOpen] = useState(false);
+  const storage = useStorageUsage();
 
   const reset = () => {
     setFile(null);
@@ -101,6 +107,13 @@ export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
 
     if (f.size > MAX_SIZE_BYTES) {
       toast.error("Video too large. Maximum size is 500MB. Please compress your video first.", { duration: 6000 });
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+
+    // Storage quota gate — block before any upload starts.
+    if (!storage.isLoading && storage.wouldExceed(f.size)) {
+      setStorageLimitOpen(true);
       if (fileRef.current) fileRef.current.value = "";
       return;
     }
@@ -163,6 +176,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
       }
 
       toast.success("Video uploaded successfully!");
+      queryClient.invalidateQueries({ queryKey: ["storage-usage"] });
       onSuccess();
       // Show the Done/Share step instead of immediately closing.
       setDoneVideoId(result?.videoId || null);
@@ -454,6 +468,12 @@ export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
         </div>
         )}
       </DialogContent>
+      <StorageLimitModal
+        open={storageLimitOpen}
+        onClose={() => setStorageLimitOpen(false)}
+        usedGB={storage.usedGB}
+        limitGB={storage.limitGB}
+      />
     </Dialog>
   );
 };

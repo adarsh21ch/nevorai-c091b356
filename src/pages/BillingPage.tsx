@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { RefundRequestModal } from "@/components/RefundRequestModal";
 import { TopUpViewsCard } from "@/components/TopUpViewsCard";
 import { ViewCapacityCard } from "@/components/billing/ViewCapacityCard";
+import { StorageUsageCard } from "@/components/StorageUsageCard";
 
 const statusConfig: Record<string, { label: string; icon: any; color: string; bg: string }> = {
   active:        { label: "Active",         icon: CheckCircle2, color: "text-emerald-500", bg: "bg-emerald-500/10 border-emerald-500/20" },
@@ -122,6 +123,8 @@ const BillingPage = () => {
           )}
         </div>
 
+        {/* Storage usage */}
+        <StorageUsageCard />
 
         {/* Existing refund-request status banner */}
         {existingRefund && (

@@ -22,6 +22,7 @@ import { usePlan } from "@/hooks/usePlan";
 import { format } from "date-fns";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { sanitizeFields, normalizePhone } from "@/lib/sanitize";
+import { StorageUsageCard } from "@/components/StorageUsageCard";
 
 const ProfilePage = () => {
   useDocumentTitle("Profile");
@@ -156,6 +157,9 @@ const ProfilePage = () => {
             </div>
           )}
         </div>
+
+        {/* Storage usage */}
+        <StorageUsageCard />
 
         {/* Edit Profile — Collapsible */}
         <Collapsible open={editOpen} onOpenChange={setEditOpen}>
