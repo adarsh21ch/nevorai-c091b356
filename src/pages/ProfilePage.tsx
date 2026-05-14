@@ -158,6 +158,9 @@ const ProfilePage = () => {
           )}
         </div>
 
+        {/* Storage usage */}
+        <StorageUsageCard />
+
         {/* Edit Profile — Collapsible */}
         <Collapsible open={editOpen} onOpenChange={setEditOpen}>
           <div className="premium-card overflow-hidden">
