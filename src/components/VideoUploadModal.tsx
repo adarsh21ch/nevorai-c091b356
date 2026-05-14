@@ -59,7 +59,7 @@ const FORMAT_WARNING_MSG =
 const FORMAT_REJECT_MSG =
   "This format may not play correctly. For best results, upload a video downloaded from YouTube, or convert your video to MP4 using cloudconvert.com";
 
-export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
+export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false }: Props) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
