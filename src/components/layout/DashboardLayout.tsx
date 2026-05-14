@@ -262,15 +262,16 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         {showTrialGate && <TrialExpiredGate trialDays={trialDays} />}
 
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md md:hidden safe-area-pb">
-          <div className="grid grid-cols-5 items-end">
+          <div className="grid grid-cols-4 items-end">
             {[
-              { icon: LayoutDashboard, label: "Home", path: "/dashboard" },
-              { icon: Video, label: "My Videos", path: "/videos" },
-              { icon: BarChart2, label: "Insights", path: "/leads" },
-              { icon: Layers, label: "Funnels", path: "/funnels" },
-              { icon: User, label: "Profile", path: "/profile" },
+              { icon: Home, label: "Home", path: "/dashboard", match: "exact" as const },
+              { icon: Video, label: "My Videos", path: "/videos", match: "prefix" as const },
+              { icon: Wrench, label: "Tools", path: "/tools", match: "prefix" as const },
+              { icon: User, label: "Profile", path: "/profile", match: "prefix" as const },
             ].map((item) => {
-              const active = location.pathname.startsWith(item.path);
+              const active = item.match === "exact"
+                ? location.pathname === item.path
+                : location.pathname.startsWith(item.path);
               return (
                 <Link
                   key={item.path}
