@@ -257,19 +257,13 @@ const VideosPage = () => {
                   className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-muted/40 transition-colors cursor-pointer"
                 >
                   {/* Thumbnail */}
-                  <div className="relative flex-shrink-0 w-20 h-[50px] rounded-lg overflow-hidden bg-muted">
-                    {v.thumbnail_url ? (
-                      <img src={v.thumbnail_url} alt={title} className="w-full h-full object-cover" />
-                    ) : v.public_url ? (
-                      <video src={v.public_url} preload="metadata" playsInline muted className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center"><Play size={14} className="text-muted-foreground" /></div>
-                    )}
+                  <div className="relative flex-shrink-0 w-20">
+                    <VideoThumbnail thumbnailUrl={v.thumbnail_url} videoUrl={v.public_url} title={title} />
                     {dur && (
                       <span className="absolute bottom-0.5 right-0.5 bg-black/75 text-white text-[9px] font-medium px-1 py-0.5 rounded">{dur}</span>
                     )}
                     {!isReady && !isFailed && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-lg">
                         <Loader2 size={14} className="text-white animate-spin" />
                       </div>
                     )}
@@ -351,10 +345,8 @@ const VideosPage = () => {
               const title = getDisplayTitle(v.title);
               return (
                 <div key={v.id} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-colors">
-                  <div className="relative aspect-video bg-muted">
-                    {v.thumbnail_url ? <img src={v.thumbnail_url} alt={title} className="w-full h-full object-cover" /> :
-                      v.public_url ? <video src={v.public_url} preload="metadata" playsInline muted className="w-full h-full object-cover" /> :
-                      <div className="w-full h-full flex items-center justify-center"><Play size={24} className="text-muted-foreground" /></div>}
+                  <div className="relative">
+                    <VideoThumbnail thumbnailUrl={v.thumbnail_url} videoUrl={v.public_url} title={title} className="rounded-none" />
                     {formatDuration(v.duration_seconds) && (
                       <span className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">{formatDuration(v.duration_seconds)}</span>
                     )}
