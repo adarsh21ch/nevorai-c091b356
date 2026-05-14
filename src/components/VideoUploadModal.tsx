@@ -60,6 +60,7 @@ const FORMAT_REJECT_MSG =
 
 export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const startTimeRef = useRef<number>(0);
   const [file, setFile] = useState<File | null>(null);
