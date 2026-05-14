@@ -16,24 +16,16 @@ export const Logo = ({ size = "default", showByline = false, variant = "short" }
 
   return (
     <div className="flex items-center gap-2">
-      <img src={logoImg} alt="nFlow by Nevorai" className={`${s.img} object-contain`} />
+      <img src={logoImg} alt="Nevorai" className={`${s.img} object-contain`} />
       <div className="flex flex-col" style={{ lineHeight: 1 }}>
         <div className={`flex items-baseline ${s.text}`} style={{ lineHeight: 1, color: "hsl(var(--foreground))" }}>
-          {variant === "full" ? (
-            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: "-0.02em" }}>
-              <span style={{ fontWeight: 600 }}>Nevorai</span>
-              <span style={{ fontWeight: 800 }}>&nbsp;Flow</span>
-            </span>
-          ) : (
-            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: "-0.03em" }}>
-              <span style={{ fontWeight: 500 }}>n</span>
-              <span style={{ fontWeight: 800 }}>Flow</span>
-            </span>
-          )}
+          <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: "-0.02em", fontWeight: 700 }}>
+            Nevorai
+          </span>
         </div>
-        {variant === "short" && showByline && (
+        {showByline && (
           <span className={`${s.byline} mt-1`} style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 500, color: "hsl(var(--muted-foreground))", letterSpacing: "0.02em" }}>
-            by Nevorai
+            Share videos that get watched.
           </span>
         )}
       </div>

@@ -28,17 +28,13 @@ export const NFlowLogo = ({
   const subColor = variant === "white" ? "text-white/70" : "text-muted-foreground";
 
   return (
-    <div className={cn("flex flex-col leading-none", className)}>
-      <div className={cn("font-heading tracking-tight", textColor, s.name)}>
-        <span className="font-medium">n</span>
-        <span className="font-extrabold">Flow</span>
-      </div>
-      <span className={cn("font-medium tracking-wide mt-0.5", s.by, subColor)}>
-        by Nevorai
+    <div className={cn("flex flex-col leading-tight select-none", className)}>
+      <span className={cn("font-heading font-bold tracking-tight", textColor, s.name)}>
+        Nevorai
       </span>
       {showTagline && (
-        <span className={cn("mt-1 italic", s.tag, subColor)}>
-          See who's watching.
+        <span className={cn("mt-1 font-normal leading-snug", s.tag, subColor)}>
+          Share videos that get watched.
         </span>
       )}
     </div>
