@@ -1,15 +1,38 @@
 /**
+ * Capture the first frame of a video file as a small JPEG data URL,
+ * suitable for storing in `video_assets.thumbnail_url` directly.
+ *
+ * Returns null on any browser/codec error.
+ */
+export async function captureFirstFrameDataUrl(
+  file: File,
+  opts: { maxWidth?: number; quality?: number } = {},
+): Promise<string | null> {
+  const blob = await captureFirstFrame(file, opts);
+  if (!blob) return null;
+  return await new Promise<string | null>((resolve) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : null);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
  * Capture the first frame of a video file as a JPEG blob.
  * Returns null on any error (browser quirks, codec issues, etc.).
  */
-export async function captureFirstFrame(file: File): Promise<Blob | null> {
+export async function captureFirstFrame(
+  file: File,
+  opts: { maxWidth?: number; quality?: number } = {},
+): Promise<Blob | null> {
+  const { maxWidth = 480, quality = 0.78 } = opts;
   return new Promise((resolve) => {
     if (typeof document === "undefined") return resolve(null);
     const video = document.createElement("video");
     video.preload = "metadata";
     video.muted = true;
     video.playsInline = true;
-    video.crossOrigin = "anonymous";
     const url = URL.createObjectURL(file);
     video.src = url;
 
@@ -26,9 +49,12 @@ export async function captureFirstFrame(file: File): Promise<Blob | null> {
 
     video.onseeked = () => {
       try {
+        const w = video.videoWidth || 640;
+        const h = video.videoHeight || 360;
+        const scale = Math.min(1, maxWidth / w);
         const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 360;
+        canvas.width = Math.round(w * scale);
+        canvas.height = Math.round(h * scale);
         const ctx = canvas.getContext("2d");
         if (!ctx) {
           cleanup();
@@ -41,7 +67,7 @@ export async function captureFirstFrame(file: File): Promise<Blob | null> {
             resolve(blob);
           },
           "image/jpeg",
-          0.85,
+          quality,
         );
       } catch {
         cleanup();
