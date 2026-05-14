@@ -54,6 +54,7 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </div>
       </div>
-    </DashboardLayout>
+      </DashboardLayout>
+    </AdminRoute>
   );
 };
