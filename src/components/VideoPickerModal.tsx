@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Video, Search } from "lucide-react";
+import { VideoThumbnail } from "@/components/VideoThumbnail";
 
 interface Props {
   open: boolean;
