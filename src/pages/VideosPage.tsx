@@ -19,6 +19,7 @@ import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
 import { StorageUsageInline } from "@/components/StorageUsageCard";
+import { VideoThumbnail } from "@/components/VideoThumbnail";
 import { useNavigate } from "@/lib/router-compat";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
