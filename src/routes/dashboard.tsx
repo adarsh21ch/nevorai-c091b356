@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useMonthlyViews } from "@/hooks/useMonthlyViews";
 import { useDailyViews } from "@/hooks/useDailyViews";
 import { GettingStartedChecklist } from "@/components/dashboard/GettingStartedChecklist";
+import { WatchingNowStrip } from "@/components/dashboard/WatchingNowStrip";
 
 export const Route = createFileRoute("/dashboard")({ component: DashboardPage });
 
