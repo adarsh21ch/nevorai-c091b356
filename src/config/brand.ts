@@ -4,7 +4,7 @@ export const brand = {
   nameAccent: "Nevorai",
   fullBrand: "Nevorai",
   parent: "Nevorai",
-  tagline: "See who's watching.",
+  tagline: "Share videos that get watched.",
   description:
     "Upload a video, share a smart link, capture leads. Nevorai turns every video into a sales funnel.",
   domain: "flow.nevorai.com",
