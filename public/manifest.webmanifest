@@ -1,7 +1,7 @@
 {
   "name": "Nevorai",
   "short_name": "Nevorai",
-  "description": "Share your business video. See who's watching.",
+  "description": "Share business videos that get watched.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
