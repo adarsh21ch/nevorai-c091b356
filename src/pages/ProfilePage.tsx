@@ -74,7 +74,7 @@ const ProfilePage = () => {
     : isBasic
     ? "Basic Plan"
     : isTrial
-    ? `Trial · ${trial.trialDaysRemaining ?? 0} days left`
+    ? `Trial · ${trial.daysRemaining ?? 0} days left`
     : "Free Plan";
 
   const accountItems = [
