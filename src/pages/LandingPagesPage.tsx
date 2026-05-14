@@ -79,6 +79,7 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
   ) : null;
 
   const content = (
+    <>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -170,6 +171,7 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
         limit={config.max_landing_pages}
         tier={tier}
       />
+    </>
   );
   return embedded ? content : <DashboardLayout>{content}</DashboardLayout>;
 };
