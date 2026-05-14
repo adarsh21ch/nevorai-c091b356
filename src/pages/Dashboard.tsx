@@ -137,10 +137,18 @@ const Dashboard = () => {
               Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}! Here's your nFlow by Nevorai overview.
             </p>
           </div>
-          <div className="flex gap-2">
-            <Link to="/funnels/create"><Button variant="hero" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
-            <Link to="/videos"><Button variant="outline" size="sm"><Eye size={14} /> Add Video</Button></Link>
-          </div>
+              <div className="grid w-full grid-cols-2 gap-3 sm:flex sm:w-auto">
+                <Link to="/funnels/create" className="w-full sm:w-auto">
+                  <Button variant="hero" size="sm" className="h-11 w-full font-semibold sm:w-auto">
+                    <Plus size={16} className="mr-1.5" /> Create Funnel
+                  </Button>
+                </Link>
+                <Link to="/videos" className="w-full sm:w-auto">
+                  <Button variant="outline" size="sm" className="h-11 w-full font-semibold sm:w-auto">
+                    <Eye size={16} className="mr-1.5" /> Add Video
+                  </Button>
+                </Link>
+              </div>
         </div>
 
         {/* Latest video — share-first spotlight */}

@@ -3,7 +3,7 @@ import { Logo } from "@/components/landing/Logo";
 import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
   User, Bell, LogOut, ChevronLeft, ChevronRight, Shield,
-  Radio, FileText, Menu, Crown, HelpCircle, Home, Wrench, Activity,
+  Radio, FileText, Crown, HelpCircle, Home, Wrench, Activity,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,6 @@ import { useAdmin } from "@/hooks/useAdmin";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 // theme handled in ProfilePage
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useTrialStatus } from "@/hooks/useTrialStatus";
 import { TrialExpiredGate } from "@/components/TrialExpiredGate";
 import { TrialBanner } from "@/components/TrialBanner";
@@ -43,7 +42,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
   const [collapsed, setCollapsed] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
   // theme toggle moved to Profile page
   const { isTrialExpired, trialDays } = useTrialStatus();
   const { plan } = usePlan();
@@ -99,32 +98,6 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
             "flex items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground",
             collapsed ? "absolute -right-1 -top-1 h-4 w-4" : "ml-auto h-5 w-5"
           )}>
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </span>
-        )}
-      </Link>
-    );
-  };
-
-  const renderMobileNavItem = (item: typeof navItems[0]) => {
-    const active = location.pathname.startsWith(item.path);
-    const isNotif = item.path === "/notifications";
-    return (
-      <Link
-        key={item.path}
-        to={item.path}
-        onClick={() => setMobileMenuOpen(false)}
-        onMouseEnter={() => preloadRoute(item.path)}
-        onFocus={() => preloadRoute(item.path)}
-        className={cn(
-          "relative flex min-h-[46px] items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
-          active ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-        )}
-      >
-        <item.icon size={20} />
-        <span>{item.label}</span>
-        {isNotif && unreadCount > 0 && (
-          <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
@@ -204,52 +177,6 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
                     </span>
                   )}
                 </Link>
-                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                  <SheetTrigger asChild>
-                    <button className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground">
-                      <Menu size={20} />
-                    </button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="w-[85vw] max-w-72 p-0">
-                    <div className="border-b border-border p-4">
-                      <Logo size="sm" showByline />
-                    </div>
-                    <nav className="max-h-[calc(100vh-160px)] space-y-0.5 overflow-y-auto px-2 py-2">
-                      <p className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Main</p>
-                      {navItems.map(renderMobileNavItem)}
-                      <div className="my-2 border-t border-border" />
-                      <p className="px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Account</p>
-                      {bottomItems.map(renderMobileNavItem)}
-                      {isAdmin && (
-                        <>
-                          <div className="my-2 border-t border-border" />
-                          <Link
-                            to="/admin"
-                            onClick={() => setMobileMenuOpen(false)}
-                            onMouseEnter={() => preloadRoute("/admin")}
-                            onFocus={() => preloadRoute("/admin")}
-                            className={cn(
-                              "flex min-h-[46px] items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all",
-                              location.pathname.startsWith("/admin") ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted"
-                            )}
-                          >
-                            <Shield size={20} />
-                            <span>Admin Panel</span>
-                          </Link>
-                        </>
-                      )}
-                    </nav>
-                    <div className="absolute bottom-0 left-0 right-0 border-t border-border bg-card p-3">
-                      <button
-                        onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
-                        className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium text-destructive transition-all hover:bg-destructive/10"
-                      >
-                        <LogOut size={18} />
-                        <span>Logout</span>
-                      </button>
-                    </div>
-                  </SheetContent>
-                </Sheet>
               </div>
             </div>
           </div>
