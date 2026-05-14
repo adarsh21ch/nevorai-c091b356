@@ -108,6 +108,30 @@ const SettingsPage = () => {
           <Link to="/kyc"><Button variant="outline" size="sm">Manage</Button></Link>
         </div>
 
+        <div className="premium-card p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="stat-icon">
+              <Sparkles size={18} className="text-primary" />
+            </div>
+            <div>
+              <p className="text-sm font-medium">Onboarding tour</p>
+              <p className="text-xs text-muted-foreground">Replay the 60-second magic moment.</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={async () => {
+              if (!user) return;
+              await supabase.from("profiles").update({ onboarding_completed: false }).eq("id", user.id);
+              toast.success("Onboarding reset");
+              navigate("/onboarding");
+            }}
+          >
+            Show again
+          </Button>
+        </div>
+
         <div className="premium-card p-5 space-y-3">
           <div>
             <p className="text-sm font-medium">Your data</p>
