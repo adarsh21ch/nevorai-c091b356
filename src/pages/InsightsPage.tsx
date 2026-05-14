@@ -12,8 +12,8 @@ import { formatCompact, formatInt } from "@/lib/format";
 
 const COLORS = ["hsl(var(--primary))", "#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
-const InsightsPage = () => {
-  useDocumentTitle("Insights");
+const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
+  useDocumentTitle(embedded ? "Tools" : "Insights");
   const { user } = useAuth();
 
   const { data: funnels = [] } = useQuery({
