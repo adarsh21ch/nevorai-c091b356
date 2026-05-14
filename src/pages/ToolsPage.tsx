@@ -3,26 +3,30 @@ import { GitBranch, Layout, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { useNavigate, useLocation } from "@/lib/router-compat";
+import { useNavigate } from "@/lib/router-compat";
 import FunnelsPage from "@/pages/FunnelsPage";
 import LandingPagesPage from "@/pages/LandingPagesPage";
 import LivePage from "@/pages/LivePage";
+import InsightsPage from "@/pages/InsightsPage";
+import { BarChart3 } from "lucide-react";
 
 const TOOL_TABS = [
   { key: "funnels", label: "Funnels", icon: GitBranch, Component: FunnelsPage },
   { key: "landing-pages", label: "Landing Pages", icon: Layout, Component: LandingPagesPage },
-  { key: "live", label: "Live Sessions", icon: Radio, Component: LivePage },
+  { key: "live", label: "Live", icon: Radio, Component: LivePage },
+  { key: "insights", label: "Insights", icon: BarChart3, Component: InsightsPage },
 ] as const;
+
+const getInitialTab = (): string => {
+  if (typeof window === "undefined") return "funnels";
+  const m = window.location.search.match(/[?&]tab=([^&]+)/);
+  return m?.[1] || "funnels";
+};
 
 const ToolsPage = () => {
   useDocumentTitle("Tools");
   const navigate = useNavigate();
-  const location = useLocation();
-  const initial = (() => {
-    const m = location.search?.match(/[?&]tab=([^&]+)/);
-    return (m?.[1] as string) || "funnels";
-  })();
-  const [activeTab, setActiveTab] = useState<string>(initial);
+  const [activeTab, setActiveTab] = useState<string>(getInitialTab);
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
