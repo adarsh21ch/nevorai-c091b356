@@ -465,6 +465,12 @@ export const VideoUploadModal = ({ open, onClose, onSuccess }: Props) => {
         </div>
         )}
       </DialogContent>
+      <StorageLimitModal
+        open={storageLimitOpen}
+        onClose={() => setStorageLimitOpen(false)}
+        usedGB={storage.usedGB}
+        limitGB={storage.limitGB}
+      />
     </Dialog>
   );
 };
