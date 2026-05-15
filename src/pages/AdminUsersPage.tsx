@@ -240,6 +240,10 @@ const AdminUsersPage = () => {
                     <span className="text-[10px] text-muted-foreground">Views</span>
                     <ViewsCell used={used} limit={p.is_unlimited ? -1 : limit} />
                   </div>
+                  <div className="flex items-center justify-between gap-2 pt-1">
+                    <span className="text-[10px] text-muted-foreground">Verified</span>
+                    <VerifiedToggle userId={p.id} value={!!p.is_verified} />
+                  </div>
                   <div className="flex items-center justify-between pt-1">
                     <p className="text-[10px] text-muted-foreground">
                       Joined {p.created_at ? new Date(p.created_at).toLocaleDateString("en-IN") : "—"}
