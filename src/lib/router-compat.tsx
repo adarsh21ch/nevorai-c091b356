@@ -8,12 +8,34 @@ import {
 } from "@tanstack/react-router";
 
 // Drop-in Link
+// React Router DOM lets you write <Link to="/funnels/abc/edit"> with a
+// concrete URL. TanStack's <Link to="..."> expects the ROUTE PATTERN
+// ("/funnels/$id/edit") + params={{id:"abc"}}; given a literal URL it
+// renders a plain <a href> which causes a full page reload on click.
+// To preserve react-router-dom semantics across the app we render an
+// anchor and SPA-navigate via the router on click.
 export const Link = React.forwardRef<HTMLAnchorElement, any>(
-  ({ to, children, replace, state, ...rest }, ref) => {
+  ({ to, children, replace, state: _state, target, onClick, ...rest }, ref) => {
+    const router = useRouter();
+    const href = typeof to === "string" ? to : "#";
+    const isExternal =
+      typeof to === "string" &&
+      (to.startsWith("http://") || to.startsWith("https://") || to.startsWith("mailto:") || to.startsWith("tel:"));
+    const opensNewTab = target && target !== "_self";
+
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(e);
+      if (e.defaultPrevented) return;
+      if (isExternal || opensNewTab) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      router.navigate({ to: href as any, replace: !!replace });
+    };
+
     return (
-      <TLink ref={ref as any} to={to as any} {...rest}>
+      <a ref={ref as any} href={href} target={target} onClick={handleClick} {...rest}>
         {children}
-      </TLink>
+      </a>
     );
   },
 );
