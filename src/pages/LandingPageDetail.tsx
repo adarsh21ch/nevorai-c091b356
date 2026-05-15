@@ -81,7 +81,7 @@ const LandingPageDetail = () => {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/landing-pages")}>
+          <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/landing-pages/" })}>
             <ArrowLeft size={18} />
           </Button>
           <div className="flex-1">
