@@ -1,60 +1,45 @@
-# Two improvements: scrollable editors + ON-by-default toggles
+## Goal
 
-## Improvement 1 — Scrollable single-page editors
+1. Make "Add to Home Screen" feel like a real installed app (no Safari chrome) — your previous answer was the right one; my last change downgraded it. Revert.
+2. Finish what's still inconsistent: bring the **Live Session** editor up to the same Cloudflare-style scrollable layout as Funnel + Landing Page (it currently renders stacked sections but has no sidebar nav and still carries leftover `step` state).
 
-Replace the wizard (Next/Back, `wizardStep` state) in all three editors with one long scrollable page + scroll-spy sidebar.
+---
 
-### Shared infrastructure
-Create `src/components/editor/EditorScrollLayout.tsx`:
-- Props: `sections: { id, label, icon, num, complete? }[]`, `children`, `actions` (Save button slot)
-- Desktop: sticky left sidebar (≥md) — section list with active highlight (left border + accent), check icon when `complete=true`. Click → `scrollIntoView({behavior:'smooth', block:'start'})`.
-- Mobile (<md): sticky top chip bar (horizontal scroll) — same active highlight + tap-to-scroll.
-- Active section detection: single `IntersectionObserver` (rootMargin `-30% 0px -60% 0px`, threshold 0) tracking `[id^="section-"]`.
-- Sticky `Save` button slot top-right.
+## Part A — PWA: native-app feel
 
-Each section block: `<section id="section-xxx" className="scroll-mt-20 space-y-4">…</section>`.
+Revert `public/manifest.webmanifest`:
+- `display`: `"browser"` → **`"standalone"`** (no URL bar, no tabs — pure app shell)
+- `start_url`: `"/"` → **`"/dashboard"`** (opens straight into the app like a native one would)
+- Restore `"orientation": "portrait"`
 
-### FunnelEditor.tsx
-- Remove `wizardStep`, `setWizardStep`, Next/Back buttons, mode-chosen gate UI.
-- Keep both single/multi step lists conceptually, but render ALL sections stacked. Mode toggle stays as a control inside the "Name & Info" section.
-- Sections rendered in order from `SINGLE_STEPS`/`MULTI_STEPS` (already defined). Conditionally swap the "Build Journey" block in multi-mode vs "Video" in single-mode.
-- Sidebar derives from current mode array. `complete` = section's required field truthy (e.g. title set, video selected).
+Keep:
+- The kill-switch service workers at `/sw.js` and `/service-worker.js` (they still nuke any stale old SW from previous deploys — that's the actual 404 fix).
+- The runtime SW unregister in `__root.tsx` (belt + braces).
 
-### LandingPageEditor.tsx & LivePage.tsx
-Same treatment: identify the existing wizard step list, render all section bodies stacked, plug into `EditorScrollLayout`.
+Caveat (iOS limitation, not fixable in code): users who already added the site to their Home Screen while we briefly had `display: browser` will keep that pinned setting. They'd need to re-add to pick up `standalone`. Fresh installs from now on get the native-app experience.
 
-## Improvement 2 — ON-by-default toggles
+---
 
-### 2A. DB migration (funnels + landing_pages + live_sessions)
-Inspect schema first via `security--get_table_schema`, then migration:
-```sql
-ALTER TABLE public.funnels
-  ALTER COLUMN show_contact_buttons SET DEFAULT true,
-  ALTER COLUMN whatsapp_auto_message SET DEFAULT true,
-  ALTER COLUMN video_topics_enabled SET DEFAULT true,
-  ALTER COLUMN allow_speed_change SET DEFAULT true;
--- speaker_mode already defaults to 'account' (ON)
--- Backfill NULLs to true for the same columns
-```
-Apply analogous defaults to `landing_pages` / `live_sessions` only for columns that actually exist there.
+## Part B — Live Session editor: finish the scrollable refactor
 
-### 2B. Frontend defaults in `useState` initializers
-`FunnelEditor` line 145–165 — flip:
-- `show_contact_buttons: true`
-- `whatsapp_auto_message: true`
-- `video_topics_enabled: true`
-- `allow_speed_change: true` (already true)
-- `speaker_mode: "account"` (already on)
+Current state of `src/pages/LivePage.tsx`:
+- ✅ Step gates already removed (all sections render stacked)
+- ❌ Still has unused `step` / `setStep` state and reset calls
+- ❌ Doesn't use `EditorScrollLayout` → no sidebar scroll-spy, no mobile chip bar, no sticky Save — inconsistent with Funnel + Landing
 
-Mirror in LandingPageEditor / LivePage create-form initial state where equivalent fields exist.
+Changes:
+1. Define a `WIZARD_STEPS`-style section list (id, title, completion check) matching the existing section blocks already in the JSX.
+2. Wrap the form body in `<EditorScrollLayout sections={…} header={…}>` and map each existing section into an `<EditorSectionBlock id=… title=…>` wrapper so the sidebar / mobile chips light up as the user scrolls.
+3. Remove `step` / `setStep` state and the three `setStep(1)` resets.
+4. Apply ON-by-default to live-session toggles that exist (e.g. `allow_speed_change` if present in the form state) — same treatment as Funnel.
 
-## Out of scope (per "DO NOT TOUCH")
-Auth, Razorpay, R2, public viewer routes, RLS, slug logic, anything else.
+No changes to: save logic, scheduling logic, public viewer (`/s/$slug`), auth, payments, RLS.
 
-## Risk + verification
-- Save/auto-save logic untouched — only presentation changes.
-- Auto-save already runs on field change, no longer tied to step nav.
-- Verify: create new funnel → all toggles ON, all sections visible, sidebar highlights on scroll, click jumps, mobile chips work, `bunx tsc --noEmit` clean.
+---
 
-## Effort estimate
-Large — touching 3 large files + 1 new component + 1 migration. ~30–45 min of edits. I'll do it in this order: (1) scaffold `EditorScrollLayout`, (2) refactor FunnelEditor (biggest), (3) Landing, (4) Live, (5) DB migration, (6) defaults flip, (7) typecheck.
+## Verification
+
+- `bunx tsc --noEmit` → 0 errors
+- Live Session editor opens with sticky sidebar (desktop) / chip bar (mobile), Save in header, all sections visible from the start
+- Funnel + Landing Page editors unchanged
+- Manifest re-served as standalone — installing on a fresh device gives a chromeless, native-feeling window opening to `/dashboard`
