@@ -194,7 +194,7 @@ const NextSlotLine = ({ session }: { session: any }) => {
 };
 
 const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const confirm = useConfirm();
@@ -210,7 +210,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const upd = <K extends keyof FormState>(key: K, val: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: val }));
 
-  const { data: sessions = [], isLoading } = useQuery({
+  const { data: sessions = [], isLoading, error, refetch } = useQuery({
     queryKey: ["live-sessions", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -221,7 +221,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
     refetchInterval: 60_000,
   });
 
@@ -258,7 +258,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user && creating,
+    enabled: !!user?.id && creating,
   });
 
   useEffect(() => {
@@ -524,7 +524,18 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </Button>
         </div>
 
-        {sessions.length > 0 && (
+        {authLoading || isLoading ? (
+          <div className="glass-card p-10 text-center">
+            <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-3" />
+            <p className="text-sm text-muted-foreground">Loading live sessions...</p>
+          </div>
+        ) : error ? (
+          <div className="glass-card p-10 text-center">
+            <h3 className="text-lg font-semibold mb-2">Couldn’t load live sessions</h3>
+            <p className="text-sm text-muted-foreground mb-5">Please try again.</p>
+            <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+          </div>
+        ) : sessions.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
             <div className="glass-card p-3"><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p><p className="text-lg font-bold">{stats.total}</p></div>
             <div className="glass-card p-3"><p className="text-[10px] uppercase tracking-wider text-muted-foreground">Live now</p><p className="text-lg font-bold text-red-500">{stats.live}</p></div>
@@ -533,7 +544,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </div>
         )}
 
-        {creating && (
+        {!authLoading && !isLoading && !error && creating && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center overflow-y-auto pt-8 pb-8 px-4">
             <div className="glass-card w-full max-w-2xl p-6 space-y-5 relative">
               <button onClick={() => { setCreating(false); setEditingId(null); }} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
