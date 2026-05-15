@@ -53,16 +53,27 @@ export interface NavLinkProps {
 }
 
 export const NavLink = React.forwardRef<HTMLAnchorElement, NavLinkProps>(
-  ({ to, className, children, end, ...rest }, ref) => {
+  ({ to, className, children, end, replace, target, onClick, ...rest }, ref) => {
+    const router = useRouter();
     const loc = useTLocation();
     const isActive = end ? loc.pathname === to : loc.pathname === to || loc.pathname.startsWith(to + "/");
     const args = { isActive, isPending: false };
     const cls = typeof className === "function" ? className(args) : className;
     const kids = typeof children === "function" ? (children as any)(args) : children;
+    const isExternal = to.startsWith("http://") || to.startsWith("https://") || to.startsWith("mailto:") || to.startsWith("tel:");
+    const opensNewTab = target && target !== "_self";
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(e);
+      if (e.defaultPrevented) return;
+      if (isExternal || opensNewTab) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      router.navigate({ to: to as any, replace: !!replace });
+    };
     return (
-      <TLink ref={ref as any} to={to as any} className={cls} {...rest}>
+      <a ref={ref as any} href={to} target={target} className={cls} onClick={handleClick} {...rest}>
         {kids}
-      </TLink>
+      </a>
     );
   },
 );
