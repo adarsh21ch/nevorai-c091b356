@@ -2,6 +2,7 @@ import { useParams, Link } from "@/lib/router-compat";
 import { useNavigate } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -110,13 +111,14 @@ const FunnelDetail = () => {
             <WhatsAppShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/f/${funnel.slug}`} message={`Watch this short video: ${funnel.title}`} size="sm" />
             <button
               type="button"
+              className={buttonVariants({ variant: "default", size: "sm" })}
               onClick={() => {
                 if (!id) return;
                 console.log("[EditButton] Navigating to edit page for funnel:", id);
                 navigate({ to: "/funnels/$id/edit", params: { id } });
               }}
             >
-              <Button variant="default" size="sm"><Edit size={14} /> Edit</Button>
+              <Edit size={14} /> Edit
             </button>
           </div>
         </div>
