@@ -118,7 +118,7 @@ const FunnelEditor = () => {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { canUseMultiStep } = usePlan();
   const { tier, features, planConfigs } = usePlanLimits();
   const queryClient = useQueryClient();
@@ -180,20 +180,20 @@ const FunnelEditor = () => {
     queryFn: async () => { if (!user) return null; const { data } = await supabase.from("profiles").select("full_name, avatar_url, bio").eq("id", user.id).single(); return data; },
     enabled: !!user,
   });
-  const { data: existingFunnel } = useQuery({
+  const { data: existingFunnel, isLoading: funnelLoading, error: funnelError } = useQuery({
     queryKey: ["funnel", id],
     queryFn: async () => { if (!id) return null; const { data } = await supabase.from("funnels").select("*").eq("id", id).single(); return data; },
-    enabled: isEdit,
+    enabled: isEdit && !!user?.id,
   });
-  const { data: existingLeadForm } = useQuery({
+  const { data: existingLeadForm, isLoading: leadFormLoading } = useQuery({
     queryKey: ["funnel-lead-form", id],
     queryFn: async () => { if (!id) return null; const { data } = await supabase.from("funnel_lead_form_config").select("*").eq("funnel_id", id).single(); return data; },
-    enabled: isEdit,
+    enabled: isEdit && !!user?.id,
   });
-  const { data: existingSteps } = useQuery({
+  const { data: existingSteps, isLoading: stepsLoading } = useQuery({
     queryKey: ["funnel-steps", id],
     queryFn: async () => { if (!id) return []; const { data } = await supabase.from("funnel_steps").select("*").eq("funnel_id", id).order("step_order"); return data || []; },
-    enabled: isEdit,
+    enabled: isEdit && !!user?.id,
   });
 
   useEffect(() => {
@@ -1226,6 +1226,38 @@ const FunnelEditor = () => {
     const label = visibleSteps[wizardStep]?.label;
     return renderByLabel(label) ?? renderBasicInfo();
   };
+
+  if (authLoading || (isEdit && (funnelLoading || leadFormLoading || stepsLoading))) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isEdit && funnelError) {
+    return (
+      <DashboardLayout>
+        <div className="glass-card p-10 text-center">
+          <h1 className="text-xl font-heading font-semibold">Couldn’t open this funnel</h1>
+          <p className="mt-2 text-sm text-muted-foreground">The funnel was not found or you don’t have access.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (isEdit && !existingFunnel) {
+    return (
+      <DashboardLayout>
+        <div className="glass-card p-10 text-center">
+          <h1 className="text-xl font-heading font-semibold">Funnel not found</h1>
+          <p className="mt-2 text-sm text-muted-foreground">This funnel no longer exists or isn’t yours.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
