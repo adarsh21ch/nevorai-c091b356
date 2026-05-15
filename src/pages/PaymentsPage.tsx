@@ -84,7 +84,7 @@ const PaymentsPage = () => {
               <table className="w-full text-sm">
                 <thead><tr className="border-b border-border text-muted-foreground">
                   <th className="text-left p-3 font-medium">Amount</th>
-                  <th className="text-left p-3 font-medium hidden md:table-cell">Flow</th>
+                  <th className="text-left p-3 font-medium hidden md:table-cell">Funnel</th>
                   <th className="text-left p-3 font-medium">Transaction ID</th>
                   <th className="text-left p-3 font-medium">Status</th>
                   <th className="text-left p-3 font-medium">Date</th>

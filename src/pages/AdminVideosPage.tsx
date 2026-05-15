@@ -305,8 +305,8 @@ const AdminVideosPage = () => {
                     size="icon"
                     className="h-11 w-full rounded-lg"
                     onClick={() => useInFunnel(v.id)}
-                    title="Use in Flow"
-                    aria-label="Use video in flow"
+                    title="Use in Funnel"
+                    aria-label="Use video in funnel"
                   >
                     <Rocket size={15} />
                   </Button>

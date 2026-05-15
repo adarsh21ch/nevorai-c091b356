@@ -66,7 +66,7 @@ export const ViewersAnalyticsTab = ({ funnelId, funnelSlug, hasAccessCode }: Vie
   });
 
   const { data: steps = [] } = useQuery({
-    queryKey: ["flow-steps-count", funnelId],
+    queryKey: ["funnel-steps-count", funnelId],
     queryFn: async () => {
       const { data } = await supabase
         .from("funnel_steps")
@@ -97,7 +97,7 @@ export const ViewersAnalyticsTab = ({ funnelId, funnelSlug, hasAccessCode }: Vie
       await (supabase as any).from("funnels").update({ access_code_hash: hash }).eq("id", funnelId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["flow", funnelId] });
+      queryClient.invalidateQueries({ queryKey: ["funnel", funnelId] });
       setRotateOpen(false);
       setNewCode("");
       toast.success("Access code updated!");

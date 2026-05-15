@@ -74,7 +74,7 @@ export const PlanUsageWidget = () => {
           )}
           <p className="text-[11px] text-muted-foreground">
             {views.isOverLimit
-              ? <span className="text-destructive font-medium">Monthly limit reached — flows paused until {resetDateFmt}</span>
+              ? <span className="text-destructive font-medium">Monthly limit reached — funnels paused until {resetDateFmt}</span>
               : views.isApproachingLimit
               ? <span className="text-amber-500 font-medium">{Math.round(100 - views.pct)}% remaining · resets {resetDateFmt}</span>
               : <>Resets on {resetDateFmt}</>}
@@ -114,7 +114,7 @@ export const PlanUsageWidget = () => {
 
       {/* SECONDARY metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-border">
-        <SecondaryStat icon={Layers} label="Active funnels" value={counts.flows} max={config.max_funnels} />
+        <SecondaryStat icon={Layers} label="Active funnels" value={counts.funnels} max={config.max_funnels} />
         <SecondaryStat icon={Video} label="Videos" value={counts.videos} max={config.max_videos ?? 0} />
         <SecondaryStat icon={Eye} label="Landing pages" value={counts.landing_pages} max={config.max_landing_pages} />
         <SecondaryStat icon={Users} label="Live sessions" value={counts.live_sessions} max={config.max_live_sessions} />

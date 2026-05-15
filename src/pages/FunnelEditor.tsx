@@ -374,7 +374,7 @@ const FunnelEditor = () => {
       queryClient.invalidateQueries({ queryKey: ["my-funnels"] });
       queryClient.invalidateQueries({ queryKey: ["funnel-steps", id] });
       setLastSavedAt(new Date());
-      toast.success(isEdit ? "Flow updated!" : "Flow created!");
+      toast.success(isEdit ? "Funnel updated!" : "Funnel created!");
       navigate(`/funnels/${funnelId}`);
     },
     onError: (err: any) => toast.error(err.message || "Failed to save"),
@@ -499,8 +499,8 @@ const FunnelEditor = () => {
       <p className="text-sm text-muted-foreground">Give your funnel a name and description.</p>
       <div className="space-y-4 mt-4">
         <div>
-          <Label>Flow Name *</Label>
-          <Input value={funnel.title} onChange={(e) => { update("title", e.target.value); if (!isEdit) update("slug", generateSlug(e.target.value)); }} className="mt-1.5 bg-muted border-border" placeholder="e.g. Free Training Flow" />
+          <Label>Funnel Name *</Label>
+          <Input value={funnel.title} onChange={(e) => { update("title", e.target.value); if (!isEdit) update("slug", generateSlug(e.target.value)); }} className="mt-1.5 bg-muted border-border" placeholder="e.g. Free Training Funnel" />
         </div>
         <div>
           <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
@@ -512,7 +512,7 @@ const FunnelEditor = () => {
 
   const renderModePicker = () => (
     <>
-      <h2 className="text-xl font-heading font-bold">Create New Flow</h2>
+      <h2 className="text-xl font-heading font-bold">Create New Funnel</h2>
       <p className="text-sm text-muted-foreground">What type of funnel do you want to build?</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5">
         <button
@@ -522,7 +522,7 @@ const FunnelEditor = () => {
           <div className="w-11 h-11 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
             <Video size={22} className="text-primary" />
           </div>
-          <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors">Single Video Flow</h3>
+          <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors">Single Video Funnel</h3>
           <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
             One video with lead capture, CTA, and optional payment. Simple and effective.
           </p>
@@ -1167,7 +1167,7 @@ const FunnelEditor = () => {
         </div>
         {funnel.slug && (
           <div className="p-4 bg-muted/50 rounded-xl">
-            <Label className="text-xs text-muted-foreground">Flow URL</Label>
+            <Label className="text-xs text-muted-foreground">Funnel URL</Label>
             <div className="flex items-center gap-2 mt-1">
               <code className="text-sm text-primary flex-1 truncate">{typeof window !== "undefined" ? window.location.origin : ""}/f/{funnel.slug}</code>
               <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/f/${funnel.slug}`); toast.success("Copied!"); }}>
@@ -1233,7 +1233,7 @@ const FunnelEditor = () => {
           <div className="flex-1 max-w-2xl min-w-0">
             <div className="flex items-center justify-between mb-4">
               <div className="flex-1 min-w-0">
-                <h1 className="text-lg sm:text-xl font-heading font-bold truncate">{funnel.title || "New Flow"}</h1>
+                <h1 className="text-lg sm:text-xl font-heading font-bold truncate">{funnel.title || "New Funnel"}</h1>
                 {isAutoSaving ? (
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
@@ -1304,7 +1304,7 @@ const FunnelEditor = () => {
                 <Button variant="default" size="sm" onClick={() => setWizardStep(wizardStep + 1)}>Next</Button>
               ) : (
                 <Button variant="hero" size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !funnel.title}>
-                  {saveMutation.isPending ? "Saving..." : isEdit ? "Update" : "Create Flow"}
+                  {saveMutation.isPending ? "Saving..." : isEdit ? "Update" : "Create Funnel"}
                 </Button>
               )}
             </div>

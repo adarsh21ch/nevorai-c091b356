@@ -81,10 +81,10 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   ]);
 
   const kpis = [
-    { icon: Eye, label: "Total Views", value: formatCompact(totalViews), sub: "Flows + Landing Pages" },
+    { icon: Eye, label: "Total Views", value: formatCompact(totalViews), sub: "Funnels + Landing Pages" },
     { icon: Users, label: "Unique Leads", value: formatInt(uniqueLeads), sub: "From funnels" },
     { icon: UserCheck, label: "Registrations", value: formatInt(totalRegistrations), sub: "From landing pages" },
-    { icon: Target, label: "Flow Conv.", value: `${funnelConvRate}%`, sub: "Leads / Views" },
+    { icon: Target, label: "Funnel Conv.", value: `${funnelConvRate}%`, sub: "Leads / Views" },
     { icon: TrendingUp, label: "LP Conv.", value: `${lpConvRate}%`, sub: "Regs / Views" },
     { icon: BarChart3, label: "Unique Contacts", value: formatInt(allEmails.size), sub: "Across all sources" },
   ];
@@ -164,7 +164,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
         <div className="grid lg:grid-cols-2 gap-4">
           <div className="premium-card p-5">
             <h3 className="text-sm font-heading font-semibold mb-4 flex items-center gap-2">
-              <Layers size={14} className="text-primary" /> Top Flows
+              <Layers size={14} className="text-primary" /> Top Funnels
             </h3>
             {topFunnels.length > 0 ? (
               <ResponsiveContainer width="100%" height={220}>
@@ -281,7 +281,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
             <p className="text-[10px] text-muted-foreground">per funnel</p>
           </div>
           <div className="premium-card p-4 text-center">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Published Flows</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Published Funnels</p>
             <p className="text-xl font-heading font-bold">{funnels.filter((f) => f.is_published).length}</p>
             <p className="text-[10px] text-muted-foreground">of {funnels.length} total</p>
           </div>

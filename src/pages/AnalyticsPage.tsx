@@ -46,7 +46,7 @@ const AnalyticsPage = () => {
     { icon: Eye, label: "Total Views", value: totalViews.toLocaleString("en-IN") },
     { icon: Users, label: "Total Leads", value: String(leads.length) },
     { icon: TrendingUp, label: "Conversion Rate", value: `${convRate}%` },
-    { icon: Layers, label: "Active Flows", value: String(funnels.filter((f) => f.is_published).length) },
+    { icon: Layers, label: "Active Funnels", value: String(funnels.filter((f) => f.is_published).length) },
   ];
 
   return (
@@ -68,7 +68,7 @@ const AnalyticsPage = () => {
 
         <div className="grid lg:grid-cols-2 gap-6">
           <div className="glass-card p-6">
-            <h3 className="text-sm font-heading font-semibold mb-4">Top Flows</h3>
+            <h3 className="text-sm font-heading font-semibold mb-4">Top Funnels</h3>
             {topFunnels.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={topFunnels}>

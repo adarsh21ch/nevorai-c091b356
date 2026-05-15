@@ -91,7 +91,7 @@ const LandingPageDetail = () => {
               message={`Check this out: ${(page as any).title}`}
               size="sm"
             />
-            <Button variant="outline" onClick={() => { if (id) window.location.assign(`/landing-pages/${id}/edit`); }}>
+            <Button variant="outline" onClick={() => navigate(`/landing-pages/${id}/edit`)}>
               <Pencil size={14} className="mr-2" /> Edit
             </Button>
           </div>

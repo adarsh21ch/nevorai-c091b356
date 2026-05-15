@@ -568,7 +568,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-sm">Use Existing Flow</p>
+                          <p className="font-semibold text-sm">Use Existing Funnel</p>
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary">SELECTED</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -593,7 +593,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
                   {form.session_type === "funnel_video" ? (
                     <div>
-                      <Label className="text-sm font-medium">Select Flow *</Label>
+                      <Label className="text-sm font-medium">Select Funnel *</Label>
                       <Select value={form.funnel_id ?? "__none__"} onValueChange={(v) => upd("funnel_id", v === "__none__" ? null : v)}>
                         <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Choose a funnel..." /></SelectTrigger>
                         <SelectContent>
@@ -617,7 +617,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                       {funnels.length === 0 && (
                         <p className="text-xs text-muted-foreground mt-2">
                           You need a published funnel with a video first.{" "}
-                          <button onClick={() => navigate("/flows")} className="text-primary underline">Create one</button>.
+                          <button onClick={() => navigate("/funnels")} className="text-primary underline">Create one</button>.
                         </p>
                       )}
                       <div className="mt-3 pt-3 border-t border-border">
@@ -962,7 +962,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                         <RepeatBadge session={s} />
                         {s.session_type === "funnel_video" ? (
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/10 text-primary inline-flex items-center gap-1">
-                            <Layers size={10} /> Flow video
+                            <Layers size={10} /> Funnel video
                           </span>
                         ) : (
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-muted text-muted-foreground inline-flex items-center gap-1">

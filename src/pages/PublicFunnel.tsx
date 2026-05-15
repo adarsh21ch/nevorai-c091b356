@@ -903,7 +903,7 @@ const PublicFunnel = () => {
   if (!canView) return (
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: tc.bg }}>
       <div className="text-center">
-        <h1 className="text-xl font-heading font-bold mb-2" style={{ color: tc.text }}>Flow Not Found</h1>
+        <h1 className="text-xl font-heading font-bold mb-2" style={{ color: tc.text }}>Funnel Not Found</h1>
         <p className="text-sm" style={{ color: tc.textMuted }}>This funnel doesn't exist or has been unpublished.</p>
       </div>
     </div>
@@ -1074,7 +1074,8 @@ const PublicFunnel = () => {
         <div className="flex items-center gap-2">
           <img src={logoImg} alt="Nevorai" className="h-6 w-6" />
           <div className="flex items-baseline text-[16px]" style={{ lineHeight: 1 }}>
-            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 800, color: tc.text, letterSpacing: "-0.03em" }}>Nevorai</span>
+            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontStyle: "italic", fontWeight: 300, color: tc.text, letterSpacing: "-0.02em" }}>n</span>
+            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 800, color: tc.text, letterSpacing: "-0.03em" }}>Flow</span>
           </div>
         </div>
         <div className="flex items-center gap-1">

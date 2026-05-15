@@ -18,7 +18,7 @@ type SourceKey = "recent" | "videos" | "funnels" | "pages" | "live";
 const sourceTabs: { id: SourceKey; label: string; icon: any }[] = [
   { id: "recent", label: "Recent", icon: Clock },
   { id: "videos", label: "Videos", icon: Play },
-  { id: "funnels", label: "Flows", icon: Layers },
+  { id: "funnels", label: "Funnels", icon: Layers },
   { id: "pages", label: "Landing Pages", icon: FileText },
   { id: "live", label: "Live Sessions", icon: Radio },
 ];
@@ -209,7 +209,7 @@ const LeadsPage = () => {
         <EmptyState
           icon={Play}
           title="Per-video contacts coming soon"
-          body="Right now contacts are tracked from Flows, Landing Pages, and Live Sessions. Use one of those tabs to see who watched."
+          body="Right now contacts are tracked from Funnels, Landing Pages, and Live Sessions. Use one of those tabs to see who watched."
           ctaLabel="Go to My Videos"
           onClick={() => navigate("/videos")}
         />
@@ -217,7 +217,7 @@ const LeadsPage = () => {
     }
     if (!list.length) {
       const meta =
-        activeSource === "funnels" ? { title: "No funnels yet", body: "Create a funnel to start collecting contacts.", to: "/flows/create" } :
+        activeSource === "funnels" ? { title: "No funnels yet", body: "Create a funnel to start collecting contacts.", to: "/funnels/create" } :
         activeSource === "pages" ? { title: "No landing pages yet", body: "Create a landing page to share your video.", to: "/landing-pages/create" } :
         { title: "No live sessions yet", body: "Go live to capture viewers in real time.", to: "/live" };
       const Icon = sourceTabs.find((t) => t.id === activeSource)!.icon;

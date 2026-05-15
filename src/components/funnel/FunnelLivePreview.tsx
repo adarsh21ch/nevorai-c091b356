@@ -78,7 +78,7 @@ export const FunnelLivePreview = ({ funnel, selectedVideo, flowSteps, leadForm, 
           </div>
         </div>
         <div className="p-2.5 space-y-2.5">
-          <h3 className="font-heading font-extrabold text-center text-[12px] leading-tight text-foreground">{funnel.title || "Your Flow Title"}</h3>
+          <h3 className="font-heading font-extrabold text-center text-[12px] leading-tight text-foreground">{funnel.title || "Your Funnel Title"}</h3>
           {isPrivate && (
             <div className="flex items-center justify-center gap-1 text-[9px] text-amber-400">
               <Lock size={8} /> Private

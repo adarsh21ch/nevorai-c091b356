@@ -10,7 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 /**
  * Mobile-only "Create" action — center button in the bottom nav.
  * Opens a bottom sheet of high-level create actions.
- * Phase 6/7: gates flow/landing/live on having a video.
+ * Phase 6/7: gates funnel/landing/live on having a video.
  */
 export const MobileCreateAction = () => {
   const [open, setOpen] = useState(false);
@@ -48,9 +48,9 @@ export const MobileCreateAction = () => {
             </button>
             <CreateRow
               icon={Layers}
-              title="Create Flow"
-              desc={needsUpload ? "Upload a video first to start a flow." : "Pick a video and turn it into a flow."}
-              href={needsUpload ? "/onboarding-upload" : "/flows/create"}
+              title="Create Funnel"
+              desc={needsUpload ? "Upload a video first to start a funnel." : "Pick a video and turn it into a funnel."}
+              href={needsUpload ? "/onboarding-upload" : "/funnels/create"}
               onClick={() => setOpen(false)}
             />
             <CreateRow

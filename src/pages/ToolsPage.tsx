@@ -15,9 +15,9 @@ const TOOL_TABS = [
 ] as const;
 
 const getInitialTab = (): string => {
-  if (typeof window === "undefined") return "flows";
+  if (typeof window === "undefined") return "funnels";
   const m = window.location.search.match(/[?&]tab=([^&]+)/);
-  return m?.[1] || "flows";
+  return m?.[1] || "funnels";
 };
 
 const ToolsPage = () => {

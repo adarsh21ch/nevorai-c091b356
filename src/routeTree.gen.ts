@@ -42,7 +42,6 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LandingPagesIndexRouteImport } from './routes/landing-pages.index'
 import { Route as FunnelsIndexRouteImport } from './routes/funnels.index'
-import { Route as FlowsIndexRouteImport } from './routes/flows.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as VideosIdRouteImport } from './routes/videos.$id'
 import { Route as VIdRouteImport } from './routes/v.$id'
@@ -57,8 +56,6 @@ import { Route as LandingPagesIdRouteImport } from './routes/landing-pages.$id'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as FunnelsCreateRouteImport } from './routes/funnels.create'
 import { Route as FunnelsIdRouteImport } from './routes/funnels.$id'
-import { Route as FlowsCreateRouteImport } from './routes/flows.create'
-import { Route as FlowsIdRouteImport } from './routes/flows.$id'
 import { Route as CompareNevoraiVsYoutubeRouteImport } from './routes/compare.nevorai-vs-youtube'
 import { Route as CompareNevoraiVsVimeoRouteImport } from './routes/compare.nevorai-vs-vimeo'
 import { Route as CompareNevoraiVsGoogleDriveRouteImport } from './routes/compare.nevorai-vs-google-drive'
@@ -72,12 +69,9 @@ import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
-import { Route as LandingPagesIdIndexRouteImport } from './routes/landing-pages.$id.index'
-import { Route as FlowsIdIndexRouteImport } from './routes/flows.$id.index'
 import { Route as FSlugIndexRouteImport } from './routes/f.$slug.index'
 import { Route as LandingPagesIdEditRouteImport } from './routes/landing-pages.$id.edit'
 import { Route as FunnelsIdEditRouteImport } from './routes/funnels.$id.edit'
-import { Route as FlowsIdEditRouteImport } from './routes/flows.$id.edit'
 import { Route as FSlugMemberRouteImport } from './routes/f.$slug.member'
 
 const VideosRoute = VideosRouteImport.update({
@@ -248,12 +242,7 @@ const FunnelsIndexRoute = FunnelsIndexRouteImport.update({
   id: '/funnels/',
   path: '/funnels/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const FlowsIndexRoute = FlowsIndexRouteImport.update({
-  id: '/flows/',
-  path: '/flows/',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/flows.index.lazy').then((d) => d.Route))
+} as any).lazy(() => import('./routes/funnels.index.lazy').then((d) => d.Route))
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -311,7 +300,9 @@ const LandingPagesIdRoute = LandingPagesIdRouteImport.update({
   id: '/landing-pages/$id',
   path: '/landing-pages/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import('./routes/landing-pages.$id.lazy').then((d) => d.Route),
+)
 const LSlugRoute = LSlugRouteImport.update({
   id: '/l/$slug',
   path: '/l/$slug',
@@ -321,22 +312,14 @@ const FunnelsCreateRoute = FunnelsCreateRouteImport.update({
   id: '/funnels/create',
   path: '/funnels/create',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() =>
+  import('./routes/funnels.create.lazy').then((d) => d.Route),
+)
 const FunnelsIdRoute = FunnelsIdRouteImport.update({
   id: '/funnels/$id',
   path: '/funnels/$id',
   getParentRoute: () => rootRouteImport,
-} as any)
-const FlowsCreateRoute = FlowsCreateRouteImport.update({
-  id: '/flows/create',
-  path: '/flows/create',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/flows.create.lazy').then((d) => d.Route))
-const FlowsIdRoute = FlowsIdRouteImport.update({
-  id: '/flows/$id',
-  path: '/flows/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
+} as any).lazy(() => import('./routes/funnels.$id.lazy').then((d) => d.Route))
 const CompareNevoraiVsYoutubeRoute = CompareNevoraiVsYoutubeRouteImport.update({
   id: '/compare/nevorai-vs-youtube',
   path: '/compare/nevorai-vs-youtube',
@@ -411,20 +394,6 @@ const AdminKycRoute = AdminKycRouteImport.update({
   path: '/admin/kyc',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/admin.kyc.lazy').then((d) => d.Route))
-const LandingPagesIdIndexRoute = LandingPagesIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => LandingPagesIdRoute,
-} as any).lazy(() =>
-  import('./routes/landing-pages.$id.index.lazy').then((d) => d.Route),
-)
-const FlowsIdIndexRoute = FlowsIdIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => FlowsIdRoute,
-} as any).lazy(() =>
-  import('./routes/flows.$id.index.lazy').then((d) => d.Route),
-)
 const FSlugIndexRoute = FSlugIndexRouteImport.update({
   id: '/f/$slug/',
   path: '/f/$slug/',
@@ -441,13 +410,8 @@ const FunnelsIdEditRoute = FunnelsIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
   getParentRoute: () => FunnelsIdRoute,
-} as any)
-const FlowsIdEditRoute = FlowsIdEditRouteImport.update({
-  id: '/edit',
-  path: '/edit',
-  getParentRoute: () => FlowsIdRoute,
 } as any).lazy(() =>
-  import('./routes/flows.$id.edit.lazy').then((d) => d.Route),
+  import('./routes/funnels.$id.edit.lazy').then((d) => d.Route),
 )
 const FSlugMemberRoute = FSlugMemberRouteImport.update({
   id: '/f/$slug/member',
@@ -502,8 +466,6 @@ export interface FileRoutesByFullPath {
   '/compare/nevorai-vs-google-drive': typeof CompareNevoraiVsGoogleDriveRoute
   '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
   '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
-  '/flows/$id': typeof FlowsIdRouteWithChildren
-  '/flows/create': typeof FlowsCreateRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
   '/l/$slug': typeof LSlugRoute
@@ -518,16 +480,12 @@ export interface FileRoutesByFullPath {
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
   '/admin/': typeof AdminIndexRoute
-  '/flows/': typeof FlowsIndexRoute
   '/funnels/': typeof FunnelsIndexRoute
   '/landing-pages/': typeof LandingPagesIndexRoute
   '/f/$slug/member': typeof FSlugMemberRoute
-  '/flows/$id/edit': typeof FlowsIdEditRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug/': typeof FSlugIndexRoute
-  '/flows/$id/': typeof FlowsIdIndexRoute
-  '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -574,10 +532,10 @@ export interface FileRoutesByTo {
   '/compare/nevorai-vs-google-drive': typeof CompareNevoraiVsGoogleDriveRoute
   '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
   '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
-  '/flows/create': typeof FlowsCreateRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
   '/l/$slug': typeof LSlugRoute
+  '/landing-pages/$id': typeof LandingPagesIdRouteWithChildren
   '/landing-pages/create': typeof LandingPagesCreateRoute
   '/live/$id': typeof LiveIdRoute
   '/s/$slug': typeof SSlugRoute
@@ -588,16 +546,12 @@ export interface FileRoutesByTo {
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
   '/admin': typeof AdminIndexRoute
-  '/flows': typeof FlowsIndexRoute
   '/funnels': typeof FunnelsIndexRoute
   '/landing-pages': typeof LandingPagesIndexRoute
   '/f/$slug/member': typeof FSlugMemberRoute
-  '/flows/$id/edit': typeof FlowsIdEditRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug': typeof FSlugIndexRoute
-  '/flows/$id': typeof FlowsIdIndexRoute
-  '/landing-pages/$id': typeof LandingPagesIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -645,8 +599,6 @@ export interface FileRoutesById {
   '/compare/nevorai-vs-google-drive': typeof CompareNevoraiVsGoogleDriveRoute
   '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
   '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
-  '/flows/$id': typeof FlowsIdRouteWithChildren
-  '/flows/create': typeof FlowsCreateRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
   '/l/$slug': typeof LSlugRoute
@@ -661,16 +613,12 @@ export interface FileRoutesById {
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
   '/admin/': typeof AdminIndexRoute
-  '/flows/': typeof FlowsIndexRoute
   '/funnels/': typeof FunnelsIndexRoute
   '/landing-pages/': typeof LandingPagesIndexRoute
   '/f/$slug/member': typeof FSlugMemberRoute
-  '/flows/$id/edit': typeof FlowsIdEditRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug/': typeof FSlugIndexRoute
-  '/flows/$id/': typeof FlowsIdIndexRoute
-  '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -719,8 +667,6 @@ export interface FileRouteTypes {
     | '/compare/nevorai-vs-google-drive'
     | '/compare/nevorai-vs-vimeo'
     | '/compare/nevorai-vs-youtube'
-    | '/flows/$id'
-    | '/flows/create'
     | '/funnels/$id'
     | '/funnels/create'
     | '/l/$slug'
@@ -735,16 +681,12 @@ export interface FileRouteTypes {
     | '/v/$id'
     | '/videos/$id'
     | '/admin/'
-    | '/flows/'
     | '/funnels/'
     | '/landing-pages/'
     | '/f/$slug/member'
-    | '/flows/$id/edit'
     | '/funnels/$id/edit'
     | '/landing-pages/$id/edit'
     | '/f/$slug/'
-    | '/flows/$id/'
-    | '/landing-pages/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -791,10 +733,10 @@ export interface FileRouteTypes {
     | '/compare/nevorai-vs-google-drive'
     | '/compare/nevorai-vs-vimeo'
     | '/compare/nevorai-vs-youtube'
-    | '/flows/create'
     | '/funnels/$id'
     | '/funnels/create'
     | '/l/$slug'
+    | '/landing-pages/$id'
     | '/landing-pages/create'
     | '/live/$id'
     | '/s/$slug'
@@ -805,16 +747,12 @@ export interface FileRouteTypes {
     | '/v/$id'
     | '/videos/$id'
     | '/admin'
-    | '/flows'
     | '/funnels'
     | '/landing-pages'
     | '/f/$slug/member'
-    | '/flows/$id/edit'
     | '/funnels/$id/edit'
     | '/landing-pages/$id/edit'
     | '/f/$slug'
-    | '/flows/$id'
-    | '/landing-pages/$id'
   id:
     | '__root__'
     | '/'
@@ -861,8 +799,6 @@ export interface FileRouteTypes {
     | '/compare/nevorai-vs-google-drive'
     | '/compare/nevorai-vs-vimeo'
     | '/compare/nevorai-vs-youtube'
-    | '/flows/$id'
-    | '/flows/create'
     | '/funnels/$id'
     | '/funnels/create'
     | '/l/$slug'
@@ -877,16 +813,12 @@ export interface FileRouteTypes {
     | '/v/$id'
     | '/videos/$id'
     | '/admin/'
-    | '/flows/'
     | '/funnels/'
     | '/landing-pages/'
     | '/f/$slug/member'
-    | '/flows/$id/edit'
     | '/funnels/$id/edit'
     | '/landing-pages/$id/edit'
     | '/f/$slug/'
-    | '/flows/$id/'
-    | '/landing-pages/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -932,8 +864,6 @@ export interface RootRouteChildren {
   CompareNevoraiVsGoogleDriveRoute: typeof CompareNevoraiVsGoogleDriveRoute
   CompareNevoraiVsVimeoRoute: typeof CompareNevoraiVsVimeoRoute
   CompareNevoraiVsYoutubeRoute: typeof CompareNevoraiVsYoutubeRoute
-  FlowsIdRoute: typeof FlowsIdRouteWithChildren
-  FlowsCreateRoute: typeof FlowsCreateRoute
   FunnelsIdRoute: typeof FunnelsIdRouteWithChildren
   FunnelsCreateRoute: typeof FunnelsCreateRoute
   LSlugRoute: typeof LSlugRoute
@@ -946,7 +876,6 @@ export interface RootRouteChildren {
   UseCasesRealEstateRoute: typeof UseCasesRealEstateRoute
   VIdRoute: typeof VIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
-  FlowsIndexRoute: typeof FlowsIndexRoute
   FunnelsIndexRoute: typeof FunnelsIndexRoute
   LandingPagesIndexRoute: typeof LandingPagesIndexRoute
   FSlugMemberRoute: typeof FSlugMemberRoute
@@ -1186,13 +1115,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FunnelsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/flows/': {
-      id: '/flows/'
-      path: '/flows'
-      fullPath: '/flows/'
-      preLoaderRoute: typeof FlowsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin/': {
       id: '/admin/'
       path: '/admin'
@@ -1291,20 +1213,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FunnelsIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/flows/create': {
-      id: '/flows/create'
-      path: '/flows/create'
-      fullPath: '/flows/create'
-      preLoaderRoute: typeof FlowsCreateRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/flows/$id': {
-      id: '/flows/$id'
-      path: '/flows/$id'
-      fullPath: '/flows/$id'
-      preLoaderRoute: typeof FlowsIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/compare/nevorai-vs-youtube': {
       id: '/compare/nevorai-vs-youtube'
       path: '/compare/nevorai-vs-youtube'
@@ -1396,20 +1304,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKycRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/landing-pages/$id/': {
-      id: '/landing-pages/$id/'
-      path: '/'
-      fullPath: '/landing-pages/$id/'
-      preLoaderRoute: typeof LandingPagesIdIndexRouteImport
-      parentRoute: typeof LandingPagesIdRoute
-    }
-    '/flows/$id/': {
-      id: '/flows/$id/'
-      path: '/'
-      fullPath: '/flows/$id/'
-      preLoaderRoute: typeof FlowsIdIndexRouteImport
-      parentRoute: typeof FlowsIdRoute
-    }
     '/f/$slug/': {
       id: '/f/$slug/'
       path: '/f/$slug'
@@ -1430,13 +1324,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/funnels/$id/edit'
       preLoaderRoute: typeof FunnelsIdEditRouteImport
       parentRoute: typeof FunnelsIdRoute
-    }
-    '/flows/$id/edit': {
-      id: '/flows/$id/edit'
-      path: '/edit'
-      fullPath: '/flows/$id/edit'
-      preLoaderRoute: typeof FlowsIdEditRouteImport
-      parentRoute: typeof FlowsIdRoute
     }
     '/f/$slug/member': {
       id: '/f/$slug/member'
@@ -1481,19 +1368,6 @@ const VideosRouteChildren: VideosRouteChildren = {
 const VideosRouteWithChildren =
   VideosRoute._addFileChildren(VideosRouteChildren)
 
-interface FlowsIdRouteChildren {
-  FlowsIdEditRoute: typeof FlowsIdEditRoute
-  FlowsIdIndexRoute: typeof FlowsIdIndexRoute
-}
-
-const FlowsIdRouteChildren: FlowsIdRouteChildren = {
-  FlowsIdEditRoute: FlowsIdEditRoute,
-  FlowsIdIndexRoute: FlowsIdIndexRoute,
-}
-
-const FlowsIdRouteWithChildren =
-  FlowsIdRoute._addFileChildren(FlowsIdRouteChildren)
-
 interface FunnelsIdRouteChildren {
   FunnelsIdEditRoute: typeof FunnelsIdEditRoute
 }
@@ -1508,12 +1382,10 @@ const FunnelsIdRouteWithChildren = FunnelsIdRoute._addFileChildren(
 
 interface LandingPagesIdRouteChildren {
   LandingPagesIdEditRoute: typeof LandingPagesIdEditRoute
-  LandingPagesIdIndexRoute: typeof LandingPagesIdIndexRoute
 }
 
 const LandingPagesIdRouteChildren: LandingPagesIdRouteChildren = {
   LandingPagesIdEditRoute: LandingPagesIdEditRoute,
-  LandingPagesIdIndexRoute: LandingPagesIdIndexRoute,
 }
 
 const LandingPagesIdRouteWithChildren = LandingPagesIdRoute._addFileChildren(
@@ -1563,8 +1435,6 @@ const rootRouteChildren: RootRouteChildren = {
   CompareNevoraiVsGoogleDriveRoute: CompareNevoraiVsGoogleDriveRoute,
   CompareNevoraiVsVimeoRoute: CompareNevoraiVsVimeoRoute,
   CompareNevoraiVsYoutubeRoute: CompareNevoraiVsYoutubeRoute,
-  FlowsIdRoute: FlowsIdRouteWithChildren,
-  FlowsCreateRoute: FlowsCreateRoute,
   FunnelsIdRoute: FunnelsIdRouteWithChildren,
   FunnelsCreateRoute: FunnelsCreateRoute,
   LSlugRoute: LSlugRoute,
@@ -1577,7 +1447,6 @@ const rootRouteChildren: RootRouteChildren = {
   UseCasesRealEstateRoute: UseCasesRealEstateRoute,
   VIdRoute: VIdRoute,
   AdminIndexRoute: AdminIndexRoute,
-  FlowsIndexRoute: FlowsIndexRoute,
   FunnelsIndexRoute: FunnelsIndexRoute,
   LandingPagesIndexRoute: LandingPagesIndexRoute,
   FSlugMemberRoute: FSlugMemberRoute,

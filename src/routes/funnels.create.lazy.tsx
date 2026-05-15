@@ -1,6 +1,6 @@
 import { createLazyFileRoute } from "@tanstack/react-router";
 import FunnelEditor from "@/pages/FunnelEditor";
 
-export const Route = createLazyFileRoute("/flows/$id/edit")({
+export const Route = createLazyFileRoute("/funnels/create")({
   component: FunnelEditor,
 });

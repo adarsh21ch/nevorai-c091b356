@@ -16,7 +16,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
-  useDocumentTitle(embedded ? "Tools" : "Flows");
+  useDocumentTitle(embedded ? "Tools" : "Funnels");
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -29,8 +29,8 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const { isFree, canCreateFunnel, config, counts, tier } = usePlanLimits();
   const confirm = useConfirm();
 
-  const { data: flows = [], isLoading } = useQuery({
-    queryKey: ["my-flows", user?.id],
+  const { data: funnels = [], isLoading } = useQuery({
+    queryKey: ["my-funnels", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("funnels").select("*").eq("owner_id", user!.id).order("created_at", { ascending: false });
       return data || [];
@@ -41,19 +41,19 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => { await supabase.from("funnels").delete().eq("id", id); },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["my-flows"] });
+      queryClient.invalidateQueries({ queryKey: ["my-funnels"] });
       queryClient.invalidateQueries({ queryKey: ["resource-counts"] });
-      toast.success("Flow deleted");
+      toast.success("Funnel deleted");
     },
   });
 
   const handleCreate = () => {
     if (isFree) { setModalType("upgrade"); setModalOpen(true); return; }
     if (!canCreateFunnel) { setModalType("limit"); setModalOpen(true); return; }
-    navigate("/flows/create");
+    navigate("/funnels/create");
   };
 
-  const filtered = flows.filter((f: any) => {
+  const filtered = funnels.filter((f: any) => {
     if (filter === "published" && !f.is_published) return false;
     if (filter === "draft" && f.is_published) return false;
     if (debouncedSearch && !f.title.toLowerCase().includes(debouncedSearch.toLowerCase())) return false;
@@ -67,8 +67,8 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   ] as const;
 
   const limitBadge = !isFree && config.max_funnels !== -1 ? (
-    <span className={`text-xs px-2 py-0.5 rounded-full ${counts.flows >= config.max_funnels ? "bg-destructive/10 text-destructive" : counts.flows >= config.max_funnels - 1 ? "bg-amber-500/10 text-amber-600" : "bg-muted text-muted-foreground"}`}>
-      {counts.flows}/{config.max_funnels}
+    <span className={`text-xs px-2 py-0.5 rounded-full ${counts.funnels >= config.max_funnels ? "bg-destructive/10 text-destructive" : counts.funnels >= config.max_funnels - 1 ? "bg-amber-500/10 text-amber-600" : "bg-muted text-muted-foreground"}`}>
+      {counts.funnels}/{config.max_funnels}
     </span>
   ) : null;
 
@@ -78,20 +78,20 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-2xl font-heading font-bold">My Flows</h1>
+              <h1 className="text-2xl font-heading font-bold">My Funnels</h1>
               <div className="page-header-accent" />
             </div>
             {limitBadge}
           </div>
           <Button variant="hero" onClick={handleCreate}>
-            <Plus size={16} /> Create Flow
+            <Plus size={16} /> Create Funnel
           </Button>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 search-premium rounded-md">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search flows..." className="pl-9 bg-muted border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="Search funnels..." className="pl-9 bg-muted border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex gap-1 p-1 bg-muted rounded-lg">
             {filters.map((f) => (
@@ -116,13 +116,13 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
         ) : filtered.length === 0 ? (
           <div className="glass-card p-12 text-center">
             <Layers size={40} className="text-muted-foreground mx-auto mb-4" />
-            <h3 className="font-heading font-semibold mb-2">{search ? "No flows found" : "No flows yet"}</h3>
+            <h3 className="font-heading font-semibold mb-2">{search ? "No funnels found" : "No funnels yet"}</h3>
             <p className="text-sm text-muted-foreground mb-6">
-              {search ? "Try a different search term." : isFree ? "Subscribe to a plan to start creating flows." : "Create your first flow to start capturing leads."}
+              {search ? "Try a different search term." : isFree ? "Subscribe to a plan to start creating funnels." : "Create your first funnel to start capturing leads."}
             </p>
             {!search && (
               <Button variant="hero" onClick={handleCreate}>
-                {isFree ? "See Plans" : "Create Your First Flow"}
+                {isFree ? "See Plans" : "Create Your First Funnel"}
               </Button>
             )}
           </div>
@@ -136,12 +136,12 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
               };
               return (
                 <div key={f.id} className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-muted/40 transition-colors">
-                  <Link to={`/flows/${f.id}`} className="flex items-center gap-3 flex-1 min-w-0">
+                  <Link to={`/funnels/${f.id}`} className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="flex-shrink-0 w-20 h-[50px] rounded-lg bg-primary-subtle flex items-center justify-center">
                       <Layers size={18} className="text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{f.title || "Untitled Flow"}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{f.title || "Untitled Funnel"}</p>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCfg[status]}`}>
                           {status === "published" ? "● Published" : "○ Draft"}
@@ -158,20 +158,20 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                       <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0"><MoreVertical size={15} /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => navigate(`/flows/${f.id}/edit`)}>
-                        <Layers size={13} className="mr-2" /> Edit Flow
+                      <DropdownMenuItem onClick={() => navigate(`/funnels/${f.id}/edit`)}>
+                        <Layers size={13} className="mr-2" /> Edit Funnel
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/f/${f.slug}`); toast.success("Link copied!"); }}>
-                        <Copy size={13} className="mr-2" /> Copy Flow Link
+                        <Copy size={13} className="mr-2" /> Copy Funnel Link
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => window.open(`https://wa.me/?text=${encodeURIComponent(`${window.location.origin}/f/${f.slug}`)}`)}>
                         <Share2 size={13} className="mr-2" /> Share on WhatsApp
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate(`/flows/${f.id}`)}>
+                      <DropdownMenuItem onClick={() => navigate(`/funnels/${f.id}`)}>
                         <Eye size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive" onClick={async () => {
-                        if (await confirm({ title: "Delete this flow?", description: "This will permanently remove the flow and its leads.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(f.id);
+                        if (await confirm({ title: "Delete this funnel?", description: "This will permanently remove the funnel and its leads.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(f.id);
                       }}>
                         <Trash2 size={13} className="mr-2" /> Delete
                       </DropdownMenuItem>
@@ -188,11 +188,11 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
         open={modalOpen}
         onClose={() => setModalOpen(false)}
         type={modalType}
-        resource="flows"
-        currentCount={counts.flows}
+        resource="funnels"
+        currentCount={counts.funnels}
         limit={config.max_funnels}
         tier={tier}
-        reason="flows"
+        reason="funnels"
       />
     </>
   );
