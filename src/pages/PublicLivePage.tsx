@@ -468,7 +468,7 @@ const PublicLivePage = () => {
   return (
     <div className="min-h-[100dvh] bg-background">
       <div className="border-b border-border px-4 py-3 flex items-center justify-between">
-        <Logo size="sm" />
+        <a href="https://nevorai.com" target="_blank" rel="noopener noreferrer"><Logo size="sm" /></a>
         {(stateData.state === "live" || stateData.state === "replay") && (
           <button onClick={handleShareNative} className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5">
             <Share2 size={14} /> Share
