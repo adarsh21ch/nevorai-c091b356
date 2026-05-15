@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, ReactNode } from "react";
 import type { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,15 +38,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
     setProfile((data as Profile | null) ?? null);
     return (data as Profile | null) ?? null;
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (user) await fetchProfile(user.id);
-  };
+  }, [user, fetchProfile]);
 
   useEffect(() => {
     let isMounted = true;
@@ -82,9 +82,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchProfile]);
 
-  const signUp = async (email: string, password: string, fullName: string, phone: string) => {
+  const signUp = useCallback(async (email: string, password: string, fullName: string, phone: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -94,9 +94,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
     return { error };
-  };
+  }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (!error) {
@@ -112,20 +112,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return { error };
-  };
+  }, [fetchProfile]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     setUser(null);
     setSession(null);
     setProfile(null);
-  };
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signUp, signIn, signOut, refreshProfile }}>
-      {children}
-    </AuthContext.Provider>
+  // Memoize context value so consumers don't re-render every time AuthProvider
+  // re-renders for unrelated reasons. Identity changes only when one of the
+  // five tracked values changes.
+  const value = useMemo<AuthContextType>(
+    () => ({ user, session, profile, loading, signUp, signIn, signOut, refreshProfile }),
+    [user, session, profile, loading, signUp, signIn, signOut, refreshProfile],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 const noopAuth: AuthContextType = {
