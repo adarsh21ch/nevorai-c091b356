@@ -601,9 +601,6 @@ const PublicLivePage = () => {
                 <Radio size={18} className="mr-1" /> Join Live Session
               </Button>
               <p className="text-[11px] text-muted-foreground">Audio will be enabled automatically</p>
-              <p className="text-[10px] text-muted-foreground pt-2">
-                Powered by <span className="text-primary font-semibold">Nevorai</span>
-              </p>
             </div>
           );
         })()}
