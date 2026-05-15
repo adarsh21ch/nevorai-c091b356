@@ -38,8 +38,29 @@ Deno.serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-    const { filename, contentType, title } = await req.json();
-    if (!filename || !contentType) return new Response(JSON.stringify({ error: "Missing filename/contentType" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const { filename, contentType, title, fileSize } = await req.json();
+    if (!filename || !contentType) {
+      return new Response(
+        JSON.stringify({ error: "Missing filename or content type." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // Server-side file size cap. Mirrors the client's 500 MB limit so a
+    // tampered client cannot presign uploads larger than the platform allows.
+    // (Wave 2 / C3 will add per-plan quota checks here.)
+    const ABSOLUTE_MAX_BYTES = 500 * 1024 * 1024;
+    if (typeof fileSize === "number" && fileSize > 0) {
+      if (fileSize > ABSOLUTE_MAX_BYTES) {
+        const sizeMb = Math.round(fileSize / (1024 * 1024));
+        return new Response(
+          JSON.stringify({
+            error: `That file is ${sizeMb} MB — uploads are capped at 500 MB. Compress it and try again.`,
+          }),
+          { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
 
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
