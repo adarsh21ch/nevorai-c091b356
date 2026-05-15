@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { useParams, useNavigate, Link } from "@/lib/router-compat";
+import { useEffect, useState } from "react";
+import { useParams, Link } from "@/lib/router-compat";
+import { useNavigate } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/hooks/useAuth";
@@ -38,7 +39,7 @@ type AnyVideo = {
 const VideoDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const qc = useQueryClient();
   useDocumentTitle("Video details");
 
@@ -53,7 +54,7 @@ const VideoDetailPage = () => {
       if (error) throw error;
       return data as AnyVideo | null;
     },
-    enabled: !!id,
+    enabled: !!id && !authLoading,
   });
 
   // Usage: where this video is referenced
@@ -71,7 +72,7 @@ const VideoDetailPage = () => {
         liveSessions: (liveRes.data || []) as Array<{ id: string; title: string; status: string | null }>,
       };
     },
-    enabled: !!id,
+    enabled: !!id && !authLoading,
   });
 
   const [title, setTitle] = useState("");
@@ -82,7 +83,8 @@ const VideoDetailPage = () => {
   const [allowSpeed, setAllowSpeed] = useState(true);
   const [hydrated, setHydrated] = useState(false);
 
-  if (video && !hydrated) {
+  useEffect(() => {
+    if (!video || hydrated) return;
     setTitle(video.title || "");
     setDescription(video.description || "");
     setAllowCopyLink(video.allow_copy_link ?? true);
@@ -90,7 +92,7 @@ const VideoDetailPage = () => {
     setAllowSeek(video.allow_seek ?? true);
     setAllowSpeed(video.allow_playback_speed ?? true);
     setHydrated(true);
-  }
+  }, [video, hydrated]);
 
   const isOwner = !!user && !!video && user.id === video.owner_id;
   const publicUrl = typeof window !== "undefined" && id ? `${window.location.origin}/v/${id}` : "";
@@ -122,7 +124,7 @@ const VideoDetailPage = () => {
     toast.success("Public link copied");
   };
 
-  if (isLoading) {
+  if (authLoading || isLoading) {
     return (
       <DashboardLayout>
         <div className="space-y-4">
@@ -166,7 +168,7 @@ const VideoDetailPage = () => {
         {/* Header */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2 min-w-0">
-            <button onClick={() => navigate("/videos")} className="rounded-md p-1.5 hover:bg-muted">
+            <button onClick={() => navigate({ to: "/videos" })} className="rounded-md p-1.5 hover:bg-muted">
               <ArrowLeft size={18} />
             </button>
             <h1 className="truncate text-xl font-heading font-bold sm:text-2xl">{video.title}</h1>
