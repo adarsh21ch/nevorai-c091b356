@@ -163,6 +163,7 @@ function renderXml(entries: Entry[]): string {
 }
 
 export const Route = createFileRoute("/sitemap.xml")({
+  // @ts-expect-error -- server handlers augmentation missing due to @tanstack/react-start version skew
   server: {
     handlers: {
       GET: async () => {
