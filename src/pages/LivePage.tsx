@@ -602,9 +602,10 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                     </div>
                   </div>
                 </div>
-              </section>
+              )}
 
-              <section id="live-section-details" className="scroll-mt-20 space-y-4">
+              {step === 2 && (
+                <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-medium">Session Title *</Label>
                     <Input value={form.title} onChange={(e) => upd("title", e.target.value)} placeholder="e.g. Weekly Training Call" className="mt-1 bg-muted border-border" />
