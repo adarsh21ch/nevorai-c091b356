@@ -72,6 +72,7 @@ import { Route as AdminSupportRouteImport } from './routes/admin.support'
 import { Route as AdminSubscriptionsRouteImport } from './routes/admin.subscriptions'
 import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
+import { Route as FlowsIdIndexRouteImport } from './routes/flows.$id.index'
 import { Route as FSlugIndexRouteImport } from './routes/f.$slug.index'
 import { Route as LandingPagesIdEditRouteImport } from './routes/landing-pages.$id.edit'
 import { Route as FunnelsIdEditRouteImport } from './routes/funnels.$id.edit'
@@ -411,6 +412,13 @@ const AdminKycRoute = AdminKycRouteImport.update({
   path: '/admin/kyc',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/admin.kyc.lazy').then((d) => d.Route))
+const FlowsIdIndexRoute = FlowsIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FlowsIdRoute,
+} as any).lazy(() =>
+  import('./routes/flows.$id.index.lazy').then((d) => d.Route),
+)
 const FSlugIndexRoute = FSlugIndexRouteImport.update({
   id: '/f/$slug/',
   path: '/f/$slug/',
@@ -512,6 +520,7 @@ export interface FileRoutesByFullPath {
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug/': typeof FSlugIndexRoute
+  '/flows/$id/': typeof FlowsIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -558,7 +567,6 @@ export interface FileRoutesByTo {
   '/compare/nevorai-vs-google-drive': typeof CompareNevoraiVsGoogleDriveRoute
   '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
   '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
-  '/flows/$id': typeof FlowsIdRouteWithChildren
   '/flows/create': typeof FlowsCreateRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
@@ -582,6 +590,7 @@ export interface FileRoutesByTo {
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug': typeof FSlugIndexRoute
+  '/flows/$id': typeof FlowsIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -653,6 +662,7 @@ export interface FileRoutesById {
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug/': typeof FSlugIndexRoute
+  '/flows/$id/': typeof FlowsIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -725,6 +735,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/edit'
     | '/landing-pages/$id/edit'
     | '/f/$slug/'
+    | '/flows/$id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -771,7 +782,6 @@ export interface FileRouteTypes {
     | '/compare/nevorai-vs-google-drive'
     | '/compare/nevorai-vs-vimeo'
     | '/compare/nevorai-vs-youtube'
-    | '/flows/$id'
     | '/flows/create'
     | '/funnels/$id'
     | '/funnels/create'
@@ -795,6 +805,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/edit'
     | '/landing-pages/$id/edit'
     | '/f/$slug'
+    | '/flows/$id'
   id:
     | '__root__'
     | '/'
@@ -865,6 +876,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/edit'
     | '/landing-pages/$id/edit'
     | '/f/$slug/'
+    | '/flows/$id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1374,6 +1386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKycRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/flows/$id/': {
+      id: '/flows/$id/'
+      path: '/'
+      fullPath: '/flows/$id/'
+      preLoaderRoute: typeof FlowsIdIndexRouteImport
+      parentRoute: typeof FlowsIdRoute
+    }
     '/f/$slug/': {
       id: '/f/$slug/'
       path: '/f/$slug'
@@ -1447,10 +1466,12 @@ const VideosRouteWithChildren =
 
 interface FlowsIdRouteChildren {
   FlowsIdEditRoute: typeof FlowsIdEditRoute
+  FlowsIdIndexRoute: typeof FlowsIdIndexRoute
 }
 
 const FlowsIdRouteChildren: FlowsIdRouteChildren = {
   FlowsIdEditRoute: FlowsIdEditRoute,
+  FlowsIdIndexRoute: FlowsIdIndexRoute,
 }
 
 const FlowsIdRouteWithChildren =
