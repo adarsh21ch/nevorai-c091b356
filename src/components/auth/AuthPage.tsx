@@ -68,16 +68,14 @@ export default function AuthPage() {
     void router.preloadRoute({ to: "/dashboard" });
   }, [router]);
 
-  // Auto-submit OTP when 6 digits are entered (typing or paste)
-  // NOTE: must be declared before any early-return below to keep hook order stable.
+  // Auto-submit OTP when 6 digits are entered (typing or paste).
+  // Declared before the early `if (loading)` return to keep hook order stable.
   useEffect(() => {
     if (stage === "nevorai-otp" && otp.length === 6 && !submitting) {
-      void verifyOtpCodeRef.current?.(otp);
+      void verifyOtpCode(otp);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [otp, stage]);
-
-  const verifyOtpCodeRef = useRef<((code: string) => Promise<void>) | null>(null);
 
   if (loading) {
     return (
