@@ -373,8 +373,7 @@ const PricingFullPage = () => {
     else if ((freeConfig?.max_funnels ?? 0) > 0) freeIncluded.push(`Create up to ${freeConfig.max_funnels} funnel${freeConfig.max_funnels === 1 ? "" : "s"}`);
   }
   if (freeConfig?.feature_video_upload) {
-    if (freeConfig?.max_videos === -1) freeIncluded.push("Unlimited video uploads");
-    else if ((freeConfig?.max_videos ?? 0) > 0) freeIncluded.push(`Upload up to ${freeConfig.max_videos} video${freeConfig.max_videos === 1 ? "" : "s"}`);
+    freeIncluded.push("Upload videos (limited only by your storage)");
   }
   freeIncluded.push("Add videos via Nevorai Video Link");
   if (freeConfig?.daily_view_limit === -1) freeIncluded.push("Unlimited daily views");

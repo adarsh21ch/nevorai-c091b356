@@ -39,10 +39,9 @@ const buildFreeFeatures = (config: any): { text: string; included: boolean; tool
     else if ((config?.max_funnels ?? 0) > 0) items.push({ text: `Create up to ${config.max_funnels} funnel${config.max_funnels === 1 ? "" : "s"}`, included: true });
   }
 
-  // Video uploads
+  // Video uploads — storage is the only quota, so we just advertise the capability.
   if (config?.feature_video_upload) {
-    if (config?.max_videos === -1) items.push({ text: "Unlimited video uploads", included: true });
-    else if ((config?.max_videos ?? 0) > 0) items.push({ text: `Upload up to ${config.max_videos} video${config.max_videos === 1 ? "" : "s"}`, included: true });
+    items.push({ text: "Upload videos (limited only by your storage)", included: true });
   }
 
   // Always-on platform capabilities for free users

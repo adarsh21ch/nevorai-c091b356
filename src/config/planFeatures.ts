@@ -67,7 +67,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: "extra_views_price_per_unit", label: "Extra-Views Price (₹)", type: "number", category: "Limits", hint: "Price per top-up unit", dbField: "extra_views_price_per_unit" },
   { key: "max_funnels", label: "Max Funnels", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_funnels" },
   { key: "max_leads_export", label: "Leads CSV Export / month", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_leads_export" },
-  { key: "max_videos", label: "Max Video Uploads", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_videos" },
+  // max_videos removed — storage is now the only video constraint.
   {
     key: "max_storage_gb",
     label: "Max Storage (GB)",
