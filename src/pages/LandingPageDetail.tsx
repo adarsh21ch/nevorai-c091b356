@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "@/lib/router-compat";
+import { useParams } from "@/lib/router-compat";
+import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -13,10 +14,12 @@ import { ArrowLeft, Pencil, Eye, Users, Mail, Download, Search } from "lucide-re
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
+import { useAuth } from "@/hooks/useAuth";
 
 const LandingPageDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { loading: authLoading } = useAuth();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
 
@@ -27,7 +30,7 @@ const LandingPageDetail = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!id,
+    enabled: !!id && !authLoading,
   });
 
   const { data: registrations = [] } = useQuery({
@@ -40,7 +43,7 @@ const LandingPageDetail = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!id,
+    enabled: !!id && !authLoading,
   });
 
   const filtered = (registrations as any[]).filter((r: any) => {
@@ -72,7 +75,7 @@ const LandingPageDetail = () => {
 
   const maskPhone = (phone: string) => phone ? phone.slice(0, -3) + "***" : "—";
 
-  if (!page) return <DashboardLayout><div className="animate-pulse p-8">Loading...</div></DashboardLayout>;
+  if (authLoading || !page) return <DashboardLayout><div className="animate-pulse p-8">Loading...</div></DashboardLayout>;
 
   return (
     <DashboardLayout>
@@ -91,7 +94,7 @@ const LandingPageDetail = () => {
               message={`Check this out: ${(page as any).title}`}
               size="sm"
             />
-            <Button variant="outline" onClick={() => navigate(`/landing-pages/${id}/edit`)}>
+            <Button variant="outline" onClick={() => id && navigate({ to: "/landing-pages/$id/edit", params: { id } })}>
               <Pencil size={14} className="mr-2" /> Edit
             </Button>
           </div>
