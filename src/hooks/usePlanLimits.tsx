@@ -11,7 +11,7 @@ export interface PlanConfig {
   max_landing_pages: number;
   max_live_sessions: number;
   max_team_members: number;
-  max_videos: number;
+  // max_videos REMOVED — storage is now the only constraint on uploads.
   max_storage_mb: number;
   multilevel_funnel_enabled: boolean;
   is_enabled?: boolean;
@@ -43,7 +43,6 @@ const FREE_FALLBACK: PlanConfig = {
   max_landing_pages: 0,
   max_live_sessions: 0,
   max_team_members: 0,
-  max_videos: 0,
   max_storage_mb: 0,
   multilevel_funnel_enabled: false,
 };
@@ -89,13 +88,14 @@ export const usePlanLimits = () => {
   const canCreateLive = config.feature_go_live !== false && (config.max_live_sessions === -1 || counts.live_sessions < config.max_live_sessions);
   const canUseMultilevel = config.multilevel_funnel_enabled;
   const canAddTeamMember = tier === "pro" && (config.max_team_members === -1 || teamCount < config.max_team_members);
-  const canUploadVideo = config.feature_video_upload === true && (config.max_videos === -1 || counts.videos < (config.max_videos ?? 0));
+  // Storage is the only quota — see useStorageUsage for the enforced check.
+  const canUploadVideo = config.feature_video_upload === true;
 
   const isFunnelLimitReached = config.max_funnels !== -1 && counts.funnels >= config.max_funnels;
   const isLandingPageLimitReached = config.max_landing_pages !== -1 && counts.landing_pages >= config.max_landing_pages;
   const isLiveLimitReached = config.max_live_sessions !== -1 && counts.live_sessions >= config.max_live_sessions;
   const isTeamLimitReached = tier === "pro" && config.max_team_members !== -1 && teamCount >= config.max_team_members;
-  const isVideoLimitReached = config.max_videos !== -1 && counts.videos >= (config.max_videos ?? 0);
+  const isVideoLimitReached = false; // Deprecated — storage limit is enforced by useStorageUsage.
 
   const features = {
     leadCapture: config.feature_lead_capture !== false,

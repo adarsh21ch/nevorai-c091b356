@@ -5,9 +5,11 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 export const DashboardContentRow = () => {
   const { config, counts } = usePlanLimits();
 
-  const items = [
+  // Videos no longer have a count limit — storage is the only quota — so
+  // the videos tile shows total uploaded with no "x / y" cap.
+  const items: Array<{ icon: any; label: string; used: number; limit: number | null; href: string }> = [
     { icon: Layers, label: "Funnels", used: counts.funnels, limit: config.max_funnels, href: "/funnels" },
-    { icon: Video, label: "Videos", used: counts.videos, limit: config.max_videos ?? 0, href: "/videos" },
+    { icon: Video, label: "Videos", used: counts.videos, limit: null, href: "/videos" },
     { icon: FileText, label: "Landing Pages", used: counts.landing_pages, limit: config.max_landing_pages, href: "/landing-pages" },
     { icon: Radio, label: "Live Sessions", used: counts.live_sessions, limit: config.max_live_sessions, href: "/live" },
   ];
@@ -28,7 +30,10 @@ export const DashboardContentRow = () => {
           <div className="min-w-0 flex-col">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</p>
             <p className="text-base font-bold leading-tight">
-              {item.used} <span className="text-muted-foreground/60 font-normal">/ {item.limit === -1 ? "∞" : item.limit}</span>
+              {item.used}
+              {item.limit !== null && (
+                <span className="text-muted-foreground/60 font-normal"> / {item.limit === -1 ? "∞" : item.limit}</span>
+              )}
             </p>
           </div>
         </Link>
