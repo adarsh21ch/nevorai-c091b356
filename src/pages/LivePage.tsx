@@ -403,7 +403,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     if (!canCreateLive) { setModalType("limit"); setModalOpen(true); return; }
     setEditingId(null);
     setForm(emptyForm());
-    setStep(1);
+    
     setCreating(true);
   };
 
