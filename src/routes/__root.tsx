@@ -140,6 +140,33 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Force-unregister stale Service Workers from a previous app version.
+  // Old SWs intercept navigation and serve a cached shell that doesn't know
+  // about new routes (/f/$slug, /v/$id, etc.) → 404 for returning users.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("serviceWorker" in navigator)) return;
+
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      if (registrations.length === 0) return;
+      Promise.all(registrations.map((r) => r.unregister()))
+        .then(() => {
+          if ("caches" in window) {
+            return caches.keys().then((keys) =>
+              Promise.all(keys.map((k) => caches.delete(k)))
+            );
+          }
+        })
+        .then(() => {
+          if (!sessionStorage.getItem("sw_cleared")) {
+            sessionStorage.setItem("sw_cleared", "1");
+            window.location.reload();
+          }
+        })
+        .catch(() => {});
+    }).catch(() => {});
+  }, []);
+
   // Recover from stale chunk / dynamic-import failures (common cause of blank
   // pages after a new deploy): auto-reload once when the browser fails to
   // fetch a code-split chunk. Guarded with sessionStorage so we don't loop.
