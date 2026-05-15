@@ -202,9 +202,15 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
       setProcessing(false);
       return;
     } catch (err: any) {
-      const msg = err?.message || "Upload failed. Please try again.";
-      setError(msg);
-      toast.error(msg);
+      const raw = err?.message || "";
+      let friendly = "Upload failed. Please check your connection and try again.";
+      if (/network|fetch|cors/i.test(raw)) friendly = "Network hiccup — your connection dropped mid-upload. Try again.";
+      else if (/timed?\s*out/i.test(raw)) friendly = "Upload timed out. Try a smaller file or a faster network.";
+      else if (/quota|storage|limit/i.test(raw)) friendly = raw; // already user-facing from server
+      else if (/HTTP\s*4\d\d/i.test(raw)) friendly = "Upload was rejected by the server. Try again or contact support.";
+      else if (raw) friendly = raw;
+      setError(friendly);
+      toast.error(friendly);
     } finally {
       setUploading(false);
       setProcessing(false);
