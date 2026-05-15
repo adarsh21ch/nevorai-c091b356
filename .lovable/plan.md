@@ -1,54 +1,60 @@
-# Wave 1 — Ship Today
+# Two improvements: scrollable editors + ON-by-default toggles
 
-Three fixes in one PR. All changes must pass `npm run build`.
+## Improvement 1 — Scrollable single-page editors
 
-## 1. C1 — Dashboard hooks reorder
+Replace the wizard (Next/Back, `wizardStep` state) in all three editors with one long scrollable page + scroll-spy sidebar.
 
-**File:** `src/pages/Dashboard.tsx`
+### Shared infrastructure
+Create `src/components/editor/EditorScrollLayout.tsx`:
+- Props: `sections: { id, label, icon, num, complete? }[]`, `children`, `actions` (Save button slot)
+- Desktop: sticky left sidebar (≥md) — section list with active highlight (left border + accent), check icon when `complete=true`. Click → `scrollIntoView({behavior:'smooth', block:'start'})`.
+- Mobile (<md): sticky top chip bar (horizontal scroll) — same active highlight + tap-to-scroll.
+- Active section detection: single `IntersectionObserver` (rootMargin `-30% 0px -60% 0px`, threshold 0) tracking `[id^="section-"]`.
+- Sticky `Save` button slot top-right.
 
-**Problem:** `useQuery` and other hooks are called after early returns (`if (authLoading) return ...`), violating Rules of Hooks. This is the root cause of the recurring "Something went wrong" boundary trip.
+Each section block: `<section id="section-xxx" className="scroll-mt-20 space-y-4">…</section>`.
 
-**Fix:** Move ALL hook calls (`useAuth`, `useQuery`, `useStorageUsage`, `useState`, `useEffect`, `useNavigate`, etc.) to the top of the component, before any conditional return. Loading/error/empty states render via JSX branches at the bottom, not via early returns that skip hooks.
+### FunnelEditor.tsx
+- Remove `wizardStep`, `setWizardStep`, Next/Back buttons, mode-chosen gate UI.
+- Keep both single/multi step lists conceptually, but render ALL sections stacked. Mode toggle stays as a control inside the "Name & Info" section.
+- Sections rendered in order from `SINGLE_STEPS`/`MULTI_STEPS` (already defined). Conditionally swap the "Build Journey" block in multi-mode vs "Video" in single-mode.
+- Sidebar derives from current mode array. `complete` = section's required field truthy (e.g. title set, video selected).
 
-## 2. C2 — Free-user upload unblock
+### LandingPageEditor.tsx & LivePage.tsx
+Same treatment: identify the existing wizard step list, render all section bodies stacked, plug into `EditorScrollLayout`.
 
-**Files:**
-- `src/hooks/useStorageUsage.ts`
-- SQL update to `plan_config` table (free plan row)
+## Improvement 2 — ON-by-default toggles
 
-**Problem:** `data?.max_storage_mb ?? FREE_FALLBACK_MB` — nullish coalescing only fires on `null`/`undefined`. The DB row exists with `max_storage_mb = 0`, so the expression resolves to `0` and every upload is rejected as "over quota".
+### 2A. DB migration (funnels + landing_pages + live_sessions)
+Inspect schema first via `security--get_table_schema`, then migration:
+```sql
+ALTER TABLE public.funnels
+  ALTER COLUMN show_contact_buttons SET DEFAULT true,
+  ALTER COLUMN whatsapp_auto_message SET DEFAULT true,
+  ALTER COLUMN video_topics_enabled SET DEFAULT true,
+  ALTER COLUMN allow_speed_change SET DEFAULT true;
+-- speaker_mode already defaults to 'account' (ON)
+-- Backfill NULLs to true for the same columns
+```
+Apply analogous defaults to `landing_pages` / `live_sessions` only for columns that actually exist there.
 
-**Fix:**
-- Replace `??` with `||` so `0` falls back to `FREE_FALLBACK_MB` (defensive).
-- Run SQL `UPDATE plan_config SET max_storage_mb = 1024 WHERE plan_id = 'free'` (real fix — restore intended free quota).
-- Audit other `?? FREE_FALLBACK` patterns in the same hook for the same bug.
+### 2B. Frontend defaults in `useState` initializers
+`FunnelEditor` line 145–165 — flip:
+- `show_contact_buttons: true`
+- `whatsapp_auto_message: true`
+- `video_topics_enabled: true`
+- `allow_speed_change: true` (already true)
+- `speaker_mode: "account"` (already on)
 
-## 3. M1 + M3 + M9 + Part D — Upload modal copy, format leniency, server-side size cap
+Mirror in LandingPageEditor / LivePage create-form initial state where equivalent fields exist.
 
-**Files:**
-- `src/components/upload/VideoUploadModal.tsx` (or current modal path)
-- `supabase/functions/get-r2-upload-url/index.ts`
+## Out of scope (per "DO NOT TOUCH")
+Auth, Razorpay, R2, public viewer routes, RLS, slug logic, anything else.
 
-**M1 — Copy cleanup:** Replace generic "Upload failed" / "Something went wrong" toasts with specific, actionable messages ("File too large — your plan allows up to {N} MB", "Format not supported — try MP4 or MOV", etc.).
+## Risk + verification
+- Save/auto-save logic untouched — only presentation changes.
+- Auto-save already runs on field change, no longer tied to step nav.
+- Verify: create new funnel → all toggles ON, all sections visible, sidebar highlights on scroll, click jumps, mobile chips work, `bunx tsc --noEmit` clean.
 
-**M3 — Friendly empty/error states:** Replace red error blocks with neutral guidance + retry CTA.
-
-**M9 — Format leniency:** Expand accepted MIME types and extensions (mp4, mov, webm, m4v, mkv, avi). Replace hard rejection with a soft suggestion when the format is unusual but probably playable; only hard-reject truly unsupported formats.
-
-**Part D (server-side file size validation):** In `get-r2-upload-url`, validate `fileSize` against the user's plan max BEFORE returning the presigned URL. Reject with 400 + clear error if oversized. (Full quota/storage check arrives in Wave 2 / C3 — this pass only validates per-file size.)
-
-## Verification (manual, performed before handing off)
-
-1. Open `/dashboard` as authenticated user → no boundary, no "Something went wrong" toast. Reload 5×, navigate away and back.
-2. As free user (plan = `free`), upload a ~100 MB MP4 → completes; storage bar updates.
-3. Try uploading a 600 MB file as free user → modal shows "File too large — free plan allows up to {N} MB", no presigned URL issued (verified via network tab + edge function logs).
-4. Try `.mkv` → accepted with soft notice. Try `.txt` → cleanly rejected with format-specific copy.
-5. `npm run build` — zero TypeScript errors.
-
-## Out of scope for Wave 1
-Items 4–10 (C3 server quota, H4 strict feature flag, modal redesign, useAuth memo, _authenticated migration, lazy-splits, perf pass) — Wave 2 / Wave 3.
-
-## Technical details
-- No schema changes; only data UPDATE on `plan_config`.
-- No new dependencies.
-- Modal file path will be confirmed during implementation; if logic is split across hook + modal, both get the matching error-copy update.
+## Effort estimate
+Large — touching 3 large files + 1 new component + 1 migration. ~30–45 min of edits. I'll do it in this order: (1) scaffold `EditorScrollLayout`, (2) refactor FunnelEditor (biggest), (3) Landing, (4) Live, (5) DB migration, (6) defaults flip, (7) typecheck.
