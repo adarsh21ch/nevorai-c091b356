@@ -246,8 +246,8 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessions]);
 
-  const { data: flows = [] } = useQuery({
-    queryKey: ["live-flow-options", user?.id],
+  const { data: funnels = [] } = useQuery({
+    queryKey: ["live-funnel-options", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("funnels")
@@ -510,7 +510,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
               <h1 className="text-2xl font-heading font-bold">Live</h1>
               <div className="page-header-accent" />
               <p className="text-sm text-muted-foreground mt-1">
-                Schedule a flow video to play at specific times — or share a meeting link.
+                Schedule a funnel video to play at specific times — or share a meeting link.
               </p>
             </div>
             {!isFree && config?.max_live_sessions !== -1 && (
@@ -559,7 +559,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 <div className="space-y-3">
                   <div>
                     <h3 className="font-semibold mb-1">How will this session be delivered?</h3>
-                    <p className="text-xs text-muted-foreground">Your flow video plays automatically at scheduled times.</p>
+                    <p className="text-xs text-muted-foreground">Your funnel video plays automatically at scheduled times.</p>
                   </div>
                   <div className="w-full text-left p-4 rounded-xl border-2 border-primary bg-primary/5">
                     <div className="flex items-start gap-3">
@@ -572,7 +572,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary">SELECTED</span>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Your flow video plays automatically at scheduled times — viewers see it like a real live stream.
+                          Your funnel video plays automatically at scheduled times — viewers see it like a real live stream.
                         </p>
                       </div>
                     </div>
@@ -595,10 +595,10 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                     <div>
                       <Label className="text-sm font-medium">Select Flow *</Label>
                       <Select value={form.funnel_id ?? "__none__"} onValueChange={(v) => upd("funnel_id", v === "__none__" ? null : v)}>
-                        <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Choose a flow..." /></SelectTrigger>
+                        <SelectTrigger className="mt-1 bg-muted border-border"><SelectValue placeholder="Choose a funnel..." /></SelectTrigger>
                         <SelectContent>
-                          {flows.length === 0 && <SelectItem value="__none__" disabled>No flows with video found</SelectItem>}
-                          {flows.map((f: any) => (<SelectItem key={f.id} value={f.id}>{f.title}</SelectItem>))}
+                          {funnels.length === 0 && <SelectItem value="__none__" disabled>No funnels with video found</SelectItem>}
+                          {funnels.map((f: any) => (<SelectItem key={f.id} value={f.id}>{f.title}</SelectItem>))}
                         </SelectContent>
                       </Select>
                       {selectedFunnel && (
@@ -614,28 +614,28 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                           </div>
                         </div>
                       )}
-                      {flows.length === 0 && (
+                      {funnels.length === 0 && (
                         <p className="text-xs text-muted-foreground mt-2">
-                          You need a published flow with a video first.{" "}
-                          <button onClick={() => navigate("/flows")} className="text-primary underline">Create one</button>.
+                          You need a published funnel with a video first.{" "}
+                          <button onClick={() => navigate("/funnels")} className="text-primary underline">Create one</button>.
                         </p>
                       )}
                       <div className="mt-3 pt-3 border-t border-border">
                         <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => setVideoPickerOpen(true)}>
                           <Video size={14} /> Pick from your video library
                         </Button>
-                        <p className="text-[11px] text-muted-foreground mt-1.5">We'll auto-select the flow that uses that video.</p>
+                        <p className="text-[11px] text-muted-foreground mt-1.5">We'll auto-select the funnel that uses that video.</p>
                       </div>
                       <VideoPickerModal
                         open={videoPickerOpen}
                         onClose={() => setVideoPickerOpen(false)}
                         onSelect={(videoId, title) => {
-                          const match = (flows as any[]).find((f) => f.video_asset_id === videoId);
+                          const match = (funnels as any[]).find((f) => f.video_asset_id === videoId);
                           if (match) {
                             upd("funnel_id", match.id);
-                            toast.success(`Selected flow "${match.title}" containing "${title}"`);
+                            toast.success(`Selected funnel "${match.title}" containing "${title}"`);
                           } else {
-                            toast.error(`No flow uses "${title}" yet. Create a flow with this video first.`);
+                            toast.error(`No funnel uses "${title}" yet. Create a funnel with this video first.`);
                           }
                           setVideoPickerOpen(false);
                         }}

@@ -8,8 +8,8 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContai
 const AnalyticsPage = () => {
   const { user } = useAuth();
 
-  const { data: flows = [] } = useQuery({
-    queryKey: ["my-flows", user?.id],
+  const { data: funnels = [] } = useQuery({
+    queryKey: ["my-funnels", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("funnels").select("*").eq("owner_id", user!.id);
       return data || [];
@@ -18,17 +18,17 @@ const AnalyticsPage = () => {
   });
 
   const { data: leads = [] } = useQuery({
-    queryKey: ["all-leads-analytics", user?.id, flows],
+    queryKey: ["all-leads-analytics", user?.id, funnels],
     queryFn: async () => {
-      const ids = flows.map((f) => f.id);
+      const ids = funnels.map((f) => f.id);
       if (!ids.length) return [];
       const { data } = await supabase.from("funnel_leads").select("*").in("funnel_id", ids);
       return data || [];
     },
-    enabled: flows.length > 0,
+    enabled: funnels.length > 0,
   });
 
-  const totalViews = flows.reduce((a, f) => a + (f.total_views || 0), 0);
+  const totalViews = funnels.reduce((a, f) => a + (f.total_views || 0), 0);
   const convRate = totalViews > 0 ? ((leads.length / totalViews) * 100).toFixed(1) : "0";
 
   const statusCounts = leads.reduce((acc, l) => {
@@ -46,7 +46,7 @@ const AnalyticsPage = () => {
     { icon: Eye, label: "Total Views", value: totalViews.toLocaleString("en-IN") },
     { icon: Users, label: "Total Leads", value: String(leads.length) },
     { icon: TrendingUp, label: "Conversion Rate", value: `${convRate}%` },
-    { icon: Layers, label: "Active Flows", value: String(flows.filter((f) => f.is_published).length) },
+    { icon: Layers, label: "Active Flows", value: String(funnels.filter((f) => f.is_published).length) },
   ];
 
   return (

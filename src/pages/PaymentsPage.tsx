@@ -11,8 +11,8 @@ const PaymentsPage = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: flows = [] } = useQuery({
-    queryKey: ["my-flows", user?.id],
+  const { data: funnels = [] } = useQuery({
+    queryKey: ["my-funnels", user?.id],
     queryFn: async () => {
       const { data } = await supabase.from("funnels").select("id, title").eq("owner_id", user!.id);
       return data || [];
@@ -21,14 +21,14 @@ const PaymentsPage = () => {
   });
 
   const { data: payments = [] } = useQuery({
-    queryKey: ["all-payments", user?.id, flows],
+    queryKey: ["all-payments", user?.id, funnels],
     queryFn: async () => {
-      const ids = flows.map((f) => f.id);
+      const ids = funnels.map((f) => f.id);
       if (!ids.length) return [];
       const { data } = await supabase.from("funnel_payments").select("*").in("funnel_id", ids).order("submitted_at", { ascending: false });
       return data || [];
     },
-    enabled: flows.length > 0,
+    enabled: funnels.length > 0,
   });
 
   const verify = useMutation({
