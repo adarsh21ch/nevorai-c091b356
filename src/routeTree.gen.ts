@@ -45,6 +45,10 @@ import { Route as FunnelsIndexRouteImport } from './routes/funnels.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as VideosIdRouteImport } from './routes/videos.$id'
 import { Route as VIdRouteImport } from './routes/v.$id'
+import { Route as UseCasesRealEstateRouteImport } from './routes/use-cases.real-estate'
+import { Route as UseCasesNetworkMarketingRouteImport } from './routes/use-cases.network-marketing'
+import { Route as UseCasesInsuranceAgentsRouteImport } from './routes/use-cases.insurance-agents'
+import { Route as UseCasesCoachesRouteImport } from './routes/use-cases.coaches'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as LandingPagesCreateRouteImport } from './routes/landing-pages.create'
@@ -52,6 +56,9 @@ import { Route as LandingPagesIdRouteImport } from './routes/landing-pages.$id'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
 import { Route as FunnelsCreateRouteImport } from './routes/funnels.create'
 import { Route as FunnelsIdRouteImport } from './routes/funnels.$id'
+import { Route as CompareNevoraiVsYoutubeRouteImport } from './routes/compare.nevorai-vs-youtube'
+import { Route as CompareNevoraiVsVimeoRouteImport } from './routes/compare.nevorai-vs-vimeo'
+import { Route as CompareNevoraiVsGoogleDriveRouteImport } from './routes/compare.nevorai-vs-google-drive'
 import { Route as CheckoutReturnRouteImport } from './routes/checkout.return'
 import { Route as AuthUpdatePasswordRouteImport } from './routes/auth.update-password'
 import { Route as AuthResetPasswordRouteImport } from './routes/auth.reset-password'
@@ -251,6 +258,27 @@ const VIdRoute = VIdRouteImport.update({
   path: '/v/$id',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/v.$id.lazy').then((d) => d.Route))
+const UseCasesRealEstateRoute = UseCasesRealEstateRouteImport.update({
+  id: '/use-cases/real-estate',
+  path: '/use-cases/real-estate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UseCasesNetworkMarketingRoute =
+  UseCasesNetworkMarketingRouteImport.update({
+    id: '/use-cases/network-marketing',
+    path: '/use-cases/network-marketing',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const UseCasesInsuranceAgentsRoute = UseCasesInsuranceAgentsRouteImport.update({
+  id: '/use-cases/insurance-agents',
+  path: '/use-cases/insurance-agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UseCasesCoachesRoute = UseCasesCoachesRouteImport.update({
+  id: '/use-cases/coaches',
+  path: '/use-cases/coaches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SSlugRoute = SSlugRouteImport.update({
   id: '/s/$slug',
   path: '/s/$slug',
@@ -292,6 +320,22 @@ const FunnelsIdRoute = FunnelsIdRouteImport.update({
   path: '/funnels/$id',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/funnels.$id.lazy').then((d) => d.Route))
+const CompareNevoraiVsYoutubeRoute = CompareNevoraiVsYoutubeRouteImport.update({
+  id: '/compare/nevorai-vs-youtube',
+  path: '/compare/nevorai-vs-youtube',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareNevoraiVsVimeoRoute = CompareNevoraiVsVimeoRouteImport.update({
+  id: '/compare/nevorai-vs-vimeo',
+  path: '/compare/nevorai-vs-vimeo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompareNevoraiVsGoogleDriveRoute =
+  CompareNevoraiVsGoogleDriveRouteImport.update({
+    id: '/compare/nevorai-vs-google-drive',
+    path: '/compare/nevorai-vs-google-drive',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const CheckoutReturnRoute = CheckoutReturnRouteImport.update({
   id: '/checkout/return',
   path: '/checkout/return',
@@ -419,6 +463,9 @@ export interface FileRoutesByFullPath {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/compare/nevorai-vs-google-drive': typeof CompareNevoraiVsGoogleDriveRoute
+  '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
+  '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
   '/l/$slug': typeof LSlugRoute
@@ -426,6 +473,10 @@ export interface FileRoutesByFullPath {
   '/landing-pages/create': typeof LandingPagesCreateRoute
   '/live/$id': typeof LiveIdRoute
   '/s/$slug': typeof SSlugRoute
+  '/use-cases/coaches': typeof UseCasesCoachesRoute
+  '/use-cases/insurance-agents': typeof UseCasesInsuranceAgentsRoute
+  '/use-cases/network-marketing': typeof UseCasesNetworkMarketingRoute
+  '/use-cases/real-estate': typeof UseCasesRealEstateRoute
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -478,6 +529,9 @@ export interface FileRoutesByTo {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/compare/nevorai-vs-google-drive': typeof CompareNevoraiVsGoogleDriveRoute
+  '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
+  '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
   '/l/$slug': typeof LSlugRoute
@@ -485,6 +539,10 @@ export interface FileRoutesByTo {
   '/landing-pages/create': typeof LandingPagesCreateRoute
   '/live/$id': typeof LiveIdRoute
   '/s/$slug': typeof SSlugRoute
+  '/use-cases/coaches': typeof UseCasesCoachesRoute
+  '/use-cases/insurance-agents': typeof UseCasesInsuranceAgentsRoute
+  '/use-cases/network-marketing': typeof UseCasesNetworkMarketingRoute
+  '/use-cases/real-estate': typeof UseCasesRealEstateRoute
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
   '/admin': typeof AdminIndexRoute
@@ -538,6 +596,9 @@ export interface FileRoutesById {
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/auth/update-password': typeof AuthUpdatePasswordRoute
   '/checkout/return': typeof CheckoutReturnRoute
+  '/compare/nevorai-vs-google-drive': typeof CompareNevoraiVsGoogleDriveRoute
+  '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
+  '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
   '/l/$slug': typeof LSlugRoute
@@ -545,6 +606,10 @@ export interface FileRoutesById {
   '/landing-pages/create': typeof LandingPagesCreateRoute
   '/live/$id': typeof LiveIdRoute
   '/s/$slug': typeof SSlugRoute
+  '/use-cases/coaches': typeof UseCasesCoachesRoute
+  '/use-cases/insurance-agents': typeof UseCasesInsuranceAgentsRoute
+  '/use-cases/network-marketing': typeof UseCasesNetworkMarketingRoute
+  '/use-cases/real-estate': typeof UseCasesRealEstateRoute
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -599,6 +664,9 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/update-password'
     | '/checkout/return'
+    | '/compare/nevorai-vs-google-drive'
+    | '/compare/nevorai-vs-vimeo'
+    | '/compare/nevorai-vs-youtube'
     | '/funnels/$id'
     | '/funnels/create'
     | '/l/$slug'
@@ -606,6 +674,10 @@ export interface FileRouteTypes {
     | '/landing-pages/create'
     | '/live/$id'
     | '/s/$slug'
+    | '/use-cases/coaches'
+    | '/use-cases/insurance-agents'
+    | '/use-cases/network-marketing'
+    | '/use-cases/real-estate'
     | '/v/$id'
     | '/videos/$id'
     | '/admin/'
@@ -658,6 +730,9 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/update-password'
     | '/checkout/return'
+    | '/compare/nevorai-vs-google-drive'
+    | '/compare/nevorai-vs-vimeo'
+    | '/compare/nevorai-vs-youtube'
     | '/funnels/$id'
     | '/funnels/create'
     | '/l/$slug'
@@ -665,6 +740,10 @@ export interface FileRouteTypes {
     | '/landing-pages/create'
     | '/live/$id'
     | '/s/$slug'
+    | '/use-cases/coaches'
+    | '/use-cases/insurance-agents'
+    | '/use-cases/network-marketing'
+    | '/use-cases/real-estate'
     | '/v/$id'
     | '/videos/$id'
     | '/admin'
@@ -717,6 +796,9 @@ export interface FileRouteTypes {
     | '/auth/reset-password'
     | '/auth/update-password'
     | '/checkout/return'
+    | '/compare/nevorai-vs-google-drive'
+    | '/compare/nevorai-vs-vimeo'
+    | '/compare/nevorai-vs-youtube'
     | '/funnels/$id'
     | '/funnels/create'
     | '/l/$slug'
@@ -724,6 +806,10 @@ export interface FileRouteTypes {
     | '/landing-pages/create'
     | '/live/$id'
     | '/s/$slug'
+    | '/use-cases/coaches'
+    | '/use-cases/insurance-agents'
+    | '/use-cases/network-marketing'
+    | '/use-cases/real-estate'
     | '/v/$id'
     | '/videos/$id'
     | '/admin/'
@@ -775,12 +861,19 @@ export interface RootRouteChildren {
   AdminVideosRoute: typeof AdminVideosRoute
   AdminWhatsappRoute: typeof AdminWhatsappRoute
   CheckoutReturnRoute: typeof CheckoutReturnRoute
+  CompareNevoraiVsGoogleDriveRoute: typeof CompareNevoraiVsGoogleDriveRoute
+  CompareNevoraiVsVimeoRoute: typeof CompareNevoraiVsVimeoRoute
+  CompareNevoraiVsYoutubeRoute: typeof CompareNevoraiVsYoutubeRoute
   FunnelsIdRoute: typeof FunnelsIdRouteWithChildren
   FunnelsCreateRoute: typeof FunnelsCreateRoute
   LSlugRoute: typeof LSlugRoute
   LandingPagesIdRoute: typeof LandingPagesIdRouteWithChildren
   LandingPagesCreateRoute: typeof LandingPagesCreateRoute
   SSlugRoute: typeof SSlugRoute
+  UseCasesCoachesRoute: typeof UseCasesCoachesRoute
+  UseCasesInsuranceAgentsRoute: typeof UseCasesInsuranceAgentsRoute
+  UseCasesNetworkMarketingRoute: typeof UseCasesNetworkMarketingRoute
+  UseCasesRealEstateRoute: typeof UseCasesRealEstateRoute
   VIdRoute: typeof VIdRoute
   AdminIndexRoute: typeof AdminIndexRoute
   FunnelsIndexRoute: typeof FunnelsIndexRoute
@@ -1043,6 +1136,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/use-cases/real-estate': {
+      id: '/use-cases/real-estate'
+      path: '/use-cases/real-estate'
+      fullPath: '/use-cases/real-estate'
+      preLoaderRoute: typeof UseCasesRealEstateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/network-marketing': {
+      id: '/use-cases/network-marketing'
+      path: '/use-cases/network-marketing'
+      fullPath: '/use-cases/network-marketing'
+      preLoaderRoute: typeof UseCasesNetworkMarketingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/insurance-agents': {
+      id: '/use-cases/insurance-agents'
+      path: '/use-cases/insurance-agents'
+      fullPath: '/use-cases/insurance-agents'
+      preLoaderRoute: typeof UseCasesInsuranceAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/use-cases/coaches': {
+      id: '/use-cases/coaches'
+      path: '/use-cases/coaches'
+      fullPath: '/use-cases/coaches'
+      preLoaderRoute: typeof UseCasesCoachesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/s/$slug': {
       id: '/s/$slug'
       path: '/s/$slug'
@@ -1090,6 +1211,27 @@ declare module '@tanstack/react-router' {
       path: '/funnels/$id'
       fullPath: '/funnels/$id'
       preLoaderRoute: typeof FunnelsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/nevorai-vs-youtube': {
+      id: '/compare/nevorai-vs-youtube'
+      path: '/compare/nevorai-vs-youtube'
+      fullPath: '/compare/nevorai-vs-youtube'
+      preLoaderRoute: typeof CompareNevoraiVsYoutubeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/nevorai-vs-vimeo': {
+      id: '/compare/nevorai-vs-vimeo'
+      path: '/compare/nevorai-vs-vimeo'
+      fullPath: '/compare/nevorai-vs-vimeo'
+      preLoaderRoute: typeof CompareNevoraiVsVimeoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare/nevorai-vs-google-drive': {
+      id: '/compare/nevorai-vs-google-drive'
+      path: '/compare/nevorai-vs-google-drive'
+      fullPath: '/compare/nevorai-vs-google-drive'
+      preLoaderRoute: typeof CompareNevoraiVsGoogleDriveRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout/return': {
@@ -1290,12 +1432,19 @@ const rootRouteChildren: RootRouteChildren = {
   AdminVideosRoute: AdminVideosRoute,
   AdminWhatsappRoute: AdminWhatsappRoute,
   CheckoutReturnRoute: CheckoutReturnRoute,
+  CompareNevoraiVsGoogleDriveRoute: CompareNevoraiVsGoogleDriveRoute,
+  CompareNevoraiVsVimeoRoute: CompareNevoraiVsVimeoRoute,
+  CompareNevoraiVsYoutubeRoute: CompareNevoraiVsYoutubeRoute,
   FunnelsIdRoute: FunnelsIdRouteWithChildren,
   FunnelsCreateRoute: FunnelsCreateRoute,
   LSlugRoute: LSlugRoute,
   LandingPagesIdRoute: LandingPagesIdRouteWithChildren,
   LandingPagesCreateRoute: LandingPagesCreateRoute,
   SSlugRoute: SSlugRoute,
+  UseCasesCoachesRoute: UseCasesCoachesRoute,
+  UseCasesInsuranceAgentsRoute: UseCasesInsuranceAgentsRoute,
+  UseCasesNetworkMarketingRoute: UseCasesNetworkMarketingRoute,
+  UseCasesRealEstateRoute: UseCasesRealEstateRoute,
   VIdRoute: VIdRoute,
   AdminIndexRoute: AdminIndexRoute,
   FunnelsIndexRoute: FunnelsIndexRoute,

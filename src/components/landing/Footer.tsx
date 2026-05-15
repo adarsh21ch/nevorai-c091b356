@@ -8,6 +8,17 @@ const links = {
     { label: "Pricing", href: "/pricing" },
     { label: "FAQ", href: "/faq" },
   ],
+  "Use Cases": [
+    { label: "Network Marketing", href: "/use-cases/network-marketing" },
+    { label: "Insurance Agents", href: "/use-cases/insurance-agents" },
+    { label: "Online Coaches", href: "/use-cases/coaches" },
+    { label: "Real Estate", href: "/use-cases/real-estate" },
+  ],
+  Compare: [
+    { label: "vs YouTube", href: "/compare/nevorai-vs-youtube" },
+    { label: "vs Vimeo", href: "/compare/nevorai-vs-vimeo" },
+    { label: "vs Google Drive", href: "/compare/nevorai-vs-google-drive" },
+  ],
   Company: [
     { label: "About", href: "/about" },
     { label: "Contact", href: "/contact" },
@@ -23,7 +34,7 @@ export const Footer = () => {
   return (
     <footer className="border-t border-border-subtle/10 py-12 sm:py-16">
       <div className="container-app">
-        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-10 sm:mb-12">
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-10 mb-10 sm:mb-12">
           <div>
             <Logo variant="full" size="sm" />
             <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
