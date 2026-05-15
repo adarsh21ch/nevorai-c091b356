@@ -578,7 +578,6 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
               <EditorScrollLayout sections={liveEditorSections} header={liveHeader}>
               <EditorSectionBlock id="live-section-delivery">
 
-              {(
                 <div className="space-y-3">
                   <div>
                     <h3 className="font-semibold mb-1">How will this session be delivered?</h3>
@@ -602,8 +601,10 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                   </div>
                 </div>
               )}
+              </EditorSectionBlock>
 
-              {(
+              <EditorSectionBlock id="live-section-details">
+              
                 <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-medium">Session Title *</Label>
