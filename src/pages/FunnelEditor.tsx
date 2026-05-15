@@ -47,9 +47,34 @@ const createEmptyStep = (order: number, type: string = "video"): FlowStep => ({
   booking_url: "",
 });
 
+// Pretty slug from a title — no random suffix.
+// Collision handling happens in `ensureUniqueSlug` at save time.
 const generateSlug = (title: string) => {
-  const base = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 50) || "my-funnel";
-  return `${base}-${Date.now().toString(36)}`;
+  return (
+    title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60)
+    || "my-funnel"
+  );
+};
+
+const RESERVED_SLUGS = new Set([
+  "admin","api","app","login","signup","dashboard","settings","profile",
+  "funnels","videos","live","auth","billing","pricing","help","faq","about",
+  "contact","onboarding","new","edit","create","tools","leads","insights",
+  "analytics","payments","upgrade","kyc","notifications","f","v","l","s",
+]);
+
+const ensureUniqueSlug = async (base: string, ignoreFunnelId?: string): Promise<string> => {
+  const safeBase = RESERVED_SLUGS.has(base) ? `${base}-1` : base;
+  let candidate = safeBase;
+  for (let n = 2; n < 1000; n++) {
+    const q = supabase.from("funnels").select("id").eq("slug", candidate).limit(1);
+    const { data, error } = await q;
+    if (error) return candidate;
+    const taken = (data ?? []).some((row: any) => row.id !== ignoreFunnelId);
+    if (!taken) return candidate;
+    candidate = `${safeBase}-${n}`;
+  }
+  return `${safeBase}-${Date.now().toString(36)}`;
 };
 
 const SINGLE_STEPS = [
