@@ -43,6 +43,70 @@ const Dashboard = () => {
   const daily = useDailyViews();
   const { hasVideos, latestVideo, isLoading: videosLoading } = useHasVideos();
 
+  // ALL hooks must be called unconditionally before any early return.
+  // Moving these above the auth/onboarding gates fixes a Rules-of-Hooks
+  // violation that surfaced as the recurring "Something went wrong" boundary.
+  const {
+    data: funnels = [],
+    isLoading: funnelsLoading,
+    error: funnelsError,
+    refetch: refetchFunnels,
+  } = useQuery({
+    queryKey: ["my-funnels", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("funnels")
+        .select("*")
+        .eq("owner_id", user!.id)
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const {
+    data: leadCount = 0,
+    isLoading: leadCountLoading,
+    error: leadCountError,
+    refetch: refetchLeadCount,
+  } = useQuery({
+    queryKey: ["total-leads", user?.id, funnels.map((f) => f.id).join(",")],
+    queryFn: async () => {
+      const funnelIds = funnels.map((f) => f.id);
+      if (!funnelIds.length) return 0;
+      const { count } = await supabase
+        .from("funnel_leads")
+        .select("*", { count: "exact", head: true })
+        .in("funnel_id", funnelIds);
+      return count || 0;
+    },
+    enabled: !!user?.id && funnels.length > 0,
+  });
+
+  const {
+    data: activeLive,
+    isLoading: activeLiveLoading,
+    error: activeLiveError,
+    refetch: refetchActiveLive,
+  } = useQuery({
+    queryKey: ["active-live-session", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("live_sessions")
+        .select("id, title")
+        .eq("owner_id", user.id)
+        .eq("status", "live")
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user?.id,
+    refetchInterval: 30000,
+  });
+
+  // ---- conditional renders (after all hooks) ----
+
   if (authLoading) {
     return (
       <DashboardLayout>
@@ -63,44 +127,6 @@ const Dashboard = () => {
   if (user && !videosLoading && !hasVideos) {
     return <Navigate to="/onboarding-upload" />;
   }
-
-
-  const { data: funnels = [], isLoading: funnelsLoading, error: funnelsError, refetch: refetchFunnels } = useQuery({
-    queryKey: ["my-funnels", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("funnels").select("*").eq("owner_id", user!.id).order("created_at", { ascending: false });
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
-
-  const { data: leadCount = 0, isLoading: leadCountLoading, error: leadCountError, refetch: refetchLeadCount } = useQuery({
-    queryKey: ["total-leads", user?.id],
-    queryFn: async () => {
-      const funnelIds = funnels.map((f) => f.id);
-      if (!funnelIds.length) return 0;
-      const { count } = await supabase.from("funnel_leads").select("*", { count: "exact", head: true }).in("funnel_id", funnelIds);
-      return count || 0;
-    },
-    enabled: !!user?.id && funnels.length > 0,
-  });
-
-  const { data: activeLive, isLoading: activeLiveLoading, error: activeLiveError, refetch: refetchActiveLive } = useQuery({
-    queryKey: ["active-live-session", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
-        .from("live_sessions")
-        .select("id, title")
-        .eq("owner_id", user.id)
-        .eq("status", "live")
-        .limit(1)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user?.id,
-    refetchInterval: 30000,
-  });
 
   if (funnelsLoading || leadCountLoading || activeLiveLoading) {
     return (

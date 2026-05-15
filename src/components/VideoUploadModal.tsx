@@ -28,20 +28,33 @@ interface Props {
   skipStorageCheck?: boolean;
 }
 
-const ALLOWED_EXTENSIONS = [".mp4", ".mov", ".webm"];
-const ALLOWED_MIME_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
+// MP4 = best path. MOV/WEBM = supported but soft-warned. M4V/MKV/AVI =
+// best-effort: we accept and warn, instead of rejecting a file the user
+// just spent a minute picking.
+const PREFERRED_EXTENSIONS = [".mp4"];
+const SUPPORTED_EXTENSIONS = [".mp4", ".mov", ".webm", ".m4v"];
+const LENIENT_EXTENSIONS = [".mkv", ".avi"];
+const SUPPORTED_MIME_TYPES = [
+  "video/mp4",
+  "video/quicktime",
+  "video/webm",
+  "video/x-m4v",
+  "video/x-matroska",
+  "video/x-msvideo",
+];
 const MAX_SIZE_BYTES = 500 * 1024 * 1024;
 
 type AcceptResult = "ok" | "warn" | "reject";
 
 const checkVideoAcceptance = (file: File): AcceptResult => {
   const name = file.name.toLowerCase();
-  const isMp4 = name.endsWith(".mp4") || file.type === "video/mp4";
-  if (isMp4) return "ok";
-
-  const extOk = ALLOWED_EXTENSIONS.some((ext) => name.endsWith(ext));
-  const mimeOk = file.type ? ALLOWED_MIME_TYPES.includes(file.type) : true;
-  if (extOk && mimeOk) return "warn";
+  if (PREFERRED_EXTENSIONS.some((ext) => name.endsWith(ext)) || file.type === "video/mp4") {
+    return "ok";
+  }
+  if (SUPPORTED_EXTENSIONS.some((ext) => name.endsWith(ext))) return "warn";
+  if (LENIENT_EXTENSIONS.some((ext) => name.endsWith(ext))) return "warn";
+  if (file.type && file.type.startsWith("video/")) return "warn";
+  if (SUPPORTED_MIME_TYPES.includes(file.type)) return "warn";
   return "reject";
 };
 
@@ -55,9 +68,9 @@ const formatEta = (seconds: number): string => {
 };
 
 const FORMAT_WARNING_MSG =
-  "This format may not play correctly on all devices. For best results, upload a video downloaded from YouTube, or convert to MP4 using cloudconvert.com";
+  "We'll try to upload this format, but MP4 plays the smoothest on every device. If playback stutters, convert to MP4 at cloudconvert.com.";
 const FORMAT_REJECT_MSG =
-  "This format may not play correctly. For best results, upload a video downloaded from YouTube, or convert your video to MP4 using cloudconvert.com";
+  "That doesn't look like a video file. Please pick an MP4, MOV, WEBM, M4V, MKV, or AVI — or convert it first at cloudconvert.com.";
 
 export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false }: Props) => {
   const { user } = useAuth();
@@ -107,7 +120,11 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     }
 
     if (f.size > MAX_SIZE_BYTES) {
-      toast.error("Video too large. Maximum size is 500MB. Please compress your video first.", { duration: 6000 });
+      const sizeMb = Math.round(f.size / (1024 * 1024));
+      toast.error(
+        `That file is ${sizeMb} MB — uploads are capped at 500 MB. Compress it (e.g. handbrake.fr) and try again.`,
+        { duration: 7000 },
+      );
       if (fileRef.current) fileRef.current.value = "";
       return;
     }
@@ -185,9 +202,15 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
       setProcessing(false);
       return;
     } catch (err: any) {
-      const msg = err?.message || "Upload failed. Please try again.";
-      setError(msg);
-      toast.error(msg);
+      const raw = err?.message || "";
+      let friendly = "Upload failed. Please check your connection and try again.";
+      if (/network|fetch|cors/i.test(raw)) friendly = "Network hiccup — your connection dropped mid-upload. Try again.";
+      else if (/timed?\s*out/i.test(raw)) friendly = "Upload timed out. Try a smaller file or a faster network.";
+      else if (/quota|storage|limit/i.test(raw)) friendly = raw; // already user-facing from server
+      else if (/HTTP\s*4\d\d/i.test(raw)) friendly = "Upload was rejected by the server. Try again or contact support.";
+      else if (raw) friendly = raw;
+      setError(friendly);
+      toast.error(friendly);
     } finally {
       setUploading(false);
       setProcessing(false);
@@ -306,7 +329,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
           <input
             ref={fileRef}
             type="file"
-            accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
+            accept=".mp4,.mov,.webm,.m4v,.mkv,.avi,video/*"
             className="hidden"
             onChange={handleFileChange}
           />
@@ -321,7 +344,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                 Tap to select a video file
               </span>
               <span className="text-xs text-muted-foreground/60">
-                Max 500MB · MP4, MOV, WebM
+                Max 500 MB · MP4 (best), MOV, WEBM, M4V, MKV, AVI
               </span>
             </button>
           ) : (
@@ -356,7 +379,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
 
           {/* Helper text + tooltip */}
           <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>Supported: MP4, MOV, WEBM | Max: 500MB | YouTube downloads work best ✓</span>
+            <span>MP4 plays best · MOV / WEBM / M4V / MKV / AVI also accepted · Max 500 MB</span>
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
