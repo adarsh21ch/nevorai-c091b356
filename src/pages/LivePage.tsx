@@ -545,22 +545,38 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </div>
         )}
 
-        {!authLoading && !isLoading && !error && creating && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start justify-center overflow-y-auto pt-8 pb-8 px-4">
-            <div className="glass-card w-full max-w-2xl p-6 space-y-5 relative">
-              <button onClick={() => { setCreating(false); setEditingId(null); }} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
-                <X size={18} />
-              </button>
-
-              <div>
-                <h2 className="text-lg font-heading font-bold">{editingId ? "Edit Live Session" : "Create Live Session"}</h2>
+        {!authLoading && !isLoading && !error && creating && (() => {
+          const liveEditorSections: EditorSection[] = [
+            { id: "live-section-delivery", label: "Delivery", num: 1, icon: Layers, complete: !!form.funnel_id || form.session_type === "external_link" },
+            { id: "live-section-details", label: "Details", num: 2, icon: Pencil, complete: !!form.title },
+            { id: "live-section-schedule", label: "Schedule", num: 3, icon: Calendar, complete: !!form.scheduled_times[0] },
+            { id: "live-section-replay", label: "Replay & Settings", num: 4, icon: Play, complete: form.is_published },
+          ];
+          const liveHeader = (
+            <div className="sticky top-0 z-30 bg-background/95 backdrop-blur -mx-4 px-4 py-3 mb-4 border-b border-border flex items-center justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg font-heading font-bold truncate">{editingId ? "Edit Live Session" : "Create Live Session"}</h2>
                 {isEditingLive && (
                   <div className="mt-2 p-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-xs text-yellow-200">
                     ⚠ This session is currently <strong>live</strong>. Edits will only affect future scheduled slots.
                   </div>
                 )}
-                <p className="text-[11px] text-muted-foreground mt-1.5">Fill out all sections, then schedule.</p>
               </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button size="sm" disabled={!finalCanSubmit || saveMutation.isPending} onClick={() => saveMutation.mutate()}>
+                  {saveMutation.isPending ? "Saving..." : editingId ? "Save Changes" : "Schedule Session"}
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => { setCreating(false); setEditingId(null); }}>
+                  <X size={18} />
+                </Button>
+              </div>
+            </div>
+          );
+          return (
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto">
+            <div className="min-h-screen px-4 py-6 max-w-5xl mx-auto">
+              <EditorScrollLayout sections={liveEditorSections} header={liveHeader}>
+              <EditorSectionBlock id="live-section-delivery">
 
               {(
                 <div className="space-y-3">
