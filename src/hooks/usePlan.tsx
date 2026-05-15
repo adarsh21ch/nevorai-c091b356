@@ -6,7 +6,7 @@ import { useCallback } from "react";
 
 export interface PlanLimits {
   funnel_limit: number | null;
-  video_limit: number | null;
+  // video_limit REMOVED — storage is the only constraint on video uploads.
   video_max_size_mb: number | null;
   landing_page_limit: number | null;
   live_session_limit: number | null;
@@ -32,7 +32,6 @@ export interface PlanInfo {
 
 const FREE_LIMITS_FALLBACK: PlanLimits = {
   funnel_limit: 1,
-  video_limit: 3,
   video_max_size_mb: 100,
   landing_page_limit: 1,
   live_session_limit: 0,
@@ -93,7 +92,7 @@ export const usePlan = () => {
     queryFn: async () => {
       const { data } = await (supabase as any)
         .from("plan_config")
-        .select("max_funnels, max_videos, max_storage_mb, max_landing_pages, max_live_sessions, multilevel_funnel_enabled")
+        .select("max_funnels, max_storage_mb, max_landing_pages, max_live_sessions, multilevel_funnel_enabled")
         .eq("plan_name", "free")
         .maybeSingle();
       return data;
@@ -104,7 +103,6 @@ export const usePlan = () => {
 
   const freeLimits: PlanLimits = freePlanCfg ? {
     funnel_limit: freePlanCfg.max_funnels ?? FREE_LIMITS_FALLBACK.funnel_limit,
-    video_limit: freePlanCfg.max_videos ?? FREE_LIMITS_FALLBACK.video_limit,
     video_max_size_mb: freePlanCfg.max_storage_mb ?? FREE_LIMITS_FALLBACK.video_max_size_mb,
     landing_page_limit: freePlanCfg.max_landing_pages ?? FREE_LIMITS_FALLBACK.landing_page_limit,
     live_session_limit: freePlanCfg.max_live_sessions ?? FREE_LIMITS_FALLBACK.live_session_limit,
@@ -123,7 +121,6 @@ export const usePlan = () => {
 
   const limits: PlanLimits = (isPaid || trialActive) && planConfig ? {
     funnel_limit: planConfig.funnel_limit,
-    video_limit: planConfig.video_limit,
     video_max_size_mb: planConfig.video_max_size_mb,
     landing_page_limit: (planConfig as any).landing_page_limit ?? null,
     live_session_limit: (planConfig as any).live_session_limit ?? null,
