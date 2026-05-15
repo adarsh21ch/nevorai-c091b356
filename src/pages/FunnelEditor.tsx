@@ -30,6 +30,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { StepLockOverlay } from "@/components/funnel/StepLockOverlay";
 import { Crown } from "lucide-react";
 import { sanitizeText } from "@/lib/sanitize";
+import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
 
 type FlowStep = PanelFlowStep;
 
