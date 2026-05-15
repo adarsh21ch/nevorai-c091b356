@@ -20,7 +20,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
 const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search, 200);
   const [filter, setFilter] = useState("all");
@@ -30,7 +30,7 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
   const { isFree, canCreateLandingPage, config, counts, tier } = usePlanLimits();
   const queryClient = useQueryClient();
 
-  const { data: pages = [], isLoading } = useQuery({
+  const { data: pages = [], isLoading, error, refetch } = useQuery({
     queryKey: ["landing-pages", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -40,7 +40,7 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user,
+    enabled: !!user?.id,
   });
 
   const handleCreate = () => {
@@ -110,10 +110,17 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
           </Tabs>
         </div>
 
-        {isLoading ? (
+        {authLoading || isLoading ? (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3].map((i) => <Card key={i} className="p-5 animate-pulse h-48" />)}
           </div>
+        ) : error ? (
+          <Card className="p-12 text-center">
+            <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Couldn’t load landing pages</h3>
+            <p className="text-muted-foreground mb-6">Please try again.</p>
+            <Button variant="outline" onClick={() => refetch()}>Retry</Button>
+          </Card>
         ) : filtered.length === 0 ? (
           <Card className="p-12 text-center">
             <FileText size={48} className="mx-auto text-muted-foreground mb-4" />
