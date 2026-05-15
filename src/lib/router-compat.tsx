@@ -1,6 +1,5 @@
 import * as React from "react";
 import {
-  Link as TLink,
   useLocation as useTLocation,
   useRouter,
   useParams as useTParams,
@@ -8,12 +7,34 @@ import {
 } from "@tanstack/react-router";
 
 // Drop-in Link
+// React Router DOM lets you write <Link to="/funnels/abc/edit"> with a
+// concrete URL. TanStack's <Link to="..."> expects the ROUTE PATTERN
+// ("/funnels/$id/edit") + params={{id:"abc"}}; given a literal URL it
+// renders a plain <a href> which causes a full page reload on click.
+// To preserve react-router-dom semantics across the app we render an
+// anchor and SPA-navigate via the router on click.
 export const Link = React.forwardRef<HTMLAnchorElement, any>(
-  ({ to, children, replace, state, ...rest }, ref) => {
+  ({ to, children, replace, state: _state, target, onClick, ...rest }, ref) => {
+    const router = useRouter();
+    const href = typeof to === "string" ? to : "#";
+    const isExternal =
+      typeof to === "string" &&
+      (to.startsWith("http://") || to.startsWith("https://") || to.startsWith("mailto:") || to.startsWith("tel:"));
+    const opensNewTab = target && target !== "_self";
+
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(e);
+      if (e.defaultPrevented) return;
+      if (isExternal || opensNewTab) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      router.navigate({ to: href as any, replace: !!replace });
+    };
+
     return (
-      <TLink ref={ref as any} to={to as any} {...rest}>
+      <a ref={ref as any} href={href} target={target} onClick={handleClick} {...rest}>
         {children}
-      </TLink>
+      </a>
     );
   },
 );
@@ -31,16 +52,27 @@ export interface NavLinkProps {
 }
 
 export const NavLink = React.forwardRef<HTMLAnchorElement, NavLinkProps>(
-  ({ to, className, children, end, ...rest }, ref) => {
+  ({ to, className, children, end, replace, target, onClick, ...rest }, ref) => {
+    const router = useRouter();
     const loc = useTLocation();
     const isActive = end ? loc.pathname === to : loc.pathname === to || loc.pathname.startsWith(to + "/");
     const args = { isActive, isPending: false };
     const cls = typeof className === "function" ? className(args) : className;
     const kids = typeof children === "function" ? (children as any)(args) : children;
+    const isExternal = to.startsWith("http://") || to.startsWith("https://") || to.startsWith("mailto:") || to.startsWith("tel:");
+    const opensNewTab = target && target !== "_self";
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(e);
+      if (e.defaultPrevented) return;
+      if (isExternal || opensNewTab) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      router.navigate({ to: to as any, replace: !!replace });
+    };
     return (
-      <TLink ref={ref as any} to={to as any} className={cls} {...rest}>
+      <a ref={ref as any} href={to} target={target} className={cls} onClick={handleClick} {...rest}>
         {kids}
-      </TLink>
+      </a>
     );
   },
 );
