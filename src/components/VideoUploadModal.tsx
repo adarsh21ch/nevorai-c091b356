@@ -329,7 +329,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
           <input
             ref={fileRef}
             type="file"
-            accept=".mp4,.mov,.webm,video/mp4,video/quicktime,video/webm"
+            accept=".mp4,.mov,.webm,.m4v,.mkv,.avi,video/*"
             className="hidden"
             onChange={handleFileChange}
           />
@@ -344,7 +344,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                 Tap to select a video file
               </span>
               <span className="text-xs text-muted-foreground/60">
-                Max 500MB · MP4, MOV, WebM
+                Max 500 MB · MP4 (best), MOV, WEBM, M4V, MKV, AVI
               </span>
             </button>
           ) : (
@@ -379,7 +379,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
 
           {/* Helper text + tooltip */}
           <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>Supported: MP4, MOV, WEBM | Max: 500MB | YouTube downloads work best ✓</span>
+            <span>MP4 plays best · MOV / WEBM / M4V / MKV / AVI also accepted · Max 500 MB</span>
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
