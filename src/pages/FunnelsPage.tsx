@@ -67,8 +67,8 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   ] as const;
 
   const limitBadge = !isFree && config.max_funnels !== -1 ? (
-    <span className={`text-xs px-2 py-0.5 rounded-full ${counts.funnels >= config.max_funnels ? "bg-destructive/10 text-destructive" : counts.funnels >= config.max_funnels - 1 ? "bg-amber-500/10 text-amber-600" : "bg-muted text-muted-foreground"}`}>
-      {counts.funnels}/{config.max_funnels}
+    <span className={`text-xs px-2 py-0.5 rounded-full ${counts.flows >= config.max_funnels ? "bg-destructive/10 text-destructive" : counts.flows >= config.max_funnels - 1 ? "bg-amber-500/10 text-amber-600" : "bg-muted text-muted-foreground"}`}>
+      {counts.flows}/{config.max_funnels}
     </span>
   ) : null;
 

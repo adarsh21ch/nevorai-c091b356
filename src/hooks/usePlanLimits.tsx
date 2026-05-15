@@ -84,14 +84,14 @@ export const usePlanLimits = () => {
 
   const isFree = tier === "free" || (!plan.isPaid && tier !== "trial");
 
-  const canCreateFunnel = config.feature_funnel_creation !== false && (config.max_funnels === -1 || counts.funnels < config.max_funnels);
+  const canCreateFunnel = config.feature_funnel_creation !== false && (config.max_funnels === -1 || counts.flows < config.max_funnels);
   const canCreateLandingPage = config.feature_landing_pages !== false && (config.max_landing_pages === -1 || counts.landing_pages < config.max_landing_pages);
   const canCreateLive = config.feature_go_live !== false && (config.max_live_sessions === -1 || counts.live_sessions < config.max_live_sessions);
   const canUseMultilevel = config.multilevel_funnel_enabled;
   const canAddTeamMember = tier === "pro" && (config.max_team_members === -1 || teamCount < config.max_team_members);
   const canUploadVideo = config.feature_video_upload === true && (config.max_videos === -1 || counts.videos < (config.max_videos ?? 0));
 
-  const isFunnelLimitReached = config.max_funnels !== -1 && counts.funnels >= config.max_funnels;
+  const isFunnelLimitReached = config.max_funnels !== -1 && counts.flows >= config.max_funnels;
   const isLandingPageLimitReached = config.max_landing_pages !== -1 && counts.landing_pages >= config.max_landing_pages;
   const isLiveLimitReached = config.max_live_sessions !== -1 && counts.live_sessions >= config.max_live_sessions;
   const isTeamLimitReached = tier === "pro" && config.max_team_members !== -1 && teamCount >= config.max_team_members;

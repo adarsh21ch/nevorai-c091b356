@@ -26,7 +26,7 @@ export const LimitGate = ({ resource, children }: LimitGateProps) => {
   };
 
   const limitMap = {
-    funnel: plan.limits.funnel_limit,
+    flow: plan.limits.funnel_limit,
     landing_page: plan.limits.landing_page_limit,
     live_session: plan.limits.live_session_limit,
   };
@@ -75,7 +75,7 @@ export const LimitBadge = ({ resource }: { resource: "flow" | "landing_page" | "
     live_session: counts.live_sessions,
   };
   const limitMap = {
-    funnel: plan.limits.funnel_limit,
+    flow: plan.limits.funnel_limit,
     landing_page: plan.limits.landing_page_limit,
     live_session: plan.limits.live_session_limit,
   };

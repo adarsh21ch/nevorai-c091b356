@@ -157,7 +157,7 @@ export const usePlan = () => {
 
   const canCreate = useCallback((resource: "flow" | "landing_page" | "live_session", currentCount: number): boolean => {
     const limitMap = {
-      funnel: limits.funnel_limit,
+      flow: limits.funnel_limit,
       landing_page: limits.landing_page_limit,
       live_session: limits.live_session_limit,
     };
