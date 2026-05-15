@@ -1,14 +1,52 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { useMemo, useState } from "react";
-import { Search, AlertTriangle, Pencil } from "lucide-react";
+import { Search, AlertTriangle, Pencil, Check } from "lucide-react";
 import { planDisplay } from "@/config/planDisplay";
 import { UserEditDrawer } from "@/components/admin/UserEditDrawer";
 import { AdminOverrideMenu, AdminUserOverrideBadge } from "@/components/admin/AdminOverrideMenu";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { toast } from "sonner";
+
+// TODO: optionally restrict verified eligibility to Pro subscribers only.
+const VerifiedToggle = ({ userId, value }: { userId: string; value: boolean }) => {
+  const qc = useQueryClient();
+  const [local, setLocal] = useState(value);
+  const [saving, setSaving] = useState(false);
+  const onChange = async (next: boolean) => {
+    setLocal(next);
+    setSaving(true);
+    const { error } = await (supabase as any)
+      .from("profiles")
+      .update({ is_verified: next })
+      .eq("id", userId);
+    setSaving(false);
+    if (error) {
+      setLocal(!next);
+      toast.error("Failed to update verified status");
+      return;
+    }
+    toast.success(next ? "Marked verified" : "Verified removed");
+    qc.invalidateQueries({ queryKey: ["admin-all-profiles"] });
+  };
+  return (
+    <div className="flex items-center gap-2 justify-center">
+      <Switch checked={local} disabled={saving} onCheckedChange={onChange} />
+      {local && (
+        <span
+          title="Verified"
+          className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-foreground"
+        >
+          <Check size={10} strokeWidth={3} />
+        </span>
+      )}
+    </div>
+  );
+};
 
 const monthStartIST = (() => {
   const d = new Date();
