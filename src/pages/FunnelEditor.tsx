@@ -31,6 +31,7 @@ import { StepLockOverlay } from "@/components/funnel/StepLockOverlay";
 import { Crown } from "lucide-react";
 import { sanitizeText } from "@/lib/sanitize";
 import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
+import { EditorScrollLayout, EditorSectionBlock, type EditorSection } from "@/components/editor/EditorScrollLayout";
 
 type FlowStep = PanelFlowStep;
 
