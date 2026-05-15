@@ -400,7 +400,9 @@ const LandingPagesIdIndexRoute = LandingPagesIdIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => LandingPagesIdRoute,
-} as any)
+} as any).lazy(() =>
+  import('./routes/landing-pages.$id.index.lazy').then((d) => d.Route),
+)
 const FunnelsIdIndexRoute = FunnelsIdIndexRouteImport.update({
   id: '/',
   path: '/',
