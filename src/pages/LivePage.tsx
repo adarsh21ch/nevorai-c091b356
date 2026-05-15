@@ -563,7 +563,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 <p className="text-[11px] text-muted-foreground mt-1.5">Fill out all sections, then schedule.</p>
               </div>
 
-              {step === 1 && (
+              {(
                 <div className="space-y-3">
                   <div>
                     <h3 className="font-semibold mb-1">How will this session be delivered?</h3>
@@ -588,7 +588,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 </div>
               )}
 
-              {step === 2 && (
+              {(
                 <div className="space-y-4">
                   <div>
                     <Label className="text-sm font-medium">Session Title *</Label>
@@ -730,7 +730,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 </div>
               )}
 
-              {step === 3 && (
+              {(
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <h2 className="text-base font-heading font-semibold">When should this session play?</h2>
@@ -853,7 +853,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 </div>
               )}
 
-              {step === 4 && (
+              {(
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <h2 className="text-base font-heading font-semibold">Can viewers rewatch a recording after it ends?</h2>
