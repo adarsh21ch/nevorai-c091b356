@@ -68,8 +68,7 @@ export const LandingPageCodeGate = ({ pageId, pageTitle, message, onSuccess }: L
         <div className="flex items-center justify-center gap-2 mb-8">
           <img src={logoImg} alt="Nevorai" className="h-7 w-7" />
           <div className="flex items-baseline text-[16px]" style={{ lineHeight: 1 }}>
-            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>Nevorai</span>
-            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", marginLeft: "4px" }}>Flow</span>
+            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 800, color: "#fff", letterSpacing: "-0.03em" }}>Nevorai</span>
           </div>
         </div>
 
