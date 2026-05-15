@@ -907,98 +907,56 @@ const LandingPageEditor = () => {
     );
   }
 
-  return (
-    <DashboardLayout>
-      <div className="flex gap-6 min-h-[calc(100vh-8rem)]">
-        <div className="hidden lg:flex flex-col gap-1 w-48 shrink-0 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto">
-          {WIZARD_STEPS.map((s, i) => (
-            <button key={i} onClick={() => setWizardStep(i)}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
-                wizardStep === i ? "bg-primary/10 border-l-[3px] border-primary text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted border-l-[3px] border-transparent"
-              }`}>
-              <s.icon size={15} className={wizardStep === i ? "text-primary" : ""} />
-              <div className="min-w-0">
-                <p className="text-[10px] font-semibold tracking-[0.05em] text-muted-foreground/50">{s.num}</p>
-                <p className="text-[13px] font-semibold leading-tight">{s.label}</p>
-              </div>
-              {i === lastStepIdx && form.status === "published" && <Check size={14} className="ml-auto text-emerald-500" />}
-            </button>
-          ))}
+  const headerNode = (
+    <div className="sticky top-14 lg:top-0 z-30 bg-background/95 backdrop-blur -mx-4 px-4 py-3 mb-4 border-b border-border flex items-center justify-between gap-2">
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/landing-pages")}>
+          <ArrowLeft size={18} />
+        </Button>
+        <h1 className="text-lg sm:text-xl font-heading font-bold truncate">
+          {form.title || (isEdit ? "Edit Landing Page" : "New Landing Page")}
+        </h1>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        {isMobile && (
+          <Button variant="outline" size="sm" onClick={() => setPreviewMode(true)}>
+            <Eye size={14} className="mr-1.5" /> Preview
+          </Button>
+        )}
+        <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !form.title}>
+          <Save size={14} className="mr-1.5" /> {saveMutation.isPending ? "Saving..." : "Save"}
+        </Button>
+      </div>
+    </div>
+  );
+
+  const rightPaneNode = !isMobile ? (
+    <div>
+      <div className="flex items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2">
+          <Eye size={14} className="text-muted-foreground" />
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Live Preview</span>
         </div>
-
-        <div className="flex-1 min-w-0 flex gap-6">
-          <div className="flex-1 max-w-2xl min-w-0">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/landing-pages")}>
-                  <ArrowLeft size={18} />
-                </Button>
-                <h1 className="text-lg sm:text-xl font-heading font-bold truncate">{form.title || (isEdit ? "Edit Landing Page" : "New Landing Page")}</h1>
-              </div>
-              <div className="flex items-center gap-2 shrink-0 ml-2">
-                {isMobile && (
-                  <Button variant="outline" size="sm" onClick={() => setPreviewMode(true)}>
-                    <Eye size={14} className="mr-1.5" /> Preview
-                  </Button>
-                )}
-                <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !form.title}>
-                  <Save size={14} className="mr-1.5" /> {saveMutation.isPending ? "Saving..." : "Save"}
-                </Button>
-              </div>
-            </div>
-
-            <div className="lg:hidden grid grid-cols-4 sm:grid-cols-5 gap-1.5 pb-3 mb-3">
-              {WIZARD_STEPS.map((s, i) => (
-                <button key={i} onClick={() => setWizardStep(i)}
-                  className={`flex flex-col items-center gap-1 px-1.5 py-2 rounded-lg text-[10px] font-semibold transition-all ${wizardStep === i ? "bg-primary text-primary-foreground" : "bg-muted/60 text-muted-foreground"}`}>
-                  <s.icon size={14} />
-                  <span className="truncate w-full text-center leading-tight">{s.label}</span>
-                </button>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-1 mb-4">
-              {WIZARD_STEPS.map((_, i) => (
-                <div key={i} className={`h-1 flex-1 rounded-full transition-all ${i <= wizardStep ? "bg-primary" : "bg-muted"}`} />
-              ))}
-            </div>
-
-            <div className="glass-card p-4 sm:p-6 space-y-4">
-              {renderWizardContent()}
-            </div>
-
-            <div className="flex gap-3 mt-4">
-              {wizardStep > 0 && <Button variant="outline" size="sm" onClick={() => setWizardStep(wizardStep - 1)}>Previous</Button>}
-              <div className="flex-1" />
-              {wizardStep < lastStepIdx ? (
-                <Button variant="default" size="sm" onClick={() => setWizardStep(wizardStep + 1)}>Next</Button>
-              ) : (
-                <Button size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || !form.title}>
-                  {saveMutation.isPending ? "Saving..." : isEdit ? "Update" : "Create Landing Page"}
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {!isMobile && (
-            <div className="hidden xl:block w-[380px] shrink-0 sticky top-20 self-start">
-              <div className="flex items-center justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2">
-                  <Eye size={14} className="text-muted-foreground" />
-                  <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Live Preview</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button variant={previewStage === "form" ? "default" : "outline"} size="sm" onClick={() => setPreviewStage("form")}>Form</Button>
-                  <Button variant={previewStage === "after-submit" ? "default" : "outline"} size="sm" onClick={() => setPreviewStage("after-submit")}>After registration</Button>
-                </div>
-              </div>
-              <div className="rounded-xl border border-border overflow-hidden shadow-xl" style={{ maxHeight: "calc(100vh - 10rem)", overflowY: "auto" }}>
-                <LandingPagePreview form={form} testimonials={previewTestimonials} previewStage={previewStage} postSubmitVideo={selectedPostSubmitVideo} />
-              </div>
-            </div>
-          )}
+        <div className="flex items-center gap-1">
+          <Button variant={previewStage === "form" ? "default" : "outline"} size="sm" onClick={() => setPreviewStage("form")}>Form</Button>
+          <Button variant={previewStage === "after-submit" ? "default" : "outline"} size="sm" onClick={() => setPreviewStage("after-submit")}>After</Button>
         </div>
       </div>
+      <div className="rounded-xl border border-border overflow-hidden shadow-xl" style={{ maxHeight: "calc(100vh - 12rem)", overflowY: "auto" }}>
+        <LandingPagePreview form={form} testimonials={previewTestimonials} previewStage={previewStage} postSubmitVideo={selectedPostSubmitVideo} />
+      </div>
+    </div>
+  ) : undefined;
+
+  return (
+    <DashboardLayout>
+      <EditorScrollLayout sections={editorSections} header={headerNode} rightPane={rightPaneNode}>
+        {WIZARD_STEPS.map((s, i) => (
+          <EditorSectionBlock key={s.label} id={labelToId(s.label)}>
+            {STEP_RENDERERS[i]()}
+          </EditorSectionBlock>
+        ))}
+      </EditorScrollLayout>
     </DashboardLayout>
   );
 };
