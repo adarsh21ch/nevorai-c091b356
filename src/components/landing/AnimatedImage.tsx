@@ -30,22 +30,19 @@ export const AnimatedImage = ({
   });
   const y = useTransform(scrollYProgress, [0, 1], ["-6%", "6%"]);
 
+  // Use a generous frame and `object-contain` so the WHOLE uploaded image is
+  // always visible (vertical phone screenshots, square diagrams, wide flows).
   const wrapper = cn(
-    "relative aspect-[16/10] w-full overflow-hidden rounded-2xl ring-1 shadow-elegant bg-black/30 backdrop-blur-sm",
+    "relative aspect-[16/10] w-full overflow-hidden rounded-2xl ring-1 shadow-elegant bg-black/60 backdrop-blur-sm",
     ringClassName,
     className,
   );
+  const imgClass = "absolute inset-0 h-full w-full object-contain";
 
   if (animation === "parallax") {
     return (
       <div ref={ref} className={wrapper}>
-        <motion.img
-          src={src}
-          alt={alt}
-          loading="lazy"
-          style={{ y }}
-          className="absolute inset-0 h-[112%] w-full object-cover"
-        />
+        <motion.img src={src} alt={alt} loading="lazy" style={{ y }} className={imgClass} />
       </div>
     );
   }
@@ -57,11 +54,11 @@ export const AnimatedImage = ({
           src={src}
           alt={alt}
           loading="lazy"
-          initial={{ scale: 1.05 }}
+          initial={{ scale: 1.04 }}
           whileInView={{ scale: 1 }}
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 8, ease: "easeOut" }}
-          className="absolute inset-0 h-full w-full object-cover"
+          className={imgClass}
         />
       </div>
     );
@@ -74,13 +71,12 @@ export const AnimatedImage = ({
           src={src}
           alt={alt}
           loading="lazy"
-          className="absolute inset-0 h-full w-full object-cover transition-transform duration-[700ms] ease-out group-hover:scale-[1.06]"
+          className={cn(imgClass, "transition-transform duration-[700ms] ease-out group-hover:scale-[1.04]")}
         />
       </div>
     );
   }
 
-  // fade-up (default)
   return (
     <motion.div
       ref={ref}
@@ -90,12 +86,7 @@ export const AnimatedImage = ({
       transition={{ duration: 0.7, ease: "easeOut" }}
       className={wrapper}
     >
-      <img
-        src={src}
-        alt={alt}
-        loading="lazy"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      <img src={src} alt={alt} loading="lazy" className={imgClass} />
     </motion.div>
   );
 };
