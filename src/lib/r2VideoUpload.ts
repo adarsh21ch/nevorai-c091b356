@@ -52,6 +52,7 @@ export const uploadVideoToR2 = async ({
         filename: safeName,
         contentType,
         title: title || safeName,
+        fileSize: file.size,
       },
     });
 
