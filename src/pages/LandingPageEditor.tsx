@@ -25,6 +25,7 @@ import {
 import { TestimonialsBuilderStep } from "@/components/funnel/TestimonialsBuilderStep";
 import { toast } from "sonner";
 import { sanitizeText } from "@/lib/sanitize";
+import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
 
 const TEXT_FIELDS = [
   "title", "description", "form_title", "form_subtitle", "form_button_text",
@@ -43,8 +44,10 @@ const sanitizeLandingPagePayload = (payload: Record<string, any>) => {
   return out;
 };
 
+// Pretty base. Trimmed to 40 chars to leave room for the random suffix that
+// the save mutation appends on insert.
 const generateSlug = (title: string) =>
-  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
+  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
 
 const defaultFormState = {
   title: "",
@@ -235,6 +238,10 @@ const LandingPageEditor = () => {
         const { error } = await supabase.from("landing_pages").update(payload).eq("id", id!);
         if (error) throw error;
       } else {
+        // Append a 4-char random base62 suffix so URLs cannot be enumerated.
+        // Existing landing pages keep their slug — we only suffix on first insert.
+        const baseSlug = generateSlug(payload.slug || payload.title || "page") || "page";
+        payload.slug = await generateUniqueSuffixedSlug(baseSlug, "landing_pages");
         const { error } = await supabase.from("landing_pages").insert(payload);
         if (error) throw error;
       }

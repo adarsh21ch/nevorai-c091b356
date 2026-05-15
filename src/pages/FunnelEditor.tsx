@@ -30,6 +30,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { StepLockOverlay } from "@/components/funnel/StepLockOverlay";
 import { Crown } from "lucide-react";
 import { sanitizeText } from "@/lib/sanitize";
+import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
 
 type FlowStep = PanelFlowStep;
 
@@ -47,11 +48,11 @@ const createEmptyStep = (order: number, type: string = "video"): FlowStep => ({
   booking_url: "",
 });
 
-// Pretty slug from a title — no random suffix.
-// Collision handling happens in `ensureUniqueSlug` at save time.
+// Pretty base slug from a title. Trimmed to 40 chars to leave room for the
+// random suffix that `ensureUniqueSlug` appends at save time.
 const generateSlug = (title: string) => {
   return (
-    title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60)
+    title.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40)
     || "my-funnel"
   );
 };
@@ -63,18 +64,15 @@ const RESERVED_SLUGS = new Set([
   "analytics","payments","upgrade","kyc","notifications","f","v","l","s",
 ]);
 
-const ensureUniqueSlug = async (base: string, ignoreFunnelId?: string): Promise<string> => {
-  const safeBase = RESERVED_SLUGS.has(base) ? `${base}-1` : base;
-  let candidate = safeBase;
-  for (let n = 2; n < 1000; n++) {
-    const q = supabase.from("funnels").select("id").eq("slug", candidate).limit(1);
-    const { data, error } = await q;
-    if (error) return candidate;
-    const taken = (data ?? []).some((row: any) => row.id !== ignoreFunnelId);
-    if (!taken) return candidate;
-    candidate = `${safeBase}-${n}`;
-  }
-  return `${safeBase}-${Date.now().toString(36)}`;
+// Always appends a 4-char random base62 suffix so URLs cannot be enumerated
+// by stripping a numeric "-2" tail. Existing slugs (edit path) are NOT
+// re-suffixed — we only generate when this funnel has no slug yet.
+const ensureUniqueSlug = async (base: string, existingSlug?: string): Promise<string> => {
+  // Preserve any slug that's already saved on this funnel — never break a
+  // shared link by re-rolling its suffix.
+  if (existingSlug && existingSlug.trim()) return existingSlug.trim();
+  const safeBase = RESERVED_SLUGS.has(base) ? `${base}-x` : base;
+  return generateUniqueSuffixedSlug(safeBase, "funnels");
 };
 
 const SINGLE_STEPS = [
@@ -334,9 +332,12 @@ const FunnelEditor = () => {
     mutationFn: async () => {
       const payload = buildPayload();
       if (!payload) throw new Error("Not authenticated");
-      // Ensure slug is clean + globally unique (no random hash suffix).
+      // Preserve existing slug on edit; generate suffixed slug for new funnels.
+      // The random suffix protects against URL enumeration regardless of whether
+      // the user typed a custom slug or we derived one from the title.
+      const existingFunnelSlug = isEdit ? (funnel.slug || "") : "";
       const desired = (funnel.slug && funnel.slug.trim()) ? generateSlug(funnel.slug) : generateSlug(funnel.title);
-      payload.slug = await ensureUniqueSlug(desired, isEdit ? id : undefined);
+      payload.slug = await ensureUniqueSlug(desired, existingFunnelSlug);
       if (funnel.access_code_plain && funnel.access_code_plain.trim()) {
         const enc = new TextEncoder();
         const buf = await crypto.subtle.digest("SHA-256", enc.encode(funnel.access_code_plain.trim().toUpperCase()));

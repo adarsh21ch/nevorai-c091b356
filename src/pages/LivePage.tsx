@@ -24,8 +24,10 @@ import { computeSessionSlots, currentLiveSlot, nextSlot as nextSlotFn, sessionDu
 import { VideoPickerModal } from "@/components/VideoPickerModal";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 
+import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
+
 const generateSlug = (title: string) =>
-  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 60) || "my-session";
+  title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "").slice(0, 40) || "my-session";
 
 const TIMEZONES = [
   "Asia/Kolkata", "Asia/Dubai", "Asia/Singapore", "Asia/Hong_Kong",
@@ -365,7 +367,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
         const { error } = await supabase.from("live_sessions").update(payload as any).eq("id", editingId);
         if (error) throw error;
       } else {
-        const slug = generateSlug(form.title) + "-" + Math.random().toString(36).slice(2, 7);
+        const slug = await generateUniqueSuffixedSlug(generateSlug(form.title), "live_sessions");
         const { error } = await supabase.from("live_sessions").insert({
           ...payload,
           slug,
