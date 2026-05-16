@@ -32,14 +32,14 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
     setHydrating(true);
     setShowSkipInfo(false);
     (async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("video_assets")
         .select("title, description, allow_seek")
         .eq("id", videoId)
         .maybeSingle();
       setTitle(data?.title || "");
       setDescription(data?.description || "");
-      setAllowSeek((data as any)?.allow_seek !== false);
+      setAllowSeek(data?.allow_seek !== false);
       setHydrating(false);
     })();
   }, [open, videoId]);
@@ -52,12 +52,12 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
     }
     setSaving(true);
     try {
-      const payload: Record<string, unknown> = {
+      const payload: any = {
         title: cleanTitle,
         description: description.trim() || null,
         allow_seek: allowSeek,
       };
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("video_assets")
         .update(payload)
         .eq("id", videoId);
@@ -143,7 +143,6 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
                 />
               </div>
 
-              {/* Mobile: collapsible tutorial */}
               {isMobile && showSkipInfo && (
                 <div className="rounded-md bg-background/60 border border-border p-2.5 text-[11px] text-muted-foreground leading-relaxed">
                   When disabled, viewers must watch the full video before they can skip.
