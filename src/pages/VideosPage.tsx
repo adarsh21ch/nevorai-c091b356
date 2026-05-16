@@ -311,6 +311,30 @@ const VideosPage = () => {
                     </div>
                   </div>
 
+                  {/* Inline Share (always visible — quick action) */}
+                  {isReady && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-shrink-0 p-1.5 rounded-lg hover:bg-muted transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                          aria-label="Share video"
+                          title="Share"
+                        >
+                          <Share2 size={15} className="text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onSelect={() => copyLink(v)}>
+                          <Copy size={13} className="mr-2" /> Copy Link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => shareWhatsApp(v)}>
+                          <Share2 size={13} className="mr-2" /> Share on WhatsApp
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
                   {/* Kebab menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -327,15 +351,15 @@ const VideosPage = () => {
                         <Pencil size={13} className="mr-2" /> Edit Title
                       </DropdownMenuItem>
                       {v._source === "own" && isReady && (
-                        <DropdownMenuItem onSelect={goEdit}>
+                        <DropdownMenuItem onSelect={() => setDetailsVideo({ id: v.id })}>
                           <Settings size={13} className="mr-2" /> Edit Details
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem disabled={!isReady} onSelect={() => copyLink(v.id)}>
+                      <DropdownMenuItem disabled={!isReady} onSelect={() => copyLink(v)}>
                         <Copy size={13} className="mr-2" /> Copy Share Link
                       </DropdownMenuItem>
                       <DropdownMenuItem disabled={!isReady} onSelect={() => setShareVideo({ id: v.id, title: v.title })}>
-                        <Share2 size={13} className="mr-2" /> Share
+                        <Share2 size={13} className="mr-2" /> Share with User
                       </DropdownMenuItem>
                       <DropdownMenuItem disabled={!isReady} onSelect={() => useInFunnel(v.id)}>
                         <Rocket size={13} className="mr-2" /> Use in Funnel
