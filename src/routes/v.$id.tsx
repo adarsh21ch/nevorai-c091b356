@@ -12,15 +12,19 @@ type PublicVideoMeta = {
   duration_seconds: number | null;
 } | null;
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const Route = createFileRoute("/v/$id")({
   loader: async ({ params }): Promise<{ video: PublicVideoMeta }> => {
     try {
+      const looksLikeUuid = UUID_RE.test(params.id);
+      const column = looksLikeUuid ? "id" : "slug";
       const { data } = await (supabase as any)
         .from("video_assets")
         .select(
-          "id, title, description, thumbnail_url, public_url, duration_seconds, is_shared",
+          "id, slug, title, description, thumbnail_url, public_url, duration_seconds, is_shared",
         )
-        .eq("id", params.id)
+        .eq(column, params.id)
         .eq("is_shared", true)
         .maybeSingle();
       return { video: (data as PublicVideoMeta) ?? null };
