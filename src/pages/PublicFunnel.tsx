@@ -868,7 +868,7 @@ const PublicFunnel = () => {
     mutationFn: async () => {
       if (leadForm.website) return;
       const s = (v: string | null | undefined) => (v ? sanitizeText(v) : null);
-      await supabase.from("funnel_leads").insert({
+      await (supabase.from("funnel_leads") as any).insert({
         funnel_id: funnel!.id,
         name: s(leadForm.name), phone: leadForm.phone ? normalizePhone(leadForm.phone) : null,
         email: s(leadForm.email), city: s(leadForm.city),
