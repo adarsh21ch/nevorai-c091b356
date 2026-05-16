@@ -22,7 +22,7 @@ import { useRouter } from "@tanstack/react-router";
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Video, label: "My Videos", path: "/videos" },
-  { icon: BarChart2, label: "Insights", path: "/insights" },
+  { icon: Zap, label: "Activity", path: "/insights" },
   { icon: Layers, label: "My Funnels", path: "/funnels" },
   { icon: FileText, label: "Landing Pages", path: "/landing-pages" },
   { icon: Radio, label: "Live", path: "/live" },
