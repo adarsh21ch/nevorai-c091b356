@@ -18,12 +18,16 @@ import { VideoLinkModal } from "@/components/VideoLinkModal";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
+import { VideoDetailsModal } from "@/components/VideoDetailsModal";
 import { StorageUsageInline } from "@/components/StorageUsageCard";
 import { VideoThumbnail } from "@/components/VideoThumbnail";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+
+const buildPublicVideoUrl = (v: { id: string; slug?: string | null }) =>
+  `${window.location.origin}/v/${v.slug || v.id}`;
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const getDisplayTitle = (raw?: string | null): string => {
@@ -63,6 +67,7 @@ const VideosPage = () => {
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
   const [renameVideo, setRenameVideo] = useState<{ id: string; title: string } | null>(null);
+  const [detailsVideo, setDetailsVideo] = useState<{ id: string } | null>(null);
   const [deleteVideo, setDeleteVideo] = useState<{ id: string; title: string } | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "ready" | "processing" | "failed">("all");
 
@@ -123,9 +128,15 @@ const VideosPage = () => {
     navigate({ to: "/funnels/create", search: { videoId } });
   };
 
-  const copyLink = (videoId: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/v/${videoId}`);
-    toast.success("Public video link copied!");
+  const copyLink = (v: { id: string; slug?: string | null }) => {
+    navigator.clipboard.writeText(buildPublicVideoUrl(v));
+    toast.success("Link copied!");
+  };
+
+  const shareWhatsApp = (v: { id: string; slug?: string | null; title: string }) => {
+    const url = buildPublicVideoUrl(v);
+    const text = encodeURIComponent(`Watch this video: ${v.title}\n${url}`);
+    window.open(`https://wa.me/?text=${text}`, "_blank", "noopener,noreferrer");
   };
 
   const removeLinkedVideo = async (videoId: string) => {
@@ -264,7 +275,7 @@ const VideosPage = () => {
               const isFailed = v.status === "failed";
               const dur = formatDuration(v.duration_seconds);
               const dateLabel = v.created_at ? new Date(v.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null;
-              const goEdit = () => navigate({ to: "/videos/$id", params: { id: v.id } });
+              const goEdit = () => isReady && v._source === "own" && setDetailsVideo({ id: v.id });
               return (
                 <div
                   key={v.id}
@@ -300,6 +311,30 @@ const VideosPage = () => {
                     </div>
                   </div>
 
+                  {/* Inline Share (always visible — quick action) */}
+                  {isReady && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex-shrink-0 p-1.5 rounded-lg hover:bg-muted transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
+                          aria-label="Share video"
+                          title="Share"
+                        >
+                          <Share2 size={15} className="text-muted-foreground" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onSelect={() => copyLink(v)}>
+                          <Copy size={13} className="mr-2" /> Copy Link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => shareWhatsApp(v)}>
+                          <Share2 size={13} className="mr-2" /> Share on WhatsApp
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
                   {/* Kebab menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -316,15 +351,15 @@ const VideosPage = () => {
                         <Pencil size={13} className="mr-2" /> Edit Title
                       </DropdownMenuItem>
                       {v._source === "own" && isReady && (
-                        <DropdownMenuItem onSelect={goEdit}>
+                        <DropdownMenuItem onSelect={() => setDetailsVideo({ id: v.id })}>
                           <Settings size={13} className="mr-2" /> Edit Details
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuItem disabled={!isReady} onSelect={() => copyLink(v.id)}>
+                      <DropdownMenuItem disabled={!isReady} onSelect={() => copyLink(v)}>
                         <Copy size={13} className="mr-2" /> Copy Share Link
                       </DropdownMenuItem>
                       <DropdownMenuItem disabled={!isReady} onSelect={() => setShareVideo({ id: v.id, title: v.title })}>
-                        <Share2 size={13} className="mr-2" /> Share
+                        <Share2 size={13} className="mr-2" /> Share with User
                       </DropdownMenuItem>
                       <DropdownMenuItem disabled={!isReady} onSelect={() => useInFunnel(v.id)}>
                         <Rocket size={13} className="mr-2" /> Use in Funnel
@@ -373,7 +408,7 @@ const VideosPage = () => {
                       <span className="text-[11px] text-muted-foreground">{formatSize(v.file_size_bytes)}</span>
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                      <Button variant="ghost" size="sm" disabled={v.status !== "ready"} onClick={() => copyLink(v.id)}><Copy size={13} className="mr-1" /> Copy</Button>
+                      <Button variant="ghost" size="sm" disabled={v.status !== "ready"} onClick={() => copyLink(v)}><Copy size={13} className="mr-1" /> Copy</Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button className="p-1.5 rounded-lg hover:bg-muted"><MoreVertical size={15} className="text-muted-foreground" /></button>
@@ -381,8 +416,9 @@ const VideosPage = () => {
                         <DropdownMenuContent align="end" className="w-48">
                           <DropdownMenuItem onSelect={() => setRenameVideo({ id: v.id, title: v.title })}><Pencil size={13} className="mr-2" /> Edit Title</DropdownMenuItem>
                           {v._source === "own" && v.status === "ready" && (
-                            <DropdownMenuItem onSelect={() => navigate({ to: "/videos/$id", params: { id: v.id } })}><Settings size={13} className="mr-2" /> Edit Details</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setDetailsVideo({ id: v.id })}><Settings size={13} className="mr-2" /> Edit Details</DropdownMenuItem>
                           )}
+                          <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => shareWhatsApp(v)}><Share2 size={13} className="mr-2" /> WhatsApp</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={13} className="mr-2" /> Share</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => useInFunnel(v.id)}><Rocket size={13} className="mr-2" /> Use in Funnel</DropdownMenuItem>
                           <DropdownMenuSeparator />
@@ -429,6 +465,15 @@ const VideosPage = () => {
             onClose={() => setRenameVideo(null)}
             videoId={renameVideo.id}
             currentTitle={renameVideo.title}
+            onSuccess={invalidateVideos}
+          />
+        )}
+
+        {detailsVideo && (
+          <VideoDetailsModal
+            open={!!detailsVideo}
+            onClose={() => setDetailsVideo(null)}
+            videoId={detailsVideo.id}
             onSuccess={invalidateVideos}
           />
         )}
