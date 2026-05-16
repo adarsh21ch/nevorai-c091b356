@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Users, TrendingUp, Layers, FileText, BarChart3, Target, UserCheck } from "lucide-react";
+import { Eye, Users, TrendingUp, Layers, FileText, BarChart3, Target, UserCheck, Video } from "lucide-react";
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid, Legend,
@@ -66,6 +66,18 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     enabled: !!user?.id && funnels.length > 0,
   });
 
+  const { data: videos = [] } = useQuery({
+    queryKey: ["my-videos-insights", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("video_assets")
+        .select("id,title,view_count,duration_seconds,created_at")
+        .eq("owner_id", user!.id);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
   const isLoading = authLoading || funnelsLoading || landingPagesLoading || registrationsLoading;
   const error = funnelsError || landingPagesError || registrationsError;
 
@@ -110,6 +122,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     ...registrations.filter((r) => r.email).map((r) => r.email!),
   ]);
 
+  const totalVideoViews = videos.reduce((a, v) => a + (v.view_count || 0), 0);
+
   const kpis = [
     { icon: Eye, label: "Total Views", value: formatCompact(totalViews), sub: "Funnels + Landing Pages" },
     { icon: Users, label: "Unique Leads", value: formatInt(uniqueLeads), sub: "From funnels" },
@@ -117,6 +131,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     { icon: Target, label: "Funnel Conv.", value: `${funnelConvRate}%`, sub: "Leads / Views" },
     { icon: TrendingUp, label: "LP Conv.", value: `${lpConvRate}%`, sub: "Regs / Views" },
     { icon: BarChart3, label: "Unique Contacts", value: formatInt(allEmails.size), sub: "Across all sources" },
+    { icon: Video, label: "Video Views", value: formatCompact(totalVideoViews), sub: `${formatInt(videos.length)} videos` },
   ];
 
   // Lead status breakdown
@@ -133,6 +148,12 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   // Top landing pages
   const topLPs = [...landingPages].sort((a, b) => (b.total_views || 0) - (a.total_views || 0)).slice(0, 6)
     .map((lp) => ({ name: lp.title.length > 15 ? lp.title.slice(0, 15) + "…" : lp.title, views: lp.total_views || 0, regs: lp.total_registrations || 0 }));
+
+  // Top videos by view_count
+  const topVideos = [...videos]
+    .sort((a, b) => (b.view_count || 0) - (a.view_count || 0))
+    .slice(0, 6)
+    .map((v) => ({ name: v.title.length > 15 ? v.title.slice(0, 15) + "…" : v.title, views: v.view_count || 0 }));
 
   // Device breakdown from leads
   const deviceCounts = leads.reduce((acc, l) => {
@@ -229,6 +250,27 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
               </ResponsiveContainer>
             ) : <p className="text-sm text-muted-foreground text-center py-12">No landing pages yet</p>}
           </div>
+        </div>
+
+        {/* Top Videos */}
+        <div className="premium-card p-5">
+          <h3 className="text-sm font-heading font-semibold mb-1 flex items-center gap-2">
+            <Video size={14} className="text-primary" /> Top Videos
+          </h3>
+          <p className="text-[11px] text-muted-foreground mb-4">
+            Detailed watch-time & completion metrics will appear here once player tracking is enabled.
+          </p>
+          {topVideos.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={topVideos}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="views" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <p className="text-sm text-muted-foreground text-center py-12">No videos yet</p>}
         </div>
 
         {/* Charts Row 2 */}
