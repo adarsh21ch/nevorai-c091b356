@@ -559,74 +559,113 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </div>
         </TabsContent>
 
-        {/* VIDEOS / FUNNELS / LP / LIVE — scaffolds for next phase */}
-        <TabsContent value="videos">
-          <div className="premium-card p-5">
-            <h3 className="text-sm font-heading font-semibold mb-3 flex items-center gap-2"><Video size={14} className="text-primary" /> Your Videos</h3>
-            {videos.length ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={topVideos.map((v) => ({ name: v.title.length > 18 ? v.title.slice(0, 18) + "…" : v.title, views: v.view_count || 0 }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="views" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-xs text-muted-foreground text-center py-8">No videos yet</p>}
-            <p className="text-[10px] text-muted-foreground mt-3">Per-video drill-down with retention curves, traffic sources, and viewer table ships in the next phase.</p>
+        {/* Filter toolbar shared across entity tabs */}
+        {tab !== "overview" ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="h-8 pl-7 text-xs" />
+            </div>
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="h-8 px-2 rounded-md border border-border bg-background text-xs">
+              <option value="recent">Newest</option>
+              <option value="views">Most viewed</option>
+              <option value="leads">Most leads</option>
+              <option value="alpha">A–Z</option>
+            </select>
+            <div className="hidden sm:flex items-center rounded-md border border-border overflow-hidden">
+              <button type="button" onClick={() => setView("grid")} className={cn("p-1.5", view === "grid" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground")} aria-label="Grid"><LayoutGrid size={12} /></button>
+              <button type="button" onClick={() => setView("list")} className={cn("p-1.5", view === "list" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground")} aria-label="List"><List size={12} /></button>
+            </div>
           </div>
+        ) : null}
+
+        <TabsContent value="videos">
+          {sortedVideos.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedVideos.map((v) => (
+                <EntityCard
+                  key={v.id}
+                  icon={Video}
+                  title={v.title}
+                  href={`/insights/videos/${v.id}`}
+                  thumbnail={v.thumbnail_url}
+                  views={videoViewCount[v.id] ?? v.view_count ?? 0}
+                  leads={0}
+                  leadsLabel="leads"
+                  liveCount={liveMap.videos[v.id] || 0}
+                  createdAt={v.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={Video} title="No videos yet" hint="Upload your first video to start tracking views." ctaLabel="Upload video" ctaTo="/videos" />}
         </TabsContent>
 
         <TabsContent value="funnels">
-          <div className="premium-card p-5">
-            <h3 className="text-sm font-heading font-semibold mb-3 flex items-center gap-2"><Layers size={14} className="text-primary" /> Funnels Performance</h3>
-            {topFunnels.length ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={topFunnels.map((f) => ({ name: f.title.length > 15 ? f.title.slice(0, 15) + "…" : f.title, views: f.total_views || 0, leads: f.total_leads || 0 }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend />
-                  <Bar dataKey="views" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="leads" fill="#6366F1" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-xs text-muted-foreground text-center py-8">No funnels yet</p>}
-            {deviceData.length ? (
-              <div className="mt-5">
-                <h4 className="text-xs font-semibold mb-2 text-muted-foreground">Lead Devices</h4>
-                <ResponsiveContainer width="100%" height={180}>
-                  <PieChart>
-                    <Pie data={deviceData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
-                      {deviceData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip contentStyle={tooltipStyle} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : null}
-          </div>
+          {sortedFunnels.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedFunnels.map((f) => (
+                <EntityCard
+                  key={f.id}
+                  icon={Layers}
+                  title={f.title}
+                  href={`/insights/funnels/${f.id}`}
+                  views={funnelViewCount[f.id] ?? f.total_views ?? 0}
+                  leads={funnelLeadCount[f.id] ?? f.total_leads ?? 0}
+                  leadsLabel="leads"
+                  liveCount={liveMap.funnels[f.id] || 0}
+                  badge={f.is_published ? { label: "Live", tone: "success" } : { label: "Draft", tone: "muted" }}
+                  createdAt={f.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={Layers} title="No funnels yet" hint="Create a funnel to start capturing leads." ctaLabel="Create funnel" ctaTo="/funnels/create" />}
         </TabsContent>
 
         <TabsContent value="landing-pages">
-          <div className="premium-card p-5">
-            <h3 className="text-sm font-heading font-semibold mb-3 flex items-center gap-2"><FileText size={14} className="text-primary" /> Landing Pages</h3>
-            {topLPs.length ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={topLPs.map((lp) => ({ name: lp.title.length > 15 ? lp.title.slice(0, 15) + "…" : lp.title, views: lp.total_views || 0, regs: lp.total_registrations || 0 }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend />
-                  <Bar dataKey="views" fill="#10B981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="regs" name="registrations" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-xs text-muted-foreground text-center py-8">No landing pages yet</p>}
-          </div>
+          {sortedLPs.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedLPs.map((lp) => (
+                <EntityCard
+                  key={lp.id}
+                  icon={FileText}
+                  title={lp.title}
+                  href={`/insights/landing-pages/${lp.id}`}
+                  views={lpViewCount[lp.id] ?? lp.total_views ?? 0}
+                  leads={lpRegCount[lp.id] ?? lp.total_registrations ?? 0}
+                  leadsLabel="registrations"
+                  liveCount={liveMap.lps[lp.id] || 0}
+                  badge={lp.status === "published" ? { label: "Live", tone: "success" } : { label: lp.status || "Draft", tone: "muted" }}
+                  createdAt={lp.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={FileText} title="No landing pages yet" hint="Build a landing page to capture registrations." ctaLabel="Create landing page" ctaTo="/landing-pages/create" />}
+        </TabsContent>
+
+        <TabsContent value="live">
+          {sortedLives.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedLives.map((s) => (
+                <EntityCard
+                  key={s.id}
+                  icon={Radio}
+                  title={s.title}
+                  href={`/insights/live/${s.id}`}
+                  thumbnail={s.thumbnail_url}
+                  views={s.total_views ?? 0}
+                  leads={s.registration_count ?? 0}
+                  leadsLabel="registered"
+                  liveCount={liveMap.lives[s.id] || 0}
+                  badge={s.status === "live" ? { label: "LIVE", tone: "success" } : { label: s.status || "scheduled", tone: "muted" }}
+                  createdAt={s.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={Radio} title="No live sessions yet" hint="Schedule a live session to engage your audience in real time." ctaLabel="Create live session" ctaTo="/live" />}
         </TabsContent>
 
         <TabsContent value="live">
