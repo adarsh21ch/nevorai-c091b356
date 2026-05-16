@@ -122,6 +122,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     ...registrations.filter((r) => r.email).map((r) => r.email!),
   ]);
 
+  const totalVideoViews = videos.reduce((a, v) => a + (v.view_count || 0), 0);
+
   const kpis = [
     { icon: Eye, label: "Total Views", value: formatCompact(totalViews), sub: "Funnels + Landing Pages" },
     { icon: Users, label: "Unique Leads", value: formatInt(uniqueLeads), sub: "From funnels" },
