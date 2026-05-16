@@ -145,6 +145,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.order("submitted_at", { ascending: false }).limit(500)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -156,6 +157,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return data || [];
     },
     enabled: !!user?.id && !!prevBounds,
+    staleTime: 5 * 60_000,
   });
 
   // === Registrations ===
@@ -167,6 +169,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.order("submitted_at", { ascending: false }).limit(500)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -178,6 +181,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return data || [];
     },
     enabled: !!user?.id && !!prevBounds,
+    staleTime: 5 * 60_000,
   });
 
   // === View events: video, funnel, landing page (current period) ===
@@ -190,6 +194,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -202,6 +207,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -214,24 +220,37 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
-  // === Live viewer counts (15s polling, recent heartbeats across all owned entities) ===
-  const { data: liveViewers = 0 } = useQuery({
-    queryKey: ["live-viewers", user?.id, funnelIds.length, lpIds.length, videoIds.length],
+  // === Live viewer counts per entity (15s polling) ===
+  const { data: liveMap = { videos: {}, funnels: {}, lps: {}, lives: {}, total: 0 } } = useQuery({
+    queryKey: ["live-viewers-map", user?.id, videoIds.length, funnelIds.length, lpIds.length, liveIds.length],
     queryFn: async () => {
       const cutoff = new Date(Date.now() - 60_000).toISOString();
-      const queries: Promise<any>[] = [];
-      if (videoIds.length) queries.push((supabase as any).from("video_view_events").select("id", { count: "exact", head: true }).in("video_id", videoIds).gte("last_heartbeat_at", cutoff));
-      if (funnelIds.length) queries.push((supabase as any).from("funnel_view_events").select("id", { count: "exact", head: true }).in("funnel_id", funnelIds).gte("last_heartbeat_at", cutoff));
-      if (lpIds.length) queries.push((supabase as any).from("landing_page_view_events").select("id", { count: "exact", head: true }).in("landing_page_id", lpIds).gte("last_heartbeat_at", cutoff));
-      const results = await Promise.all(queries);
-      return results.reduce((a, r) => a + (r.count || 0), 0);
+      const out = { videos: {} as Record<string, number>, funnels: {} as Record<string, number>, lps: {} as Record<string, number>, lives: {} as Record<string, number>, total: 0 };
+      const calls: Promise<any>[] = [];
+      if (videoIds.length) calls.push((supabase as any).from("video_view_events").select("video_id").in("video_id", videoIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "videos", rows: r.data || [], key: "video_id" })));
+      if (funnelIds.length) calls.push((supabase as any).from("funnel_view_events").select("funnel_id").in("funnel_id", funnelIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "funnels", rows: r.data || [], key: "funnel_id" })));
+      if (lpIds.length) calls.push((supabase as any).from("landing_page_view_events").select("landing_page_id").in("landing_page_id", lpIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "lps", rows: r.data || [], key: "landing_page_id" })));
+      if (liveIds.length) calls.push((supabase as any).from("live_session_view_events").select("live_session_id").in("live_session_id", liveIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "lives", rows: r.data || [], key: "live_session_id" })));
+      const results = await Promise.all(calls);
+      results.forEach((r: any) => {
+        r.rows.forEach((row: any) => {
+          const id = row[r.key];
+          (out as any)[r.kind][id] = ((out as any)[r.kind][id] || 0) + 1;
+          out.total += 1;
+        });
+      });
+      return out;
     },
     enabled: !!user?.id,
     refetchInterval: visible ? 15_000 : false,
   });
+
+  const liveViewers = liveMap.total;
+
 
   // === Recent activity feed (30s polling) ===
   const { data: feedItems = [] } = useQuery<ActivityItem[]>({
