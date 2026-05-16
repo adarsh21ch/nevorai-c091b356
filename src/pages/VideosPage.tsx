@@ -275,7 +275,7 @@ const VideosPage = () => {
               const isFailed = v.status === "failed";
               const dur = formatDuration(v.duration_seconds);
               const dateLabel = v.created_at ? new Date(v.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short" }) : null;
-              const goEdit = () => navigate({ to: "/videos/$id", params: { id: v.id } });
+              const goEdit = () => isReady && v._source === "own" && setDetailsVideo({ id: v.id });
               return (
                 <div
                   key={v.id}
@@ -465,6 +465,15 @@ const VideosPage = () => {
             onClose={() => setRenameVideo(null)}
             videoId={renameVideo.id}
             currentTitle={renameVideo.title}
+            onSuccess={invalidateVideos}
+          />
+        )}
+
+        {detailsVideo && (
+          <VideoDetailsModal
+            open={!!detailsVideo}
+            onClose={() => setDetailsVideo(null)}
+            videoId={detailsVideo.id}
             onSuccess={invalidateVideos}
           />
         )}
