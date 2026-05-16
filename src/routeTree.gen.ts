@@ -73,6 +73,10 @@ import { Route as LandingPagesIdIndexRouteImport } from './routes/landing-pages.
 import { Route as FunnelsIdIndexRouteImport } from './routes/funnels.$id.index'
 import { Route as FSlugIndexRouteImport } from './routes/f.$slug.index'
 import { Route as LandingPagesIdEditRouteImport } from './routes/landing-pages.$id.edit'
+import { Route as InsightsVideosIdRouteImport } from './routes/insights.videos.$id'
+import { Route as InsightsLiveIdRouteImport } from './routes/insights.live.$id'
+import { Route as InsightsLandingPagesIdRouteImport } from './routes/insights.landing-pages.$id'
+import { Route as InsightsFunnelsIdRouteImport } from './routes/insights.funnels.$id'
 import { Route as FunnelsIdEditRouteImport } from './routes/funnels.$id.edit'
 import { Route as FSlugMemberRouteImport } from './routes/f.$slug.member'
 
@@ -422,6 +426,34 @@ const LandingPagesIdEditRoute = LandingPagesIdEditRouteImport.update({
 } as any).lazy(() =>
   import('./routes/landing-pages.$id.edit.lazy').then((d) => d.Route),
 )
+const InsightsVideosIdRoute = InsightsVideosIdRouteImport.update({
+  id: '/videos/$id',
+  path: '/videos/$id',
+  getParentRoute: () => InsightsRoute,
+} as any).lazy(() =>
+  import('./routes/insights.videos.$id.lazy').then((d) => d.Route),
+)
+const InsightsLiveIdRoute = InsightsLiveIdRouteImport.update({
+  id: '/live/$id',
+  path: '/live/$id',
+  getParentRoute: () => InsightsRoute,
+} as any).lazy(() =>
+  import('./routes/insights.live.$id.lazy').then((d) => d.Route),
+)
+const InsightsLandingPagesIdRoute = InsightsLandingPagesIdRouteImport.update({
+  id: '/landing-pages/$id',
+  path: '/landing-pages/$id',
+  getParentRoute: () => InsightsRoute,
+} as any).lazy(() =>
+  import('./routes/insights.landing-pages.$id.lazy').then((d) => d.Route),
+)
+const InsightsFunnelsIdRoute = InsightsFunnelsIdRouteImport.update({
+  id: '/funnels/$id',
+  path: '/funnels/$id',
+  getParentRoute: () => InsightsRoute,
+} as any).lazy(() =>
+  import('./routes/insights.funnels.$id.lazy').then((d) => d.Route),
+)
 const FunnelsIdEditRoute = FunnelsIdEditRouteImport.update({
   id: '/edit',
   path: '/edit',
@@ -449,7 +481,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/help': typeof HelpRoute
-  '/insights': typeof InsightsRoute
+  '/insights': typeof InsightsRouteWithChildren
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
   '/leads': typeof LeadsRoute
@@ -500,6 +532,10 @@ export interface FileRoutesByFullPath {
   '/landing-pages/': typeof LandingPagesIndexRoute
   '/f/$slug/member': typeof FSlugMemberRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
+  '/insights/funnels/$id': typeof InsightsFunnelsIdRoute
+  '/insights/landing-pages/$id': typeof InsightsLandingPagesIdRoute
+  '/insights/live/$id': typeof InsightsLiveIdRoute
+  '/insights/videos/$id': typeof InsightsVideosIdRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug/': typeof FSlugIndexRoute
   '/funnels/$id/': typeof FunnelsIdIndexRoute
@@ -517,7 +553,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/help': typeof HelpRoute
-  '/insights': typeof InsightsRoute
+  '/insights': typeof InsightsRouteWithChildren
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
   '/leads': typeof LeadsRoute
@@ -566,6 +602,10 @@ export interface FileRoutesByTo {
   '/landing-pages': typeof LandingPagesIndexRoute
   '/f/$slug/member': typeof FSlugMemberRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
+  '/insights/funnels/$id': typeof InsightsFunnelsIdRoute
+  '/insights/landing-pages/$id': typeof InsightsLandingPagesIdRoute
+  '/insights/live/$id': typeof InsightsLiveIdRoute
+  '/insights/videos/$id': typeof InsightsVideosIdRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug': typeof FSlugIndexRoute
   '/funnels/$id': typeof FunnelsIdIndexRoute
@@ -584,7 +624,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/help': typeof HelpRoute
-  '/insights': typeof InsightsRoute
+  '/insights': typeof InsightsRouteWithChildren
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
   '/leads': typeof LeadsRoute
@@ -635,6 +675,10 @@ export interface FileRoutesById {
   '/landing-pages/': typeof LandingPagesIndexRoute
   '/f/$slug/member': typeof FSlugMemberRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
+  '/insights/funnels/$id': typeof InsightsFunnelsIdRoute
+  '/insights/landing-pages/$id': typeof InsightsLandingPagesIdRoute
+  '/insights/live/$id': typeof InsightsLiveIdRoute
+  '/insights/videos/$id': typeof InsightsVideosIdRoute
   '/landing-pages/$id/edit': typeof LandingPagesIdEditRoute
   '/f/$slug/': typeof FSlugIndexRoute
   '/funnels/$id/': typeof FunnelsIdIndexRoute
@@ -705,6 +749,10 @@ export interface FileRouteTypes {
     | '/landing-pages/'
     | '/f/$slug/member'
     | '/funnels/$id/edit'
+    | '/insights/funnels/$id'
+    | '/insights/landing-pages/$id'
+    | '/insights/live/$id'
+    | '/insights/videos/$id'
     | '/landing-pages/$id/edit'
     | '/f/$slug/'
     | '/funnels/$id/'
@@ -771,6 +819,10 @@ export interface FileRouteTypes {
     | '/landing-pages'
     | '/f/$slug/member'
     | '/funnels/$id/edit'
+    | '/insights/funnels/$id'
+    | '/insights/landing-pages/$id'
+    | '/insights/live/$id'
+    | '/insights/videos/$id'
     | '/landing-pages/$id/edit'
     | '/f/$slug'
     | '/funnels/$id'
@@ -839,6 +891,10 @@ export interface FileRouteTypes {
     | '/landing-pages/'
     | '/f/$slug/member'
     | '/funnels/$id/edit'
+    | '/insights/funnels/$id'
+    | '/insights/landing-pages/$id'
+    | '/insights/live/$id'
+    | '/insights/videos/$id'
     | '/landing-pages/$id/edit'
     | '/f/$slug/'
     | '/funnels/$id/'
@@ -857,7 +913,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
   HelpRoute: typeof HelpRoute
-  InsightsRoute: typeof InsightsRoute
+  InsightsRoute: typeof InsightsRouteWithChildren
   InstallRoute: typeof InstallRoute
   KycRoute: typeof KycRoute
   LeadsRoute: typeof LeadsRoute
@@ -1356,6 +1412,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandingPagesIdEditRouteImport
       parentRoute: typeof LandingPagesIdRoute
     }
+    '/insights/videos/$id': {
+      id: '/insights/videos/$id'
+      path: '/videos/$id'
+      fullPath: '/insights/videos/$id'
+      preLoaderRoute: typeof InsightsVideosIdRouteImport
+      parentRoute: typeof InsightsRoute
+    }
+    '/insights/live/$id': {
+      id: '/insights/live/$id'
+      path: '/live/$id'
+      fullPath: '/insights/live/$id'
+      preLoaderRoute: typeof InsightsLiveIdRouteImport
+      parentRoute: typeof InsightsRoute
+    }
+    '/insights/landing-pages/$id': {
+      id: '/insights/landing-pages/$id'
+      path: '/landing-pages/$id'
+      fullPath: '/insights/landing-pages/$id'
+      preLoaderRoute: typeof InsightsLandingPagesIdRouteImport
+      parentRoute: typeof InsightsRoute
+    }
+    '/insights/funnels/$id': {
+      id: '/insights/funnels/$id'
+      path: '/funnels/$id'
+      fullPath: '/insights/funnels/$id'
+      preLoaderRoute: typeof InsightsFunnelsIdRouteImport
+      parentRoute: typeof InsightsRoute
+    }
     '/funnels/$id/edit': {
       id: '/funnels/$id/edit'
       path: '/edit'
@@ -1384,6 +1468,24 @@ const AuthRouteChildren: AuthRouteChildren = {
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
+
+interface InsightsRouteChildren {
+  InsightsFunnelsIdRoute: typeof InsightsFunnelsIdRoute
+  InsightsLandingPagesIdRoute: typeof InsightsLandingPagesIdRoute
+  InsightsLiveIdRoute: typeof InsightsLiveIdRoute
+  InsightsVideosIdRoute: typeof InsightsVideosIdRoute
+}
+
+const InsightsRouteChildren: InsightsRouteChildren = {
+  InsightsFunnelsIdRoute: InsightsFunnelsIdRoute,
+  InsightsLandingPagesIdRoute: InsightsLandingPagesIdRoute,
+  InsightsLiveIdRoute: InsightsLiveIdRoute,
+  InsightsVideosIdRoute: InsightsVideosIdRoute,
+}
+
+const InsightsRouteWithChildren = InsightsRoute._addFileChildren(
+  InsightsRouteChildren,
+)
 
 interface LiveRouteChildren {
   LiveIdRoute: typeof LiveIdRoute
@@ -1446,7 +1548,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
   HelpRoute: HelpRoute,
-  InsightsRoute: InsightsRoute,
+  InsightsRoute: InsightsRouteWithChildren,
   InstallRoute: InstallRoute,
   KycRoute: KycRoute,
   LeadsRoute: LeadsRoute,
