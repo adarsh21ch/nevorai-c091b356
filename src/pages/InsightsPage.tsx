@@ -5,21 +5,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { usePageVisible } from "@/hooks/usePageVisible";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target } from "lucide-react";
+import { Eye, Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area, CartesianGrid, Legend,
+  PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
 } from "recharts";
 import { formatCompact, formatInt } from "@/lib/format";
 import { KpiCard } from "@/components/insights/KpiCard";
 import { LivePulseDot } from "@/components/insights/LivePulseDot";
 import { ActivityFeed, type ActivityItem } from "@/components/insights/ActivityFeed";
+import { EntityCard } from "@/components/insights/EntityCard";
+import { InsightsEmptyState } from "@/components/insights/EmptyState";
 import { cn } from "@/lib/utils";
 
 const COLORS = ["hsl(var(--primary))", "#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
+
+type SortKey = "recent" | "views" | "leads" | "alpha";
 
 type Period = "today" | "7d" | "30d" | "all";
 type Tab = "overview" | "videos" | "funnels" | "landing-pages" | "live";
@@ -70,6 +75,9 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
   const [tab, setTab] = useState<Tab>(getInitialTab);
   const [period, setPeriod] = useState<Period>(getInitialPeriod);
+  const [sort, setSort] = useState<SortKey>("recent");
+  const [search, setSearch] = useState("");
+  const [view, setView] = useState<"grid" | "list">("grid");
 
   // Sync tab → URL
   useEffect(() => {
@@ -99,25 +107,36 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   // Owned entities (always-on, for joins/titles)
   const { data: funnels = [], isLoading: funnelsLoading, error: funnelsError, refetch: refetchFunnels } = useQuery({
     queryKey: ["my-funnels", user?.id],
-    queryFn: async () => (await supabase.from("funnels").select("id,title,slug,total_views,total_leads,is_published").eq("owner_id", user!.id)).data || [],
+    queryFn: async () => (await supabase.from("funnels").select("id,title,slug,total_views,total_leads,is_published,created_at").eq("owner_id", user!.id)).data || [],
     enabled: !!user?.id,
+    staleTime: 60_000,
   });
 
   const { data: landingPages = [], isLoading: lpLoading, error: lpError, refetch: refetchLPs } = useQuery({
     queryKey: ["my-landing-pages", user?.id],
-    queryFn: async () => (await supabase.from("landing_pages").select("id,title,slug,total_views,total_registrations,status").eq("owner_id", user!.id)).data || [],
+    queryFn: async () => (await supabase.from("landing_pages").select("id,title,slug,total_views,total_registrations,status,created_at").eq("owner_id", user!.id)).data || [],
     enabled: !!user?.id,
+    staleTime: 60_000,
   });
 
   const { data: videos = [] } = useQuery({
     queryKey: ["my-videos-insights", user?.id],
-    queryFn: async () => (await supabase.from("video_assets").select("id,title,view_count,duration_seconds,created_at").eq("owner_id", user!.id)).data || [],
+    queryFn: async () => (await supabase.from("video_assets").select("id,title,view_count,duration_seconds,thumbnail_url,created_at").eq("owner_id", user!.id)).data || [],
     enabled: !!user?.id,
+    staleTime: 60_000,
+  });
+
+  const { data: liveSessions = [] } = useQuery({
+    queryKey: ["my-live-sessions", user?.id],
+    queryFn: async () => (await supabase.from("live_sessions").select("id,title,slug,status,total_views,registration_count,scheduled_at,created_at,thumbnail_url,is_published").eq("owner_id", user!.id)).data || [],
+    enabled: !!user?.id,
+    staleTime: 60_000,
   });
 
   const funnelIds = funnels.map((f) => f.id);
   const lpIds = landingPages.map((l) => l.id);
   const videoIds = videos.map((v) => v.id);
+  const liveIds = liveSessions.map((s) => s.id);
 
   // === Leads (current period) ===
   const { data: leads = [], refetch: refetchLeads } = useQuery({
@@ -129,6 +148,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.order("submitted_at", { ascending: false }).limit(500)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -140,6 +160,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return data || [];
     },
     enabled: !!user?.id && !!prevBounds,
+    staleTime: 5 * 60_000,
   });
 
   // === Registrations ===
@@ -151,6 +172,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.order("submitted_at", { ascending: false }).limit(500)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -162,6 +184,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return data || [];
     },
     enabled: !!user?.id && !!prevBounds,
+    staleTime: 5 * 60_000,
   });
 
   // === View events: video, funnel, landing page (current period) ===
@@ -174,6 +197,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -186,6 +210,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
@@ -198,24 +223,37 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
+    staleTime: 30_000,
     refetchInterval: visible ? 60_000 : false,
   });
 
-  // === Live viewer counts (15s polling, recent heartbeats across all owned entities) ===
-  const { data: liveViewers = 0 } = useQuery({
-    queryKey: ["live-viewers", user?.id, funnelIds.length, lpIds.length, videoIds.length],
+  // === Live viewer counts per entity (15s polling) ===
+  const { data: liveMap = { videos: {}, funnels: {}, lps: {}, lives: {}, total: 0 } } = useQuery({
+    queryKey: ["live-viewers-map", user?.id, videoIds.length, funnelIds.length, lpIds.length, liveIds.length],
     queryFn: async () => {
       const cutoff = new Date(Date.now() - 60_000).toISOString();
-      const queries: Promise<any>[] = [];
-      if (videoIds.length) queries.push((supabase as any).from("video_view_events").select("id", { count: "exact", head: true }).in("video_id", videoIds).gte("last_heartbeat_at", cutoff));
-      if (funnelIds.length) queries.push((supabase as any).from("funnel_view_events").select("id", { count: "exact", head: true }).in("funnel_id", funnelIds).gte("last_heartbeat_at", cutoff));
-      if (lpIds.length) queries.push((supabase as any).from("landing_page_view_events").select("id", { count: "exact", head: true }).in("landing_page_id", lpIds).gte("last_heartbeat_at", cutoff));
-      const results = await Promise.all(queries);
-      return results.reduce((a, r) => a + (r.count || 0), 0);
+      const out = { videos: {} as Record<string, number>, funnels: {} as Record<string, number>, lps: {} as Record<string, number>, lives: {} as Record<string, number>, total: 0 };
+      const calls: Promise<any>[] = [];
+      if (videoIds.length) calls.push((supabase as any).from("video_view_events").select("video_id").in("video_id", videoIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "videos", rows: r.data || [], key: "video_id" })));
+      if (funnelIds.length) calls.push((supabase as any).from("funnel_view_events").select("funnel_id").in("funnel_id", funnelIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "funnels", rows: r.data || [], key: "funnel_id" })));
+      if (lpIds.length) calls.push((supabase as any).from("landing_page_view_events").select("landing_page_id").in("landing_page_id", lpIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "lps", rows: r.data || [], key: "landing_page_id" })));
+      if (liveIds.length) calls.push((supabase as any).from("live_session_view_events").select("live_session_id").in("live_session_id", liveIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "lives", rows: r.data || [], key: "live_session_id" })));
+      const results = await Promise.all(calls);
+      results.forEach((r: any) => {
+        r.rows.forEach((row: any) => {
+          const id = row[r.key];
+          (out as any)[r.kind][id] = ((out as any)[r.kind][id] || 0) + 1;
+          out.total += 1;
+        });
+      });
+      return out;
     },
     enabled: !!user?.id,
     refetchInterval: visible ? 15_000 : false,
   });
+
+  const liveViewers = liveMap.total;
+
 
   // === Recent activity feed (30s polling) ===
   const { data: feedItems = [] } = useQuery<ActivityItem[]>({
@@ -306,6 +344,32 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const topVideos = [...videos].sort((a, b) => (b.view_count || 0) - (a.view_count || 0)).slice(0, 5);
   const topFunnels = [...funnels].sort((a, b) => (b.total_views || 0) - (a.total_views || 0)).slice(0, 5);
   const topLPs = [...landingPages].sort((a, b) => (b.total_views || 0) - (a.total_views || 0)).slice(0, 5);
+
+  // Per-entity event view & lead counts (period-scoped)
+  const videoViewCount: Record<string, number> = {};
+  videoViews.forEach((v: any) => { videoViewCount[v.video_id] = (videoViewCount[v.video_id] || 0) + 1; });
+  const funnelViewCount: Record<string, number> = {};
+  funnelViews.forEach((v: any) => { funnelViewCount[v.funnel_id] = (funnelViewCount[v.funnel_id] || 0) + 1; });
+  const lpViewCount: Record<string, number> = {};
+  lpViews.forEach((v: any) => { lpViewCount[v.landing_page_id] = (lpViewCount[v.landing_page_id] || 0) + 1; });
+  const funnelLeadCount: Record<string, number> = {};
+  leads.forEach((l: any) => { if (l.funnel_id) funnelLeadCount[l.funnel_id] = (funnelLeadCount[l.funnel_id] || 0) + 1; });
+  const lpRegCount: Record<string, number> = {};
+  registrations.forEach((r: any) => { if (r.landing_page_id) lpRegCount[r.landing_page_id] = (lpRegCount[r.landing_page_id] || 0) + 1; });
+
+  const sortFn = (a: any, b: any, vA: number, vB: number, lA: number, lB: number) => {
+    if (sort === "alpha") return (a.title || "").localeCompare(b.title || "");
+    if (sort === "views") return vB - vA;
+    if (sort === "leads") return lB - lA;
+    return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+  };
+  const matchSearch = (t: string) => !search || t.toLowerCase().includes(search.toLowerCase());
+
+  const sortedVideos = [...videos].filter((v) => matchSearch(v.title || "")).sort((a, b) => sortFn(a, b, a.view_count || 0, b.view_count || 0, 0, 0));
+  const sortedFunnels = [...funnels].filter((v) => matchSearch(v.title || "")).sort((a, b) => sortFn(a, b, a.total_views || 0, b.total_views || 0, a.total_leads || 0, b.total_leads || 0));
+  const sortedLPs = [...landingPages].filter((v) => matchSearch(v.title || "")).sort((a, b) => sortFn(a, b, a.total_views || 0, b.total_views || 0, a.total_registrations || 0, b.total_registrations || 0));
+  const sortedLives = [...liveSessions].filter((v) => matchSearch(v.title || "")).sort((a, b) => sortFn(a, b, a.total_views || 0, b.total_views || 0, a.registration_count || 0, b.registration_count || 0));
+
 
   // Attribution: source_type breakdown of leads+regs
   const attribCounts: Record<string, number> = {};
@@ -495,84 +559,115 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </div>
         </TabsContent>
 
-        {/* VIDEOS / FUNNELS / LP / LIVE — scaffolds for next phase */}
-        <TabsContent value="videos">
-          <div className="premium-card p-5">
-            <h3 className="text-sm font-heading font-semibold mb-3 flex items-center gap-2"><Video size={14} className="text-primary" /> Your Videos</h3>
-            {videos.length ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={topVideos.map((v) => ({ name: v.title.length > 18 ? v.title.slice(0, 18) + "…" : v.title, views: v.view_count || 0 }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="views" fill="#8B5CF6" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-xs text-muted-foreground text-center py-8">No videos yet</p>}
-            <p className="text-[10px] text-muted-foreground mt-3">Per-video drill-down with retention curves, traffic sources, and viewer table ships in the next phase.</p>
+        {/* Filter toolbar shared across entity tabs */}
+        {tab !== "overview" ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-[180px]">
+              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search…" className="h-8 pl-7 text-xs" />
+            </div>
+            <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="h-8 px-2 rounded-md border border-border bg-background text-xs">
+              <option value="recent">Newest</option>
+              <option value="views">Most viewed</option>
+              <option value="leads">Most leads</option>
+              <option value="alpha">A–Z</option>
+            </select>
+            <div className="hidden sm:flex items-center rounded-md border border-border overflow-hidden">
+              <button type="button" onClick={() => setView("grid")} className={cn("p-1.5", view === "grid" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground")} aria-label="Grid"><LayoutGrid size={12} /></button>
+              <button type="button" onClick={() => setView("list")} className={cn("p-1.5", view === "list" ? "bg-primary text-primary-foreground" : "bg-background text-muted-foreground")} aria-label="List"><List size={12} /></button>
+            </div>
           </div>
+        ) : null}
+
+        <TabsContent value="videos">
+          {sortedVideos.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedVideos.map((v) => (
+                <EntityCard
+                  key={v.id}
+                  icon={Video}
+                  title={v.title}
+                  href={`/insights/videos/${v.id}`}
+                  thumbnail={v.thumbnail_url}
+                  views={videoViewCount[v.id] ?? v.view_count ?? 0}
+                  leads={0}
+                  leadsLabel="leads"
+                  liveCount={liveMap.videos[v.id] || 0}
+                  createdAt={v.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={Video} title="No videos yet" hint="Upload your first video to start tracking views." ctaLabel="Upload video" ctaTo="/videos" />}
         </TabsContent>
 
         <TabsContent value="funnels">
-          <div className="premium-card p-5">
-            <h3 className="text-sm font-heading font-semibold mb-3 flex items-center gap-2"><Layers size={14} className="text-primary" /> Funnels Performance</h3>
-            {topFunnels.length ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={topFunnels.map((f) => ({ name: f.title.length > 15 ? f.title.slice(0, 15) + "…" : f.title, views: f.total_views || 0, leads: f.total_leads || 0 }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend />
-                  <Bar dataKey="views" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="leads" fill="#6366F1" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-xs text-muted-foreground text-center py-8">No funnels yet</p>}
-            {deviceData.length ? (
-              <div className="mt-5">
-                <h4 className="text-xs font-semibold mb-2 text-muted-foreground">Lead Devices</h4>
-                <ResponsiveContainer width="100%" height={180}>
-                  <PieChart>
-                    <Pie data={deviceData} cx="50%" cy="50%" innerRadius={40} outerRadius={70} dataKey="value" label={({ name, value }) => `${name}: ${value}`} labelLine={false}>
-                      {deviceData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip contentStyle={tooltipStyle} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            ) : null}
-          </div>
+          {sortedFunnels.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedFunnels.map((f) => (
+                <EntityCard
+                  key={f.id}
+                  icon={Layers}
+                  title={f.title}
+                  href={`/insights/funnels/${f.id}`}
+                  views={funnelViewCount[f.id] ?? f.total_views ?? 0}
+                  leads={funnelLeadCount[f.id] ?? f.total_leads ?? 0}
+                  leadsLabel="leads"
+                  liveCount={liveMap.funnels[f.id] || 0}
+                  badge={f.is_published ? { label: "Live", tone: "success" } : { label: "Draft", tone: "muted" }}
+                  createdAt={f.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={Layers} title="No funnels yet" hint="Create a funnel to start capturing leads." ctaLabel="Create funnel" ctaTo="/funnels/create" />}
         </TabsContent>
 
         <TabsContent value="landing-pages">
-          <div className="premium-card p-5">
-            <h3 className="text-sm font-heading font-semibold mb-3 flex items-center gap-2"><FileText size={14} className="text-primary" /> Landing Pages</h3>
-            {topLPs.length ? (
-              <ResponsiveContainer width="100%" height={260}>
-                <BarChart data={topLPs.map((lp) => ({ name: lp.title.length > 15 ? lp.title.slice(0, 15) + "…" : lp.title, views: lp.total_views || 0, regs: lp.total_registrations || 0 }))}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="name" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend />
-                  <Bar dataKey="views" fill="#10B981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="regs" name="registrations" fill="#F59E0B" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : <p className="text-xs text-muted-foreground text-center py-8">No landing pages yet</p>}
-          </div>
+          {sortedLPs.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedLPs.map((lp) => (
+                <EntityCard
+                  key={lp.id}
+                  icon={FileText}
+                  title={lp.title}
+                  href={`/insights/landing-pages/${lp.id}`}
+                  views={lpViewCount[lp.id] ?? lp.total_views ?? 0}
+                  leads={lpRegCount[lp.id] ?? lp.total_registrations ?? 0}
+                  leadsLabel="registrations"
+                  liveCount={liveMap.lps[lp.id] || 0}
+                  badge={lp.status === "published" ? { label: "Live", tone: "success" } : { label: lp.status || "Draft", tone: "muted" }}
+                  createdAt={lp.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={FileText} title="No landing pages yet" hint="Build a landing page to capture registrations." ctaLabel="Create landing page" ctaTo="/landing-pages/create" />}
         </TabsContent>
 
         <TabsContent value="live">
-          <div className="premium-card p-5 text-center">
-            <Radio size={28} className="mx-auto text-primary mb-2" />
-            <h3 className="text-sm font-heading font-semibold">Live Sessions</h3>
-            <p className="text-xs text-muted-foreground mt-1">{liveViewers > 0 ? `${liveViewers} viewer${liveViewers === 1 ? "" : "s"} active right now.` : "No live sessions running."}</p>
-            <p className="text-[10px] text-muted-foreground mt-3">Registered vs attended, peak concurrent, and replay views land in the drill-down phase.</p>
-          </div>
+          {sortedLives.length ? (
+            <div className={view === "grid" ? "grid sm:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+              {sortedLives.map((s) => (
+                <EntityCard
+                  key={s.id}
+                  icon={Radio}
+                  title={s.title}
+                  href={`/insights/live/${s.id}`}
+                  thumbnail={s.thumbnail_url}
+                  views={s.total_views ?? 0}
+                  leads={s.registration_count ?? 0}
+                  leadsLabel="registered"
+                  liveCount={liveMap.lives[s.id] || 0}
+                  badge={s.status === "live" ? { label: "LIVE", tone: "success" } : { label: s.status || "scheduled", tone: "muted" }}
+                  createdAt={s.created_at}
+                  variant={view}
+                />
+              ))}
+            </div>
+          ) : <InsightsEmptyState icon={Radio} title="No live sessions yet" hint="Schedule a live session to engage your audience in real time." ctaLabel="Create live session" ctaTo="/live" />}
         </TabsContent>
+
       </Tabs>
     </div>
   );
