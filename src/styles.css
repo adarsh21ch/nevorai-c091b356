@@ -325,6 +325,158 @@ img, video, iframe { max-width: 100%; }
   .heading-display { font-size: 3.5rem; }   /* 56 */
 }
 
+/* =====================================================================
+   LANDING PAGE — PREMIUM POLISH UTILITIES
+   ===================================================================== */
+
+/* Refined mesh background — replaces flat dark on the landing page */
+.landing-mesh-bg {
+  background-color: #050810;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(45,212,191,0.08), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 20% 80%, rgba(59,130,246,0.06), transparent 70%),
+    radial-gradient(ellipse 50% 30% at 80% 60%, rgba(139,92,246,0.05), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* Premium glass card */
+.glass-premium {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,0.05) inset,
+    0 24px 48px -12px rgba(0,0,0,0.4);
+  transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (hover: hover) {
+  .glass-premium:hover {
+    border-color: rgba(99,179,237,0.25);
+    background: rgba(255,255,255,0.05);
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 0 rgba(255,255,255,0.08) inset,
+      0 32px 60px -12px rgba(0,0,0,0.5),
+      0 0 0 1px rgba(99,179,237,0.15);
+  }
+}
+@media (max-width: 767px) {
+  .glass-premium { backdrop-filter: blur(12px) saturate(160%); -webkit-backdrop-filter: blur(12px) saturate(160%); }
+}
+
+/* Premium saffron CTA (primary) */
+.btn-saffron-premium {
+  background: linear-gradient(180deg, #FB923C 0%, #F97316 100%);
+  color: #FFFFFF;
+  border: 0;
+  border-radius: 14px;
+  padding: 16px 28px;
+  font-weight: 600;
+  font-size: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,0.20) inset,
+    0 -1px 0 0 rgba(0,0,0,0.20) inset,
+    0 8px 24px -4px rgba(249,115,22,0.45),
+    0 4px 12px -2px rgba(0,0,0,0.4);
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-saffron-premium:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 1px 0 0 rgba(255,255,255,0.25) inset,
+    0 -1px 0 0 rgba(0,0,0,0.20) inset,
+    0 12px 32px -4px rgba(249,115,22,0.60),
+    0 6px 16px -2px rgba(0,0,0,0.5);
+}
+.btn-saffron-premium:active { transform: translateY(0); transition: 100ms; }
+.btn-saffron-premium::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.btn-saffron-premium:hover::after { transform: translateX(120%); }
+.btn-saffron-premium.btn-sm { padding: 10px 18px; font-size: 14px; border-radius: 10px; }
+
+/* Glass secondary CTA */
+.btn-glass-premium {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #F5F7FA;
+  border-radius: 14px;
+  padding: 16px 28px;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-glass-premium:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.20);
+  transform: translateY(-1px);
+}
+
+/* Hero logo halo pulse */
+@keyframes haloPulse {
+  0%, 100% { filter: drop-shadow(0 0 40px rgba(45,212,191,0.30)) drop-shadow(0 0 80px rgba(59,130,246,0.20)); }
+  50%      { filter: drop-shadow(0 0 60px rgba(45,212,191,0.40)) drop-shadow(0 0 100px rgba(59,130,246,0.30)); }
+}
+.hero-logo-halo { animation: haloPulse 4s ease-in-out infinite; }
+@media (max-width: 767px) {
+  @keyframes haloPulse {
+    0%, 100% { filter: drop-shadow(0 0 24px rgba(45,212,191,0.30)) drop-shadow(0 0 48px rgba(59,130,246,0.20)); }
+    50%      { filter: drop-shadow(0 0 36px rgba(45,212,191,0.40)) drop-shadow(0 0 60px rgba(59,130,246,0.30)); }
+  }
+}
+
+/* Headline shifting gradient */
+.text-gradient-hero {
+  background-image: linear-gradient(135deg, #2DD4BF 0%, #3B82F6 50%, #8B5CF6 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: gradientShift 8s ease infinite;
+}
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* Pill badges */
+.badge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(12px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #B8C2D1;
+}
+.badge-pill-cyan { background: rgba(45,212,191,0.08); border-color: rgba(45,212,191,0.20); color: #5EEAD4; }
+.badge-pill-red { background: rgba(239,68,68,0.08); border-color: rgba(239,68,68,0.20); color: #FCA5A5; }
+.badge-pill-saffron { background: rgba(249,115,22,0.08); border-color: rgba(249,115,22,0.22); color: #FDBA74; }
+.badge-pill::before { content: "●"; font-size: 8px; line-height: 1; opacity: 0.9; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-logo-halo, .text-gradient-hero { animation: none; }
+  .btn-saffron-premium::after { display: none; }
+}
+
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 

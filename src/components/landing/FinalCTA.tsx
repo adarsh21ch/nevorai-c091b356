@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { Link } from "@/lib/router-compat";
 
 const chips = [
@@ -11,11 +11,11 @@ const chips = [
 
 export const FinalCTA = () => {
   return (
-    <section className="py-12 sm:py-20 relative overflow-hidden bg-gradient-brand">
+    <section className="py-20 sm:py-32 relative overflow-hidden">
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at top, rgba(255,255,255,0.18) 0%, transparent 60%)" }}
+        style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.10) 0%, transparent 60%)" }}
       />
       <div className="container-app relative z-10">
         <motion.div
@@ -44,12 +44,9 @@ export const FinalCTA = () => {
           </div>
 
           <Link to="/auth?tab=signup" className="block sm:inline-block">
-            <Button
-              size="xl"
-              className="w-full sm:w-auto rounded-full font-bold border-0 hover:scale-105 transition-transform bg-white text-base sm:text-lg px-10 sm:px-14 py-4 min-h-11 shadow-elegant"
-            >
-              <span className="text-gradient-brand">Start Free →</span>
-            </Button>
+            <button className="btn-saffron-premium w-full sm:w-auto text-base sm:text-lg">
+              Start Free →
+            </button>
           </Link>
 
           <div className="mt-5 text-sm text-white/80">
