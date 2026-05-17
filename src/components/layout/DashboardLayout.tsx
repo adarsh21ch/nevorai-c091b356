@@ -37,7 +37,7 @@ const bottomItems = [
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
-export const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+export const DashboardLayout = ({ children, editorMode = false }: { children: React.ReactNode; editorMode?: boolean }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const router = useRouter();
