@@ -262,32 +262,6 @@ export function VideoPlayer({
           e.preventDefault();
           toggleFullscreen();
           break;
-        case "ArrowLeft":
-          if (allowSeek) {
-            e.preventDefault();
-            skip(-5);
-          }
-          break;
-        case "ArrowRight":
-          if (allowSeek) {
-            e.preventDefault();
-            skip(5);
-          }
-          break;
-        case "j":
-        case "J":
-          if (allowSeek) {
-            e.preventDefault();
-            skip(-10);
-          }
-          break;
-        case "l":
-        case "L":
-          if (allowSeek) {
-            e.preventDefault();
-            skip(10);
-          }
-          break;
         case "ArrowUp":
           e.preventDefault();
           setVol(Math.min(1, (v.volume || 0) + 0.1));
@@ -306,7 +280,7 @@ export function VideoPlayer({
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
-  }, [togglePlay, toggleMute, toggleFullscreen, skip, setVol, seekToFraction, allowSeek, showControls]);
+  }, [togglePlay, toggleMute, toggleFullscreen, setVol, seekToFraction, allowSeek, showControls]);
 
   const url = shareUrl ?? (typeof window !== "undefined" ? window.location.href : "");
   const handleCopy = useCallback(() => {
