@@ -16,25 +16,6 @@ import { usePlan } from "@/hooks/usePlan";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { useState } from "react";
 
-const fmt = (n: number) => n.toLocaleString("en-IN");
-
-type StatColor = "purple" | "teal" | "green" | "blue" | "amber" | "gray";
-const accentClass: Record<StatColor, string> = {
-  purple: "border-t-2 border-violet-500/40",
-  teal: "border-t-2 border-emerald-500/40",
-  green: "border-t-2 border-green-500/40",
-  blue: "border-t-2 border-blue-500/40",
-  amber: "border-t-2 border-amber-500/40",
-  gray: "border-t-2 border-border",
-};
-const iconClass: Record<StatColor, string> = {
-  purple: "text-violet-400",
-  teal: "text-emerald-400",
-  green: "text-green-400",
-  blue: "text-blue-400",
-  amber: "text-amber-400",
-  gray: "text-muted-foreground",
-};
 
 const Dashboard = () => {
   useDocumentTitle("Dashboard");
