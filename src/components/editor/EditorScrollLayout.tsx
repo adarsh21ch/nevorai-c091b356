@@ -47,6 +47,17 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
       .filter((el): el is HTMLElement => !!el);
     if (els.length === 0) return;
 
+    // Use the actual scroll container as the IO root so active-section
+    // detection works inside DashboardLayout's scrollable main pane.
+    let root: HTMLElement | null = els[0].parentElement;
+    while (root && root !== document.body) {
+      const style = getComputedStyle(root);
+      const oy = style.overflowY;
+      if ((oy === "auto" || oy === "scroll") && root.scrollHeight > root.clientHeight + 1) break;
+      root = root.parentElement;
+    }
+    if (root === document.body) root = null;
+
     const visible = new Map<string, number>();
     const io = new IntersectionObserver(
       (entries) => {
@@ -54,7 +65,6 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
           if (e.isIntersecting) visible.set(e.target.id, e.intersectionRatio);
           else visible.delete(e.target.id);
         }
-        // Pick the highest-ratio visible section; otherwise topmost above viewport.
         if (visible.size > 0) {
           let best = "";
           let bestRatio = -1;
@@ -67,7 +77,7 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
           if (best) setActive(best);
         }
       },
-      { rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
+      { root, rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
     );
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
@@ -75,9 +85,37 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
 
   const jumpTo = (id: string) => {
     const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: "smooth", block: "start" });
-      setActive(id);
+    if (!el) return;
+    setActive(id);
+
+    // Find the nearest scrollable ancestor (DashboardLayout wraps content in
+    // <main><div class="overflow-y-auto"> on mobile so window doesn't scroll).
+    let scroller: HTMLElement | null = el.parentElement;
+    while (scroller && scroller !== document.body) {
+      const style = getComputedStyle(scroller);
+      const oy = style.overflowY;
+      if ((oy === "auto" || oy === "scroll") && scroller.scrollHeight > scroller.clientHeight + 1) {
+        break;
+      }
+      scroller = scroller.parentElement;
+    }
+
+    // Measure the sticky header group so we land below it, not behind it.
+    const stickyEl = containerRef.current?.querySelector<HTMLElement>(".sticky");
+    const stickyHeight = stickyEl?.offsetHeight ?? 0;
+    const gap = 12;
+
+    if (scroller && scroller !== document.body) {
+      const top =
+        el.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top +
+        scroller.scrollTop -
+        stickyHeight -
+        gap;
+      scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    } else {
+      const top = el.getBoundingClientRect().top + window.scrollY - stickyHeight - gap;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }
   };
 
