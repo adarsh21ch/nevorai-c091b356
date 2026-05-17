@@ -51,8 +51,11 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   });
 
   const handleCreate = () => {
-    if (isFree) { setModalType("upgrade"); setModalOpen(true); return; }
-    if (!canCreateFunnel) { setModalType("limit"); setModalOpen(true); return; }
+    if (!canCreateFunnel) {
+      setModalType(config.max_funnels === 0 ? "upgrade" : "limit");
+      setModalOpen(true);
+      return;
+    }
     navigate("/funnels/create");
   };
 
