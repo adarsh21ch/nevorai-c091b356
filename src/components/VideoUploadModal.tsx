@@ -89,6 +89,15 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
   const [error, setError] = useState<string | null>(null);
   const [formatWarning, setFormatWarning] = useState<string | null>(null);
   const [tipOpen, setTipOpen] = useState(false);
+  const [tipDismissed, setTipDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("nevorai.uploadTipDismissed") === "1";
+  });
+  const dismissTip = () => {
+    try { localStorage.setItem("nevorai.uploadTipDismissed", "1"); } catch {}
+    setTipDismissed(true);
+    setTipOpen(false);
+  };
   const [allowCopyLink, setAllowCopyLink] = useState(true);
   const [doneVideoId, setDoneVideoId] = useState<string | null>(null);
   const [storageLimitOpen, setStorageLimitOpen] = useState(false);
