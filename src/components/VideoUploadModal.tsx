@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -73,6 +73,9 @@ const FORMAT_REJECT_MSG =
   "That doesn't look like a video file. Please pick an MP4, MOV, WEBM, M4V, MKV, or AVI — or convert it first at cloudconvert.com.";
 
 export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false }: Props) => {
+  // File-first flow: as soon as the modal opens with no file selected,
+  // trigger the native file picker so the user doesn't see an empty modal.
+  const autoPickRef = useRef(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -91,6 +94,16 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
   const [doneVideoId, setDoneVideoId] = useState<string | null>(null);
   const [storageLimitOpen, setStorageLimitOpen] = useState(false);
   const storage = useStorageUsage();
+
+  // Auto-open file picker on first open with no file
+  useEffect(() => {
+    if (open && !file && !doneVideoId && !autoPickRef.current) {
+      autoPickRef.current = true;
+      // small delay so the dialog mounts before the picker
+      setTimeout(() => fileRef.current?.click(), 80);
+    }
+    if (!open) autoPickRef.current = false;
+  }, [open, file, doneVideoId]);
 
   const reset = () => {
     setFile(null);

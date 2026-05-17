@@ -188,7 +188,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
         </main>
         {showTrialGate && <TrialExpiredGate trialDays={trialDays} />}
 
-        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md md:hidden safe-area-pb">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md md:hidden safe-area-pb shadow-[0_-2px_12px_rgba(0,0,0,0.08)]">
           <div className="grid grid-cols-5 items-end">
             {[
               { icon: Home, label: "Home", path: "/dashboard", match: "exact" as const },
