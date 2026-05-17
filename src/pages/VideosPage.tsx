@@ -299,11 +299,7 @@ const VideosPage = () => {
               const goPreview = () => {
                 if (!isReady) return;
                 const url = `/v/${(v as any).slug || v.id}`;
-                if (typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches) {
-                  window.open(url, "_blank", "noopener,noreferrer");
-                } else {
-                  window.location.href = url;
-                }
+                window.open(url, "_blank", "noopener,noreferrer");
               };
               return (
                 <div
@@ -442,11 +438,7 @@ const VideosPage = () => {
               const previewUrl = `/v/${(v as any).slug || v.id}`;
               const openPreview = () => {
                 if (v.status !== "ready") return;
-                if (typeof window !== "undefined" && window.matchMedia("(min-width: 768px)").matches) {
-                  window.open(previewUrl, "_blank", "noopener,noreferrer");
-                } else {
-                  window.location.href = previewUrl;
-                }
+                window.open(previewUrl, "_blank", "noopener,noreferrer");
               };
               return (
                 <div key={v.id} className="rounded-xl border border-border bg-card overflow-hidden hover:border-primary/40 transition-colors">
