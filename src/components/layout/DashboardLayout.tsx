@@ -199,7 +199,7 @@ export const DashboardLayout = ({ children }: { children: React.ReactNode }) => 
           </div>
 
           <TrialBanner />
-          <div className="gradient-bg-subtle flex-1 overflow-x-hidden overflow-y-auto px-3 pb-24 pt-3 sm:px-4 sm:pb-8 sm:pt-4 md:p-8">
+          <div className="gradient-bg-subtle flex-1 overflow-x-hidden overflow-y-auto px-3 pb-[calc(96px+env(safe-area-inset-bottom))] pt-3 sm:px-4 sm:pb-8 sm:pt-4 md:p-8">
             <div className="w-full min-w-0 max-w-full">{children}</div>
           </div>
         </main>

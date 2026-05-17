@@ -89,6 +89,15 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
   const [error, setError] = useState<string | null>(null);
   const [formatWarning, setFormatWarning] = useState<string | null>(null);
   const [tipOpen, setTipOpen] = useState(false);
+  const [tipDismissed, setTipDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return localStorage.getItem("nevorai.uploadTipDismissed") === "1";
+  });
+  const dismissTip = () => {
+    try { localStorage.setItem("nevorai.uploadTipDismissed", "1"); } catch {}
+    setTipDismissed(true);
+    setTipOpen(false);
+  };
   const [allowCopyLink, setAllowCopyLink] = useState(true);
   const [doneVideoId, setDoneVideoId] = useState<string | null>(null);
   const [storageLimitOpen, setStorageLimitOpen] = useState(false);
@@ -305,33 +314,46 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
           </div>
         ) : (
         <div className="space-y-4">
-          {/* Pro Tip collapsible */}
-          <Collapsible open={tipOpen} onOpenChange={setTipOpen}>
-            <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10">
-              <CollapsibleTrigger className="w-full flex items-center gap-2 p-3 text-left">
-                <Info size={16} className="shrink-0 text-indigo-300" />
-                <span className="flex-1 text-sm text-foreground">💡 Best video quality tip</span>
-                <ChevronDown
-                  size={16}
-                  className={`shrink-0 text-muted-foreground transition-transform ${tipOpen ? "rotate-180" : ""}`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
-                <div className="px-3 pb-3 text-sm text-muted-foreground space-y-2">
-                  <p className="font-medium text-foreground">💡 Pro Tip — For Best Playback Quality:</p>
-                  <p>
-                    Videos downloaded from YouTube play the smoothest on Nevorai. If your video lags or buffers, try this:
-                  </p>
-                  <ol className="list-decimal list-inside space-y-1 pl-1">
-                    <li>Upload your video to YouTube (can be Unlisted)</li>
-                    <li>Download it using any YouTube downloader app</li>
-                    <li>Upload that downloaded file here</li>
-                  </ol>
-                  <p>This ensures perfect quality for all your viewers.</p>
+          {/* Pro Tip collapsible — dismissible */}
+          {!tipDismissed && (
+            <Collapsible open={tipOpen} onOpenChange={setTipOpen}>
+              <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/10">
+                <div className="w-full flex items-center gap-2 p-3 text-left">
+                  <Info size={16} className="shrink-0 text-indigo-300" />
+                  <CollapsibleTrigger className="flex-1 flex items-center gap-2 text-left">
+                    <span className="flex-1 text-sm text-foreground">💡 Best video quality tip</span>
+                    <ChevronDown
+                      size={16}
+                      className={`shrink-0 text-muted-foreground transition-transform ${tipOpen ? "rotate-180" : ""}`}
+                    />
+                  </CollapsibleTrigger>
+                  <button
+                    type="button"
+                    onClick={dismissTip}
+                    aria-label="Dismiss tip"
+                    className="shrink-0 rounded p-1 text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
-              </CollapsibleContent>
-            </div>
-          </Collapsible>
+                <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+                  <div className="px-3 pb-3 text-sm text-muted-foreground space-y-2">
+                    <p className="font-medium text-foreground">💡 Pro Tip — For Best Playback Quality:</p>
+                    <p>
+                      Videos downloaded from YouTube play the smoothest on Nevorai. If your video lags or buffers, try this:
+                    </p>
+                    <ol className="list-decimal list-inside space-y-1 pl-1">
+                      <li>Upload your video to YouTube (can be Unlisted)</li>
+                      <li>Download it using any YouTube downloader app</li>
+                      <li>Upload that downloaded file here</li>
+                    </ol>
+                    <p>This ensures perfect quality for all your viewers.</p>
+                    <Button size="sm" variant="outline" onClick={dismissTip} className="mt-1">Got it →</Button>
+                  </div>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          )}
 
           <input
             ref={fileRef}

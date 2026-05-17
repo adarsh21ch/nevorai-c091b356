@@ -521,7 +521,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
               </span>
             )}
           </div>
-          <Button onClick={startCreate}>
+          <Button onClick={startCreate} className="w-full sm:w-auto">
             <Plus size={16} /> New Session
           </Button>
         </div>
