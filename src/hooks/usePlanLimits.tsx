@@ -28,6 +28,9 @@ export interface PlanConfig {
   feature_insights?: boolean;
   feature_funnel_creation?: boolean;
   feature_speaker_profile?: boolean;
+  feature_video_topics?: boolean;
+  feature_contact_form?: boolean;
+  feature_privacy_settings?: boolean;
   feature_youtube_import?: boolean;
   feature_smart_reminders?: boolean;
   feature_custom_branding?: boolean;
@@ -118,6 +121,9 @@ export const usePlanLimits = () => {
     customBranding: config.feature_custom_branding === true,
     prospectAnalytics: config.feature_prospect_analytics === true,
     speakerProfile: config.feature_speaker_profile === true,
+    videoTopics: config.feature_video_topics !== false,
+    contactForm: config.feature_contact_form !== false,
+    privacySettings: config.feature_privacy_settings !== false,
   };
 
   return {

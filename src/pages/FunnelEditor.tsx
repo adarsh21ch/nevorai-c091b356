@@ -488,18 +488,17 @@ const FunnelEditor = () => {
       case "Speaker":
         return features.speakerProfile ? null : { featureName: "Speaker Profile", requiredPlan: "Basic", priceLabel: basicPrice };
       case "Video Topics":
-        // Topics piggybacks on speaker-profile feature flag for now.
-        return features.speakerProfile ? null : { featureName: "Video Topics", requiredPlan: "Basic", priceLabel: basicPrice };
+        return features.videoTopics ? null : { featureName: "Video Topics", requiredPlan: "Basic", priceLabel: basicPrice };
       case "Lead Capture":
         return features.leadCapture ? null : { featureName: "Lead Capture", requiredPlan: "Basic", priceLabel: basicPrice };
       case "Contact Info":
-        return features.whatsappAutomation ? null : { featureName: "Contact & WhatsApp", requiredPlan: "Basic", priceLabel: basicPrice };
+        return features.contactForm ? null : { featureName: "Contact Form", requiredPlan: "Basic", priceLabel: basicPrice };
       case "Payment":
         // Payment is Pro-only; gated by advanced analytics flag as proxy until a
         // dedicated `feature_payment_collection` column is added.
         return features.advancedAnalytics ? null : { featureName: "Payment Collection", requiredPlan: "Pro", priceLabel: proPrice };
       case "Privacy":
-        return features.customBranding ? null : { featureName: "Privacy & Access Codes", requiredPlan: "Basic", priceLabel: basicPrice };
+        return features.privacySettings ? null : { featureName: "Privacy & Access Codes", requiredPlan: "Basic", priceLabel: basicPrice };
       default:
         return null;
     }

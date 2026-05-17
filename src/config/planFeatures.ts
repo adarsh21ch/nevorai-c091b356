@@ -87,6 +87,9 @@ export const PLAN_FEATURES: PlanFeature[] = [
   // ─── FEATURES ─────────────────────────────────────────────
   { key: "feature_funnel_creation", label: "Funnel Creation", type: "boolean", category: "Features", dbField: "feature_funnel_creation" },
   { key: "feature_speaker_profile", label: "Speaker Profile", type: "boolean", category: "Features", hint: "Show speaker bio/photo section inside funnels", dbField: "feature_speaker_profile" },
+  { key: "feature_video_topics", label: "Video Topics", type: "boolean", category: "Features", hint: "Allow adding chapter/topic markers to funnel videos", dbField: "feature_video_topics" },
+  { key: "feature_contact_form", label: "Contact Form", type: "boolean", category: "Features", hint: "Show contact info section in funnels", dbField: "feature_contact_form" },
+  { key: "feature_privacy_settings", label: "Privacy & Access Codes", type: "boolean", category: "Features", hint: "Allow private funnels with access codes", dbField: "feature_privacy_settings" },
   { key: "feature_lead_capture", label: "Lead Capture", type: "boolean", category: "Features", dbField: "feature_lead_capture" },
   { key: "feature_video_upload", label: "Video Upload", type: "boolean", category: "Features", dbField: "feature_video_upload" },
   { key: "feature_youtube_import", label: "YouTube Video Import", type: "boolean", category: "Features", dbField: "feature_youtube_import" },
