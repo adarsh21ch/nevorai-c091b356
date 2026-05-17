@@ -68,13 +68,17 @@ const ProfilePage = () => {
   const tier = plan.tier;
   const isPro = tier === "pro";
   const isBasic = tier === "basic";
-  const isTrial = tier === "trial" || (trial.subscriptionStatus === "trial" && !trial.isTrialExpired);
+  const trialDaysLeft = trial.daysRemaining ?? 0;
+  const isActiveTrial =
+    (tier === "trial" || trial.subscriptionStatus === "trial") &&
+    !trial.isTrialExpired &&
+    trialDaysLeft > 0;
   const planLabel = isPro
     ? "Pro Plan"
     : isBasic
     ? "Basic Plan"
-    : isTrial
-    ? `Trial · ${trial.daysRemaining ?? 0} days left`
+    : isActiveTrial
+    ? `Trial · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
     : "Free Plan";
 
   const accountItems = [
