@@ -22,13 +22,16 @@ const FALLBACKS: Record<
 
 const ORDER = ["story.skip", "story.no-skip", "story.unknown", "story.realtime", "story.clutter", "story.clean"] as const;
 
-export const StorySections = () => {
+type StoryId = (typeof ORDER)[number];
+
+export const StorySections = ({ ids }: { ids?: readonly StoryId[] } = {}) => {
   const { data } = useLandingContent();
   const map = data?.map ?? {};
+  const list = ids ?? ORDER;
 
   return (
     <>
-      {ORDER.map((id) => {
+      {list.map((id) => {
         const fb = FALLBACKS[id];
         const row = map[id];
         const title = row?.title ?? "";
