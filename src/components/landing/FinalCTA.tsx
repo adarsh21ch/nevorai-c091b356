@@ -11,11 +11,11 @@ const chips = [
 
 export const FinalCTA = () => {
   return (
-    <section className="py-12 sm:py-20 relative overflow-hidden bg-gradient-brand">
+    <section className="py-20 sm:py-32 relative overflow-hidden">
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
-        style={{ background: "radial-gradient(ellipse at top, rgba(255,255,255,0.18) 0%, transparent 60%)" }}
+        style={{ background: "radial-gradient(ellipse at center, rgba(249,115,22,0.10) 0%, transparent 60%)" }}
       />
       <div className="container-app relative z-10">
         <motion.div
