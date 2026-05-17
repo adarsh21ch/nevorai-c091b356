@@ -165,18 +165,7 @@ export function VideoPlayer({
     else v.pause();
   }, []);
 
-  const skip = useCallback(
-    (delta: number) => {
-      if (!allowSeek) return;
-      const v = videoRef.current;
-      if (!v) return;
-      let target = Math.max(0, Math.min(v.duration || 0, v.currentTime + delta));
-      v.currentTime = target;
-      setSeekFlash({ dir: delta < 0 ? "back" : "forward", key: Date.now() });
-      window.setTimeout(() => setSeekFlash(null), 500);
-    },
-    [allowSeek],
-  );
+
 
   const toggleMute = useCallback(() => {
     const v = videoRef.current;
