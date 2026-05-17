@@ -78,7 +78,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" },
       { title: "Nevorai — Share videos that get watched" },
       { name: "description", content: "The smarter way to share business videos. Know exactly who watched, when, and how much. Nevorai." },
       { name: "author", content: "Nevorai" },
