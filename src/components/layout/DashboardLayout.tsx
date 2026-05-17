@@ -25,7 +25,7 @@ const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Video, label: "My Videos", path: "/videos" },
   { icon: Zap, label: "Activity", path: "/insights" },
-  { icon: Layers, label: "My Funnels", path: "/funnels" },
+  { icon: Layers, label: "Tools", path: "/tools" },
 ];
 const tailNavItems = [
   { icon: Crown, label: "Upgrade to Pro", path: "/billing" },
