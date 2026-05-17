@@ -477,8 +477,9 @@ const VideosPage = () => {
         {/* Modals */}
         <VideoUploadModal
           open={uploadModalOpen}
-          onClose={() => setUploadModalOpen(false)}
+          onClose={() => { setUploadModalOpen(false); setPendingFile(null); }}
           onSuccess={invalidateVideos}
+          initialFile={pendingFile}
         />
 
         <VideoLinkModal
