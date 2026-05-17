@@ -73,9 +73,7 @@ const FORMAT_WARNING_MSG =
 const FORMAT_REJECT_MSG =
   "That doesn't look like a video file. Please pick an MP4, MOV, WEBM, M4V, MKV, or AVI — or convert it first at cloudconvert.com.";
 
-export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false }: Props) => {
-  // File-first flow: as soon as the modal opens with no file selected,
-  // trigger the native file picker so the user doesn't see an empty modal.
+export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false, initialFile = null }: Props) => {
   const autoPickRef = useRef(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -96,15 +94,22 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
   const [storageLimitOpen, setStorageLimitOpen] = useState(false);
   const storage = useStorageUsage();
 
-  // Auto-open file picker on first open with no file
+  // Hydrate from initialFile when modal opens with a preselected file
   useEffect(() => {
-    if (open && !file && !doneVideoId && !autoPickRef.current) {
+    if (open && initialFile && !file) {
+      setFile(initialFile);
+      if (!title) setTitle(initialFile.name.replace(/\.[^/.]+$/, ""));
+    }
+  }, [open, initialFile]);
+
+  // Fallback: if modal opens without a file, trigger native picker once
+  useEffect(() => {
+    if (open && !file && !initialFile && !doneVideoId && !autoPickRef.current) {
       autoPickRef.current = true;
-      // small delay so the dialog mounts before the picker
       setTimeout(() => fileRef.current?.click(), 80);
     }
     if (!open) autoPickRef.current = false;
-  }, [open, file, doneVideoId]);
+  }, [open, file, initialFile, doneVideoId]);
 
   const reset = () => {
     setFile(null);
