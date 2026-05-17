@@ -248,6 +248,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
             })}
           </div>
         </nav>
+        )}
       </div>
     </div>
   );
