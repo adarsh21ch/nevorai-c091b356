@@ -183,34 +183,42 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
         </aside>
 
         <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="sticky top-0 z-40 border-b border-border bg-card/85 backdrop-blur-sm md:hidden">
-            <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-              <div className="min-w-0 flex-1">
-                <Logo size="sm" showByline />
-              </div>
-              <div className="ml-2 flex shrink-0 items-center gap-1.5">
-                <Link
-                  to="/notifications"
-                  className="relative flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  <Bell size={20} />
-                  {unreadCount > 0 && (
-                    <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                      {unreadCount > 9 ? "9+" : unreadCount}
-                    </span>
-                  )}
-                </Link>
+          {!editorMode && (
+            <div className="sticky top-0 z-40 border-b border-border bg-card/85 backdrop-blur-sm md:hidden">
+              <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+                <div className="min-w-0 flex-1">
+                  <Logo size="sm" showByline />
+                </div>
+                <div className="ml-2 flex shrink-0 items-center gap-1.5">
+                  <Link
+                    to="/notifications"
+                    className="relative flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <Bell size={20} />
+                    {unreadCount > 0 && (
+                      <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
+                        {unreadCount > 9 ? "9+" : unreadCount}
+                      </span>
+                    )}
+                  </Link>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <TrialBanner />
-          <div className="gradient-bg-subtle flex-1 overflow-x-hidden overflow-y-auto px-3 pb-[calc(96px+env(safe-area-inset-bottom))] pt-3 sm:px-4 sm:pb-8 sm:pt-4 md:p-8">
+          <div className={cn(
+            "gradient-bg-subtle flex-1 overflow-x-hidden overflow-y-auto",
+            editorMode
+              ? "px-0 pt-0 pb-[env(safe-area-inset-bottom)] md:p-0"
+              : "px-3 pb-[calc(96px+env(safe-area-inset-bottom))] pt-3 sm:px-4 sm:pb-8 sm:pt-4 md:p-8"
+          )}>
             <div className="w-full min-w-0 max-w-full">{children}</div>
           </div>
         </main>
         {showTrialGate && <TrialExpiredGate trialDays={trialDays} />}
 
+        {!editorMode && (
         <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card/95 backdrop-blur-md md:hidden safe-area-pb shadow-[0_-2px_12px_rgba(0,0,0,0.08)]">
           <div className="grid grid-cols-5 items-end">
             {[
