@@ -952,7 +952,7 @@ const LandingPageEditor = () => {
   ) : undefined;
 
   return (
-    <DashboardLayout>
+    <DashboardLayout editorMode>
       <EditorScrollLayout sections={editorSections} header={headerNode} rightPane={rightPaneNode}>
         {WIZARD_STEPS.map((s, i) => (
           <EditorSectionBlock key={s.label} id={labelToId(s.label)}>
