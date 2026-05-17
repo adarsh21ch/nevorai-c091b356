@@ -8,6 +8,7 @@ import { WhoIsItFor } from "@/components/landing/WhoIsItFor";
 import { ResultsComparison } from "@/components/landing/ResultsComparison";
 import { ConversionCalculator } from "@/components/landing/ConversionCalculator";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { WhoUsesNevorai } from "@/components/landing/WhoUsesNevorai";
 import { EarlyAccess } from "@/components/landing/EarlyAccess";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { PricingSection } from "@/components/landing/PricingSection";
