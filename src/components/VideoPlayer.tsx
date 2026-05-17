@@ -83,18 +83,6 @@ function ControlButton({
   );
 }
 
-/** Skip 10s icon with "10" text overlay */
-function SkipIcon({ dir }: { dir: "back" | "forward" }) {
-  const Icon = dir === "back" ? RotateCcw : RotateCw;
-  return (
-    <span className="relative inline-flex items-center justify-center">
-      <Icon className="h-5 w-5 sm:h-5 sm:w-5" />
-      <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold leading-none pt-[1px] select-none pointer-events-none">
-        10
-      </span>
-    </span>
-  );
-}
 
 export function VideoPlayer({
   src,
