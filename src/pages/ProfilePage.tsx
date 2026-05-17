@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
-  Crown, ArrowRight, CreditCard, FileCheck, IndianRupee,
+  Crown, CreditCard, FileCheck, IndianRupee,
   Bell, Settings, Download, ChevronRight, ChevronDown, Pencil,
   Sun, Moon, HelpCircle, LogOut, Shield, Infinity as InfinityIcon,
 } from "lucide-react";
@@ -348,16 +348,7 @@ const ProfilePage = () => {
           Nevorai · v1.0 · Made with <span aria-hidden>❤️</span> in India
         </p>
 
-        {/* Upgrade CTA pinned at bottom for non-pro */}
-        {!isPro && (
-          <div className="fixed bottom-20 right-4 z-40 md:hidden">
-            <Link to="/pricing">
-              <Button variant="hero" size="sm" className="shadow-lg">
-                Upgrade <ArrowRight size={14} />
-              </Button>
-            </Link>
-          </div>
-        )}
+        {/* Floating Upgrade CTA removed — duplicate of inline "Upgrade for more storage" in StorageUsageCard */}
       </div>
     </DashboardLayout>
   );
