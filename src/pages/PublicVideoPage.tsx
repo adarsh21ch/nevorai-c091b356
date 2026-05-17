@@ -22,6 +22,10 @@ import {
   Sun,
   Moon,
   Maximize,
+  Copy,
+  X,
+  MessageCircle,
+  Twitter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
