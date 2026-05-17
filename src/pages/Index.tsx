@@ -40,7 +40,7 @@ const Index = () => {
   }
 
   return (
-    <div data-theme="dark" className="min-h-screen landing-page overflow-x-clip bg-hero-bg text-white">
+    <div data-theme="dark" className="min-h-screen landing-page landing-mesh-bg overflow-x-clip text-white">
       <Navbar />
       <HeroSection />
       <StorySections ids={["story.skip", "story.no-skip"]} />
