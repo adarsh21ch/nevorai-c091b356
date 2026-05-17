@@ -95,7 +95,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
   // Persist period
   useEffect(() => {
-    try { window.localStorage.setItem("insights:period", period); } catch {/* ignore */}
+    try { window.localStorage.setItem("insights:period:v2", period); } catch {/* ignore */}
   }, [period]);
 
   const start = periodStart(period);
