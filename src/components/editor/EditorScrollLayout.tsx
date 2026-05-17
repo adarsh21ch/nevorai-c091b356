@@ -118,14 +118,15 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
         <div className="flex-1 max-w-2xl min-w-0">
           {header}
 
-          {/* Mobile sticky chip strip */}
-          <div className="lg:hidden sticky top-[52px] z-20 -mx-3 sm:-mx-4 px-3 sm:px-4 py-2 bg-background/95 backdrop-blur border-b border-border mb-3">
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+          {/* Mobile sticky chip strip — sits flush below editor header */}
+          <div className="lg:hidden sticky top-0 z-20 px-3 sm:px-4 py-2 bg-background/95 backdrop-blur border-b border-border mb-3">
+            <div className="flex gap-1.5 overflow-x-auto no-scrollbar scroll-smooth">
               {sections.map((s, i) => {
                 const isActive = active === s.id;
                 return (
                   <button
                     key={s.id}
+                    ref={(el) => { chipRefs.current[s.id] = el; }}
                     type="button"
                     onClick={() => jumpTo(s.id)}
                     className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
