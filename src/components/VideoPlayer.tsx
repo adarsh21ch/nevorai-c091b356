@@ -123,7 +123,7 @@ export function VideoPlayer({
   const [canPiP, setCanPiP] = useState(false);
   const [canNativeShare, setCanNativeShare] = useState(false);
   const [hoverFrac, setHoverFrac] = useState<number | null>(null);
-  const [seekFlash, setSeekFlash] = useState<{ dir: "back" | "forward"; key: number } | null>(null);
+  
 
   useEffect(() => {
     setCanPiP(typeof document !== "undefined" && !!(document as any).pictureInPictureEnabled);
