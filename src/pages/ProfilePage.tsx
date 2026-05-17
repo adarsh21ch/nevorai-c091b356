@@ -23,6 +23,7 @@ import { useTrialStatus } from "@/hooks/useTrialStatus";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { sanitizeFields, normalizePhone } from "@/lib/sanitize";
 import { StorageUsageCard } from "@/components/StorageUsageCard";
+import { ProfilePhotoCropModal } from "@/components/ProfilePhotoCropModal";
 
 const ProfilePage = () => {
   useDocumentTitle("Profile");
