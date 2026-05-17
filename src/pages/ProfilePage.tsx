@@ -253,8 +253,37 @@ const ProfilePage = () => {
                   <div><Label className="text-xs">Company</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">WhatsApp</Label><Input value={form.whatsapp_number} onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">Instagram URL</Label><Input value={form.instagram_url} onChange={(e) => setForm({ ...form, instagram_url: e.target.value })} className="mt-1 bg-muted border-border" /></div>
+                  <div>
+                    <Label className="text-xs">Username</Label>
+                    <Input
+                      value={form.username}
+                      onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })}
+                      placeholder="yourname"
+                      maxLength={20}
+                      className="mt-1 bg-muted border-border"
+                    />
+                    {form.username && (
+                      <span className={`text-[10px] ${usernameStatus === "available" ? "text-success" : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-destructive" : "text-muted-foreground"}`}>
+                        {usernameStatus === "checking" && "Checking…"}
+                        {usernameStatus === "available" && "Available ✓"}
+                        {usernameStatus === "taken" && "Taken ✗"}
+                        {usernameStatus === "invalid" && "3–20 chars, a–z, 0–9, _"}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div><Label className="text-xs">Bio</Label><Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value.slice(0, 160) })} className="mt-1 bg-muted border-border" rows={2} maxLength={160} /><span className="text-[10px] text-muted-foreground">{form.bio.length}/160</span></div>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs">CTA Label</Label>
+                    <Input value={form.cta_label} maxLength={30} placeholder="e.g., Book a Call" onChange={(e) => setForm({ ...form, cta_label: e.target.value })} className="mt-1 bg-muted border-border" />
+                  </div>
+                  <div>
+                    <Label className="text-xs">CTA URL</Label>
+                    <Input value={form.cta_url} placeholder="https://…" onChange={(e) => setForm({ ...form, cta_url: e.target.value })} className="mt-1 bg-muted border-border" />
+                  </div>
+                </div>
+                <p className="text-[10px] text-muted-foreground -mt-2">Shown as a button on all your video previews.</p>
                 <Button variant="hero" size="sm" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Profile"}</Button>
               </div>
             </CollapsibleContent>
