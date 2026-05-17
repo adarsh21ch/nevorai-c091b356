@@ -29,19 +29,19 @@ export const HeroSection = () => {
             className="mb-6 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold tracking-wide uppercase text-brand-emerald"
           >
             <span className="flex h-2 w-2 rounded-full bg-brand-emerald animate-pulse" />
-            The YouTube Alternative for Business
+            Built for Creators Who Sell
           </motion.div>
 
           <div className="relative mb-6">
             <div className="hero-glow" aria-hidden="true" />
             <h1 className="font-heading font-extrabold tracking-tight text-white relative leading-[1.1]">
               <motion.span
-                className="block text-4xl sm:text-5xl md:text-7xl"
+                className="block text-4xl sm:text-5xl md:text-7xl text-white/70"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                Stop losing leads to
+                Same effort.
               </motion.span>
               <motion.span
                 className="block text-gradient-brand text-4xl sm:text-5xl md:text-7xl"
@@ -49,7 +49,7 @@ export const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                YouTube distractions.
+                Twice the conversion.
               </motion.span>
             </h1>
           </div>
@@ -60,9 +60,9 @@ export const HeroSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            Host unskippable sales videos that actually convert. Built for{" "}
-            <span className="text-white font-medium">Indian coaches & entrepreneurs</span>{" "}
-            who value their prospects' attention.
+            The video platform built for{" "}
+            <span className="text-white font-medium">creators who sell</span>.
+            Skip-protection, viewer tracking, and conversion insights — on every video you share.
           </motion.p>
 
           <motion.div
@@ -85,6 +85,15 @@ export const HeroSection = () => {
               See How It Works
             </a>
           </motion.div>
+
+          <motion.p
+            className="-mt-8 mb-14 text-xs text-white/50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.75 }}
+          >
+            No credit card. 1 GB free forever. Setup in 2 minutes.
+          </motion.p>
 
           <motion.div
             className="w-full"
