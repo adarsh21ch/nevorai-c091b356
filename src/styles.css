@@ -377,3 +377,11 @@ a:active,
     transform: none;
   }
 }
+
+/* Smooth scroll + sticky header offset for anchor navigation */
+html {
+  scroll-behavior: smooth;
+}
+section[id] {
+  scroll-margin-top: 80px;
+}
