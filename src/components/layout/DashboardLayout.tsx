@@ -20,13 +20,15 @@ import { usePlan } from "@/hooks/usePlan";
 // SupportFAB removed from global mount — moved to Profile page
 import { useRouter } from "@tanstack/react-router";
 
+import { FEATURE_FLAGS } from "@/config/featureFlags";
+
 const navItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Video, label: "My Videos", path: "/videos" },
   { icon: Zap, label: "Activity", path: "/insights" },
   { icon: Layers, label: "My Funnels", path: "/funnels" },
-  { icon: FileText, label: "Landing Pages", path: "/landing-pages" },
-  { icon: Radio, label: "Live", path: "/live" },
+  ...(FEATURE_FLAGS.LANDING_PAGES_ENABLED ? [{ icon: FileText, label: "Landing Pages", path: "/landing-pages" }] : []),
+  ...(FEATURE_FLAGS.LIVE_ENABLED ? [{ icon: Radio, label: "Live", path: "/live" }] : []),
   { icon: Crown, label: "Upgrade to Pro", path: "/billing" },
   { icon: IndianRupee, label: "Payments", path: "/payments" },
 ];
