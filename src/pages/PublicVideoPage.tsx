@@ -81,7 +81,7 @@ const PublicVideoPage = () => {
       if (!video?.owner_id) return null;
       const { data, error } = await (supabase as any)
         .from("profiles")
-        .select("id, full_name, avatar_url, bio, is_verified")
+        .select("id, full_name, avatar_url, bio, is_verified, username, cta_label, cta_url")
         .eq("id", video.owner_id)
         .maybeSingle();
       if (error) return null;
@@ -92,6 +92,9 @@ const PublicVideoPage = () => {
             avatar_url: string | null;
             bio: string | null;
             is_verified: boolean | null;
+            username: string | null;
+            cta_label: string | null;
+            cta_url: string | null;
           }
         | null;
     },
