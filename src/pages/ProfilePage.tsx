@@ -16,6 +16,7 @@ import {
 import { useTheme } from "@/hooks/useTheme";
 import { Switch } from "@/components/ui/switch";
 import { Link } from "@/lib/router-compat";
+import { useRouter } from "@tanstack/react-router";
 import { usePlan } from "@/hooks/usePlan";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useTrialStatus } from "@/hooks/useTrialStatus";
@@ -30,7 +31,17 @@ const ProfilePage = () => {
   const { theme, toggleTheme } = useTheme();
   const { isAdmin } = useAdmin();
   const trial = useTrialStatus();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  // Prefetch likely-next routes from Profile so first-tap is instant.
+  useEffect(() => {
+    const paths = ["/billing", "/payments", "/pricing", "/kyc", "/notifications", "/settings", "/help", "/install"];
+    const run = () => paths.forEach((p) => { try { void router.preloadRoute({ to: p as any }); } catch {} });
+    const ric = (typeof window !== "undefined" ? (window as any).requestIdleCallback : null) as
+      | ((cb: () => void, opts?: { timeout: number }) => number) | null;
+    if (ric) ric(run, { timeout: 1500 }); else setTimeout(run, 200);
+  }, [router]);
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({
     full_name: "", phone: "", city: "", bio: "", company: "",
@@ -68,13 +79,17 @@ const ProfilePage = () => {
   const tier = plan.tier;
   const isPro = tier === "pro";
   const isBasic = tier === "basic";
-  const isTrial = tier === "trial" || (trial.subscriptionStatus === "trial" && !trial.isTrialExpired);
+  const trialDaysLeft = trial.daysRemaining ?? 0;
+  const isActiveTrial =
+    (tier === "trial" || trial.subscriptionStatus === "trial") &&
+    !trial.isTrialExpired &&
+    trialDaysLeft > 0;
   const planLabel = isPro
     ? "Pro Plan"
     : isBasic
     ? "Basic Plan"
-    : isTrial
-    ? `Trial · ${trial.daysRemaining ?? 0} days left`
+    : isActiveTrial
+    ? `Trial · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
     : "Free Plan";
 
   const accountItems = [
