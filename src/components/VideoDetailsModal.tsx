@@ -161,6 +161,28 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
               )}
             </div>
 
+            {/* Show upload date toggle */}
+            <div className="rounded-lg bg-muted/40 border border-border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar size={13} className="text-primary shrink-0" />
+                    <Label className="text-sm font-medium cursor-pointer" htmlFor="show-date">
+                      Show upload date on public page
+                    </Label>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                    When disabled, viewers won't see when the video was uploaded.
+                  </p>
+                </div>
+                <Switch
+                  id="show-date"
+                  checked={showUploadDate}
+                  onCheckedChange={setShowUploadDate}
+                />
+              </div>
+            </div>
+
             <div className="flex gap-2 pt-2">
               <Button variant="outline" onClick={onClose} className="flex-1" disabled={saving}>
                 Cancel
