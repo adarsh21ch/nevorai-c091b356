@@ -49,6 +49,7 @@ const Index = () => {
       <ResultsComparison />
       <ConversionCalculator />
       <FeaturesSection />
+      <WhoUsesNevorai />
       <EarlyAccess />
       <Testimonials />
       <PricingSection />
