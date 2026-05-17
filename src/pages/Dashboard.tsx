@@ -155,7 +155,7 @@ const Dashboard = () => {
     );
   }
 
-  const totalViews = funnels.reduce((a, f) => a + (f.total_views || 0), 0);
+  void leadCount; // referenced by query enabled chain only
 
   return (
     <DashboardLayout>
