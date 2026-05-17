@@ -23,6 +23,7 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [allowSeek, setAllowSeek] = useState(true);
+  const [showUploadDate, setShowUploadDate] = useState(true);
   const [hydrating, setHydrating] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSkipInfo, setShowSkipInfo] = useState(false);
@@ -34,12 +35,13 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
     (async () => {
       const { data } = await (supabase as any)
         .from("video_assets")
-        .select("title, description, allow_seek")
+        .select("title, description, allow_seek, show_upload_date")
         .eq("id", videoId)
         .maybeSingle();
       setTitle(data?.title || "");
       setDescription(data?.description || "");
       setAllowSeek(data?.allow_seek !== false);
+      setShowUploadDate(data?.show_upload_date !== false);
       setHydrating(false);
     })();
   }, [open, videoId]);
