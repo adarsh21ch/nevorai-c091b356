@@ -17,7 +17,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6 }}
-            className="mb-8"
+            className="mb-8 hero-logo-halo"
           >
             <AnimatedLogo3D />
           </motion.div>
