@@ -186,8 +186,18 @@ const ProfilePage = () => {
         {/* PROFILE HEADER */}
         <div className="premium-card p-5">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/30 flex items-center justify-center shrink-0">
-              <span className="text-xl font-heading font-bold text-primary">{initials}</span>
+            <div className="relative shrink-0">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-xl font-heading font-bold text-primary">{initials}</span>
+                )}
+              </div>
+              <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md hover:scale-105 transition-transform" title="Change photo">
+                <Pencil size={12} />
+                <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onPickPhoto} />
+              </label>
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="font-heading font-bold text-lg truncate">{profile?.full_name || "User"}</h2>
@@ -197,9 +207,23 @@ const ProfilePage = () => {
                 <span className="text-[11px] font-semibold text-primary">{planLabel}</span>
                 {isPro && <InfinityIcon size={12} className="text-primary" />}
               </div>
+              {avatarUrl && (
+                <button onClick={removePhoto} className="block mt-1.5 text-[11px] text-muted-foreground hover:text-destructive underline">
+                  Remove photo
+                </button>
+              )}
             </div>
           </div>
         </div>
+        {cropFile && user && (
+          <ProfilePhotoCropModal
+            open={!!cropFile}
+            onClose={() => setCropFile(null)}
+            imageSrc={cropFile}
+            userId={user.id}
+            onSaved={(url) => { setAvatarUrl(url); refreshProfile(); }}
+          />
+        )}
 
         {/* ACCOUNT */}
         <div className="premium-card p-2 space-y-0.5">
