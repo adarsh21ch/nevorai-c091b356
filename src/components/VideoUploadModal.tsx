@@ -275,49 +275,12 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
         </DialogHeader>
 
         {doneVideoId ? (
-          <div className="space-y-4">
-            <div className="flex items-center gap-3 rounded-xl border border-success/30 bg-success/10 p-3">
-              <CheckCircle2 size={20} className="text-success shrink-0" />
-              <p className="text-sm">
-                Your video is uploaded. Share the link, or use it in a funnel, landing page, or live session.
-              </p>
-            </div>
-
-            <div>
-              <Label className="text-xs">Public link</Label>
-              <div className="mt-1.5 flex gap-2">
-                <Input readOnly value={publicUrl} className="bg-muted border-border text-xs" />
-                <Button variant="outline" size="icon" onClick={copyDoneLink}><Copy size={14} /></Button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <WhatsAppShareButton url={publicUrl} className="w-full" />
-              <a href={publicUrl} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="w-full"><ExternalLink size={14} /> Open</Button>
-              </a>
-              <Link to={`/videos/${doneVideoId}` as any} onClick={finishAndClose}>
-                <Button variant="outline" className="w-full"><FileVideo size={14} /> Edit</Button>
-              </Link>
-            </div>
-
-            <div className="border-t border-border pt-3">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Use this video in</p>
-              <div className="grid grid-cols-3 gap-2">
-                <Link to={`/funnels/create?videoId=${doneVideoId}` as any} onClick={finishAndClose}>
-                  <Button variant="hero" className="w-full"><Layers size={14} /> Funnel</Button>
-                </Link>
-                <Link to={`/landing-pages/create?videoId=${doneVideoId}` as any} onClick={finishAndClose}>
-                  <Button variant="outline" className="w-full"><FileText size={14} /> LP</Button>
-                </Link>
-                <Link to={`/live?videoId=${doneVideoId}` as any} onClick={finishAndClose}>
-                  <Button variant="outline" className="w-full"><Radio size={14} /> Live</Button>
-                </Link>
-              </div>
-            </div>
-
-            <Button variant="ghost" className="w-full" onClick={finishAndClose}>Done</Button>
-          </div>
+          <DoneStep
+            videoId={doneVideoId}
+            publicUrl={publicUrl}
+            onCopy={copyDoneLink}
+            onClose={finishAndClose}
+          />
         ) : (
         <div className="space-y-4">
           {/* Pro Tip collapsible */}
