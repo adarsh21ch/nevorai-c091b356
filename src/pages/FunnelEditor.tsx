@@ -1290,7 +1290,7 @@ const FunnelEditor = () => {
   }
 
   const headerNode = (
-    <div className="sticky top-14 lg:top-0 z-30 bg-background/95 backdrop-blur -mx-4 px-4 py-3 mb-4 border-b border-border flex items-center justify-between gap-2">
+    <div className="sticky top-0 z-30 bg-background/95 backdrop-blur -mx-4 px-4 py-3 mb-4 border-b border-border flex items-center justify-between gap-2">
       <div className="flex-1 min-w-0">
         <h1 className="text-lg sm:text-xl font-heading font-bold truncate">{funnel.title || "New Funnel"}</h1>
         {isAutoSaving ? (
