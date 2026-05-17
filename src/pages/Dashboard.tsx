@@ -40,9 +40,22 @@ const Dashboard = () => {
   useDocumentTitle("Dashboard");
   const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const monthly = useMonthlyViews();
-  const daily = useDailyViews();
+  const { plan } = usePlan();
   const { hasVideos, latestVideo, isLoading: videosLoading } = useHasVideos();
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
+  const isFree = !plan.isPaid && plan.tier !== "trial";
+
+  const openUploadFlow = () => uploadInputRef.current?.click();
+  const handleUploadPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null;
+    e.target.value = "";
+    if (!f) return;
+    setPendingFile(f);
+    setUploadOpen(true);
+  };
+
 
   // ALL hooks must be called unconditionally before any early return.
   // Moving these above the auth/onboarding gates fixes a Rules-of-Hooks
