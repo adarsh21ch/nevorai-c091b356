@@ -1,4 +1,4 @@
-import { Link as CompatLink, useLocation, useNavigate } from "@/lib/router-compat";
+import { useLocation, useNavigate } from "@/lib/router-compat";
 import { Link } from "@tanstack/react-router";
 import { Logo } from "@/components/landing/Logo";
 import {
