@@ -26,6 +26,7 @@ interface Props {
   onClose: () => void;
   onSuccess: (videoId?: string) => void;
   skipStorageCheck?: boolean;
+  initialFile?: File | null;
 }
 
 // MP4 = best path. MOV/WEBM = supported but soft-warned. M4V/MKV/AVI =
