@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useNavigate } from "@/lib/router-compat";
 import {
   Radio, Plus, Calendar, Users, Clock, Eye, Copy, Trash2, Video, Globe, IndianRupee, X,
@@ -224,6 +224,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       if (error) throw error;
       return data || [];
     },
+    placeholderData: keepPreviousData,
     enabled: !!user?.id,
     refetchInterval: 60_000,
   });

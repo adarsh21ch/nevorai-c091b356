@@ -1,7 +1,7 @@
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Bell, Users, IndianRupee, Check, Shield, Radio, Video, Megaphone } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
@@ -22,6 +22,7 @@ const NotificationsPage = () => {
       const { data } = await supabase.from("notifications").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(50);
       return data || [];
     },
+    placeholderData: keepPreviousData,
     enabled: !!user,
   });
 

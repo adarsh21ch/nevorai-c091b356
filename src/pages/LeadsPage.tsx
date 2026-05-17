@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Avatar } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -89,6 +89,7 @@ const LeadsPage = () => {
         .order("submitted_at", { ascending: false });
       return data || [];
     },
+    placeholderData: keepPreviousData,
     enabled: (funnels as any[]).length > 0,
   });
 

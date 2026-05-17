@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
@@ -40,6 +40,7 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
       if (error) throw error;
       return data || [];
     },
+    placeholderData: keepPreviousData,
     enabled: !!user?.id,
   });
 

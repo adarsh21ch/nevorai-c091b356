@@ -2,7 +2,7 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Loader2, Settings, Play, MoreVertical, Users } from "lucide-react";
@@ -77,6 +77,7 @@ const VideosPage = () => {
       const { data } = await supabase.from("video_assets").select("*").eq("owner_id", user!.id).order("created_at", { ascending: false });
       return data || [];
     },
+    placeholderData: keepPreviousData,
     enabled: !!user?.id,
   });
 
@@ -89,6 +90,7 @@ const VideosPage = () => {
       const { data } = await supabase.from("video_assets").select("*").in("id", videoIds);
       return data || [];
     },
+    placeholderData: keepPreviousData,
     enabled: !!user?.id,
   });
 
