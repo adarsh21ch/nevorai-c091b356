@@ -290,9 +290,9 @@ const PublicVideoPage = () => {
               src={video.public_url}
               controls
               controlsList={
-                `nofullscreen ${video.allow_seek === false ? "nodownload noplaybackrate " : ""}${
+                `${video.allow_seek === false ? "nodownload noplaybackrate " : ""}${
                   video.allow_playback_speed === false ? "noplaybackrate" : ""
-                }`.trim()
+                }`.trim() || undefined
               }
               autoPlay
               muted
