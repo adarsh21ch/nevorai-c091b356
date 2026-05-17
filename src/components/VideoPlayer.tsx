@@ -358,9 +358,9 @@ export function VideoPlayer({
     return Volume2;
   }, [muted, volume]);
 
-  // Sizes scale up in fullscreen
-  const barH = isFs ? "h-16" : isMobile ? "h-16" : "h-14";
-  const gradH = isFs ? "h-40" : "h-28 sm:h-32";
+  // Sizes scale up in fullscreen. Control bar is kept tight to the progress bar.
+  const barH = isFs ? "h-14" : isMobile ? "h-12" : "h-11";
+  const gradH = isFs ? "h-40" : "h-24 sm:h-28";
 
   return (
     <div
@@ -503,7 +503,7 @@ export function VideoPlayer({
           <div
             ref={progressRef}
             className={cn(
-              "relative w-full group/seek py-1.5 sm:py-2",
+              "relative w-full group/seek py-1 sm:py-1",
               allowSeek ? "cursor-pointer" : "cursor-default",
             )}
             onClick={(e) => {

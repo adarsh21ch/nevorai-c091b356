@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Settings, Info, FastForward } from "lucide-react";
+import { Loader2, Settings, Info, FastForward, Calendar } from "lucide-react";
 import { sanitizeText } from "@/lib/sanitize";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -23,6 +23,7 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [allowSeek, setAllowSeek] = useState(true);
+  const [showUploadDate, setShowUploadDate] = useState(true);
   const [hydrating, setHydrating] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSkipInfo, setShowSkipInfo] = useState(false);
@@ -34,12 +35,13 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
     (async () => {
       const { data } = await (supabase as any)
         .from("video_assets")
-        .select("title, description, allow_seek")
+        .select("*")
         .eq("id", videoId)
         .maybeSingle();
       setTitle(data?.title || "");
       setDescription(data?.description || "");
       setAllowSeek(data?.allow_seek !== false);
+      setShowUploadDate(data?.show_upload_date !== false);
       setHydrating(false);
     })();
   }, [open, videoId]);
@@ -56,11 +58,21 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
         title: cleanTitle,
         description: description.trim() || null,
         allow_seek: allowSeek,
+        show_upload_date: showUploadDate,
       };
-      const { error } = await (supabase as any)
+      let { error } = await (supabase as any)
         .from("video_assets")
         .update(payload)
         .eq("id", videoId);
+      if (error && /show_upload_date/i.test(error.message || "")) {
+        // Column not yet migrated — retry without it.
+        const { show_upload_date: _omit, ...fallback } = payload;
+        const retry = await (supabase as any)
+          .from("video_assets")
+          .update(fallback)
+          .eq("id", videoId);
+        error = retry.error;
+      }
       if (error) throw error;
       toast.success("Video updated");
       onSuccess();
@@ -156,6 +168,28 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
                   </button>
                 </div>
               )}
+            </div>
+
+            {/* Show upload date toggle */}
+            <div className="rounded-lg bg-muted/40 border border-border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <Calendar size={13} className="text-primary shrink-0" />
+                    <Label className="text-sm font-medium cursor-pointer" htmlFor="show-date">
+                      Show upload date on public page
+                    </Label>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                    When disabled, viewers won't see when the video was uploaded.
+                  </p>
+                </div>
+                <Switch
+                  id="show-date"
+                  checked={showUploadDate}
+                  onCheckedChange={setShowUploadDate}
+                />
+              </div>
             </div>
 
             <div className="flex gap-2 pt-2">
