@@ -73,6 +73,9 @@ const FORMAT_REJECT_MSG =
   "That doesn't look like a video file. Please pick an MP4, MOV, WEBM, M4V, MKV, or AVI — or convert it first at cloudconvert.com.";
 
 export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false }: Props) => {
+  // File-first flow: as soon as the modal opens with no file selected,
+  // trigger the native file picker so the user doesn't see an empty modal.
+  const autoPickRef = useRef(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
