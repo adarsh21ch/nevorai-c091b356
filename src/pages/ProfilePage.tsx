@@ -300,8 +300,8 @@ const ProfilePage = () => {
           <SectionLabel>Preferences</SectionLabel>
           <div className="flex items-center justify-between rounded-lg px-4 py-2.5">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                {theme === "dark" ? <Moon size={14} className="text-primary" /> : <Sun size={14} className="text-primary" />}
+              <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                {theme === "dark" ? <Moon size={14} className="text-muted-foreground" /> : <Sun size={14} className="text-muted-foreground" />}
               </div>
               <div>
                 <p className="text-sm font-medium">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
