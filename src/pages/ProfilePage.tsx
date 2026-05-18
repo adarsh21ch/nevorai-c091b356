@@ -188,11 +188,11 @@ const ProfilePage = () => {
         <div className="premium-card p-5">
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
+              <div className="w-16 h-16 rounded-full bg-foreground border-2 border-foreground flex items-center justify-center overflow-hidden">
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <span className="text-xl font-heading font-bold text-primary">{initials}</span>
+                  <span className="text-xl font-heading font-bold text-background">{initials}</span>
                 )}
               </div>
               <label className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center cursor-pointer shadow-md hover:scale-105 transition-transform" title="Change photo">
