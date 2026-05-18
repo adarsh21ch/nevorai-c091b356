@@ -489,8 +489,10 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       type="button"
       onClick={() => setPeriod(p)}
       className={cn(
-        "px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors whitespace-nowrap",
-        period === p ? "bg-primary text-primary-foreground border-primary" : "bg-background text-muted-foreground border-border hover:text-foreground",
+        "rounded-full px-3.5 py-1 text-[13px] transition-colors whitespace-nowrap",
+        period === p
+          ? "bg-foreground text-background font-medium"
+          : "bg-transparent text-muted-foreground hover:text-foreground font-normal",
       )}
     >
       {PERIOD_LABELS[p]}
@@ -499,8 +501,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
   const content = (
     <div className="space-y-5">
-      {/* Sticky header — flush under top bar, opaque, full-bleed */}
-      <div className="sticky top-0 z-20 -mt-3 sm:-mt-4 md:-mt-8 -mx-3 sm:-mx-4 md:-mx-8 px-3 sm:px-4 md:px-8 pt-3 sm:pt-4 pb-3 bg-background border-b border-border shadow-sm">
+      {/* Page header — flush at top of content area */}
+      <div>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
@@ -510,7 +512,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
             <p className="text-xs text-muted-foreground mt-0.5">{pageSubtitle}</p>
           </div>
         </div>
-        <div className="mt-3 flex items-center gap-1.5 overflow-x-auto">
+        <div className="mt-3 flex items-center gap-1 overflow-x-auto">
           <PeriodChip p="today" />
           <PeriodChip p="7d" />
           <PeriodChip p="30d" />
@@ -519,15 +521,26 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       </div>
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-        <div className="overflow-x-auto  -mx-4 px-4">
-          <TabsList className="w-full sm:w-auto">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="videos">Videos</TabsTrigger>
-            <TabsTrigger value="funnels">Funnels</TabsTrigger>
-            {features.landingPages && <TabsTrigger value="landing-pages">Landing</TabsTrigger>}
-            {features.goLive && <TabsTrigger value="live">Live</TabsTrigger>}
+        <div className="overflow-x-auto -mx-4 px-4">
+          <TabsList className="inline-flex h-auto items-center gap-1 rounded-lg bg-transparent p-0">
+            {[
+              { v: "overview", l: "Overview" },
+              { v: "videos", l: "Videos" },
+              { v: "funnels", l: "Funnels" },
+              ...(features.landingPages ? [{ v: "landing-pages", l: "Landing" }] : []),
+              ...(features.goLive ? [{ v: "live", l: "Live" }] : []),
+            ].map((t) => (
+              <TabsTrigger
+                key={t.v}
+                value={t.v}
+                className="rounded-lg px-3 py-1 text-[13px] font-normal text-muted-foreground data-[state=active]:bg-muted data-[state=active]:text-foreground data-[state=active]:font-medium data-[state=active]:shadow-none"
+              >
+                {t.l}
+              </TabsTrigger>
+            ))}
           </TabsList>
         </div>
+
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="space-y-5">
