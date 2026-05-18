@@ -571,9 +571,9 @@ section[id] {
   --halo-color: 255,255,255;       /* white in dark mode */
 }
 :root {
-  --accent-cta: #F97316;
-  --accent-cta-hover: #EA580C;
-  --accent-cta-glow: rgba(249,115,22,0.4);
+  --accent-cta: var(--text-primary);
+  --accent-cta-hover: var(--text-primary);
+  --accent-cta-glow: rgba(0,0,0,0.25);
 }
 
 /* Landing scope wrapper */
