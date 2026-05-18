@@ -248,7 +248,7 @@ img, video, iframe { max-width: 100%; }
 
 /* Consistent keyboard focus ring across the app */
 *:focus-visible {
-  outline: 2px solid color-mix(in oklab, #F97316 75%, transparent);
+  outline: 2px solid hsl(var(--foreground) / 0.55);
   outline-offset: 2px;
   border-radius: 4px;
 }
