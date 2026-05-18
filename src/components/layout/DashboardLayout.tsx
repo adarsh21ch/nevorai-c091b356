@@ -24,7 +24,7 @@ import { useRouter } from "@tanstack/react-router";
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Video, label: "My Videos", path: "/videos" },
-  { icon: Zap, label: "Activity", path: "/insights" },
+  { icon: Activity, label: "Activity", path: "/insights" },
   { icon: Layers, label: "Tools", path: "/tools" },
 ];
 const tailNavItems = [
