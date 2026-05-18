@@ -1,4 +1,5 @@
-import logoImg from "@/assets/nevorai-mark.png";
+import logoDark from "@/assets/nevorai-mark.png";
+import logoLight from "@/assets/nevorai-mark-light.png";
 
 interface LogoProps {
   size?: "sm" | "default" | "lg";
@@ -16,7 +17,20 @@ export const Logo = ({ size = "default", showByline = false, variant = "short" }
 
   return (
     <div className="flex items-center gap-2">
-      <img src={logoImg} alt="Nevorai" className={`${s.img} object-contain`} />
+      {/* Theme-aware mark: black on light bg, white on dark bg */}
+      <picture className={`${s.img} relative inline-block`}>
+        <img
+          src={logoDark}
+          alt="Nevorai"
+          className={`${s.img} object-contain block dark:hidden`}
+        />
+        <img
+          src={logoLight}
+          alt=""
+          aria-hidden="true"
+          className={`${s.img} object-contain hidden dark:block`}
+        />
+      </picture>
       <div className="flex flex-col" style={{ lineHeight: 1 }}>
         <div className={`flex items-baseline ${s.text}`} style={{ lineHeight: 1, color: "hsl(var(--foreground))" }}>
           <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: "-0.02em", fontWeight: 700 }}>
