@@ -791,14 +791,10 @@ section[id] {
   background-image: none !important;
 }
 
-/* Section-level colored gradients */
-.landing-page section[class*="bg-gradient-to-"],
-.landing-page section[class*="from-emerald"],
-.landing-page section[class*="from-rose"],
-.landing-page section[class*="from-red"],
-.landing-page section[class*="from-orange"],
-.landing-page section[class*="from-amber"] {
-  background: var(--bg-base) !important;
+/* Colored section / panel gradients (any element, not just <section>) */
+.landing-page :where([class*="bg-gradient-to-"]):not(.btn-saffron-premium):not(.btn-saffron):not([class*="btn-saffron"]),
+.landing-page :where([class*="from-emerald"], [class*="from-rose"], [class*="from-red"], [class*="from-orange"], [class*="from-amber"], [class*="from-blue"], [class*="from-cyan"], [class*="from-green"], [class*="from-teal"], [class*="from-yellow"], [class*="from-indigo"], [class*="from-violet"], [class*="from-purple"], [class*="from-pink"]):not([class*="btn-saffron"]) {
+  background: var(--bg-elevated) !important;
   background-image: none !important;
 }
 
