@@ -69,92 +69,93 @@
   --color-border-strong: hsl(var(--border-strong));
 }
 
-/* === LIGHT MODE (default) — pure white + pure black + sky blue === */
+/* === LIGHT MODE (default) — monochrome + saffron accent === */
 :root,
 [data-theme="light"] {
   --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
+  --foreground: 0 0% 4%;
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
+  --card-foreground: 0 0% 4%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 0%;
-  --primary: 221 83% 53%;
+  --popover-foreground: 0 0% 4%;
+  /* Primary = saffron #F97316 */
+  --primary: 25 95% 53%;
   --primary-foreground: 0 0% 100%;
-  --primary-subtle: 214 95% 93%;
-  --primary-text: 224 76% 38%;
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 0%;
-  --muted: 0 0% 96%;
+  --primary-subtle: 26 100% 96%;
+  --primary-text: 21 88% 40%;
+  --secondary: 0 0% 97%;
+  --secondary-foreground: 0 0% 4%;
+  --muted: 0 0% 95%;
   --muted-foreground: 0 0% 40%;
-  --accent: 214 95% 93%;
-  --accent-foreground: 224 76% 38%;
-  --destructive: 0 84% 50%;
+  --accent: 26 100% 96%;
+  --accent-foreground: 21 88% 40%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --success: 142 71% 35%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 45%;
   --warning-foreground: 0 0% 0%;
-  --border: 0 0% 88%;
-  --input: 0 0% 88%;
-  --ring: 221 83% 53%;
+  --border: 0 0% 91%;
+  --input: 0 0% 91%;
+  --ring: 25 95% 53%;
   --radius: 0.625rem;
 
   --surface-1: 0 0% 100%;
   --surface-2: 0 0% 97%;
-  --surface-glass: 0 0% 0%;
-  --border-subtle: 0 0% 93%;
-  --border-strong: 0 0% 80%;
+  --surface-glass: 0 0% 4%;
+  --border-subtle: 0 0% 94%;
+  --border-strong: 0 0% 83%;
 
-  --sidebar-background: 0 0% 100%;
-  --sidebar-foreground: 0 0% 0%;
-  --sidebar-border: 0 0% 88%;
-  --sidebar-primary: 221 83% 53%;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 0 0% 4%;
+  --sidebar-border: 0 0% 91%;
+  --sidebar-primary: 25 95% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 0 0% 95%;
-  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-accent-foreground: 0 0% 4%;
 }
 
-/* === DARK MODE — pure black + pure white === */
+/* === DARK MODE — pure black + saffron accent === */
 [data-theme="dark"] {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  --card: 0 0% 5%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 5%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 217 91% 60%;
-  --primary-foreground: 0 0% 0%;
-  --primary-subtle: 224 76% 16%;
-  --primary-text: 213 94% 78%;
-  --secondary: 0 0% 10%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 10%;
-  --muted-foreground: 0 0% 65%;
-  --accent: 224 76% 22%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
+  --background: 0 0% 4%;
+  --foreground: 0 0% 96%;
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 96%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 25 95% 53%;
+  --primary-foreground: 0 0% 100%;
+  --primary-subtle: 22 60% 10%;
+  --primary-text: 27 96% 61%;
+  --secondary: 0 0% 7%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 0 0% 9%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 22 60% 10%;
+  --accent-foreground: 27 96% 61%;
+  --destructive: 0 72% 55%;
   --destructive-foreground: 0 0% 100%;
   --success: 142 71% 45%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 55%;
   --warning-foreground: 0 0% 0%;
-  --border: 0 0% 18%;
-  --input: 0 0% 18%;
-  --ring: 217 91% 60%;
+  --border: 0 0% 16%;
+  --input: 0 0% 16%;
+  --ring: 25 95% 53%;
 
-  --surface-1: 0 0% 5%;
-  --surface-2: 0 0% 9%;
+  --surface-1: 0 0% 9%;
+  --surface-2: 0 0% 7%;
   --surface-glass: 0 0% 100%;
-  --border-subtle: 0 0% 15%;
-  --border-strong: 0 0% 25%;
+  --border-subtle: 0 0% 12%;
+  --border-strong: 0 0% 22%;
 
-  --sidebar-background: 0 0% 3%;
-  --sidebar-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 15%;
-  --sidebar-primary: 217 91% 60%;
-  --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 0 0% 10%;
-  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-background: 0 0% 4%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 0 0% 16%;
+  --sidebar-primary: 25 95% 53%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 9%;
+  --sidebar-accent-foreground: 0 0% 96%;
 }
 
 [data-theme="light"] .gradient-bg-subtle {
