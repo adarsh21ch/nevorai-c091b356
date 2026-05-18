@@ -198,6 +198,13 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
                   <Logo size="sm" showByline />
                 </div>
                 <div className="ml-2 flex shrink-0 items-center gap-1.5">
+                  <button
+                    onClick={toggleTheme}
+                    aria-label="Toggle theme"
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                  </button>
                   <Link
                     to="/notifications"
                     className="relative flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
