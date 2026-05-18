@@ -320,12 +320,11 @@ const VideosPage = () => {
                   >
                     <VideoThumbnail thumbnailUrl={v.thumbnail_url} videoUrl={v.public_url} title={title} />
                     {isReady && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/45 transition-colors">
-                        <span className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-full bg-white/95 shadow-lg ring-1 ring-black/10 transition-transform group-hover:scale-110 group-active:scale-95">
-                          <Play size={18} className="text-black translate-x-[1px]" fill="currentColor" />
-                        </span>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/30 transition-colors">
+                        <Play size={28} className="text-white/95 drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] transition-transform group-hover:scale-110 group-active:scale-95" fill="currentColor" />
                       </div>
                     )}
+
                     {dur && (
                       <span className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">{dur}</span>
                     )}
