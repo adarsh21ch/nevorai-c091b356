@@ -36,7 +36,7 @@ export const Footer = () => {
       <div className="container-app">
         <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 sm:gap-10 mb-10 sm:mb-12">
           <div>
-            <Logo variant="full" size="sm" />
+            <Logo variant="full" size="sm" tone="light" />
             <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
               Nevorai helps you control follow-up through video — so prospects actually watch, understand, and convert.
             </p>
