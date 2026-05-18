@@ -170,8 +170,8 @@ const ProfilePage = () => {
   const Row = ({ icon: Icon, label, path, desc, danger }: any) => (
     <Link to={path}
       className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${danger ? "bg-destructive/10" : "bg-primary/10"}`}>
-        <Icon size={14} className={danger ? "text-destructive" : "text-primary"} />
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${danger ? "bg-destructive/10" : "bg-muted"}`}>
+        <Icon size={14} className={danger ? "text-destructive" : "text-muted-foreground"} />
       </div>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium ${danger ? "text-destructive" : ""}`}>{label}</p>
