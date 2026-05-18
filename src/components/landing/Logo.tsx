@@ -15,10 +15,12 @@ interface LogoProps {
 }
 
 export const Logo = ({ size = "default", showByline = false, variant = "short", tone = "auto" }: LogoProps) => {
+  // Mark height roughly matches the cap+ascender height of the wordmark so
+  // the dot and the text top sit on the same optical line.
   const sizes = {
-    sm: { img: "w-8 h-8", text: "text-[16px]", byline: "text-[9px]" },
-    default: { img: "w-10 h-10", text: "text-[20px]", byline: "text-[10px]" },
-    lg: { img: "w-14 h-14", text: "text-[26px]", byline: "text-[11px]" },
+    sm: { img: "h-7 w-7", text: "text-[17px]", byline: "text-[9px]", gap: "gap-1.5" },
+    default: { img: "h-9 w-9", text: "text-[22px]", byline: "text-[10px]", gap: "gap-2" },
+    lg: { img: "h-12 w-12", text: "text-[28px]", byline: "text-[11px]", gap: "gap-2.5" },
   };
   const s = sizes[size];
 
@@ -27,32 +29,49 @@ export const Logo = ({ size = "default", showByline = false, variant = "short", 
   const bylineColor =
     tone === "light" ? "rgba(255,255,255,0.7)" : tone === "dark" ? "rgba(0,0,0,0.6)" : "hsl(var(--muted-foreground))";
 
+  const imgCls = `${s.img} object-contain shrink-0`;
+
   const renderMark = () => {
     if (tone === "light") {
-      return <img src={logoLight} alt="Nevorai" className={`${s.img} object-contain`} />;
+      return <img src={logoLight} alt="Nevorai" className={imgCls} />;
     }
     if (tone === "dark") {
-      return <img src={logoDark} alt="Nevorai" className={`${s.img} object-contain`} />;
+      return <img src={logoDark} alt="Nevorai" className={imgCls} />;
     }
     return (
       <>
-        <img src={logoDark} alt="Nevorai" className={`${s.img} object-contain block dark:hidden`} />
-        <img src={logoLight} alt="" aria-hidden="true" className={`${s.img} object-contain hidden dark:block`} />
+        <img src={logoDark} alt="Nevorai" className={`${imgCls} block dark:hidden`} />
+        <img src={logoLight} alt="" aria-hidden="true" className={`${imgCls} hidden dark:block`} />
       </>
     );
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className={`flex items-center ${s.gap}`}>
       {renderMark()}
-      <div className="flex flex-col" style={{ lineHeight: 1 }}>
-        <div className={`flex items-baseline ${s.text}`} style={{ lineHeight: 1, color: textColor }}>
-          <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", letterSpacing: "-0.02em", fontWeight: 700 }}>
-            Nevorai
-          </span>
-        </div>
+      <div className="flex flex-col justify-center" style={{ lineHeight: 1 }}>
+        <span
+          className={s.text}
+          style={{
+            fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+            letterSpacing: "-0.025em",
+            fontWeight: 700,
+            lineHeight: 1,
+            color: textColor,
+          }}
+        >
+          Nevorai
+        </span>
         {showByline && (
-          <span className={`${s.byline} mt-1`} style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 500, color: bylineColor, letterSpacing: "0.02em" }}>
+          <span
+            className={`${s.byline} mt-1.5`}
+            style={{
+              fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif",
+              fontWeight: 500,
+              color: bylineColor,
+              letterSpacing: "0.02em",
+            }}
+          >
             Share videos that get watched.
           </span>
         )}
