@@ -273,13 +273,47 @@ const AdminSubscriptionsPage = () => {
   };
 
   const saveField = useCallback(async (planName: string, field: string, value: any) => {
+    const derivedMonthlyViews =
+      field === "daily_view_limit" && typeof value === "number"
+        ? (value === -1 ? -1 : value * 30)
+        : null;
+
     const updateObj: Record<string, any> = { [field]: value, updated_at: new Date().toISOString() };
+    if (field === "daily_view_limit") {
+      updateObj.monthly_views = derivedMonthlyViews;
+    }
+
     const { error } = await adminWrite(() =>
       (supabase.from("plan_config") as any)
         .update(updateObj)
         .eq("plan_name", planName)
         .select(),
     );
+
+    if (!error && field === "daily_view_limit" && (planName === "basic" || planName === "pro") && typeof value === "number") {
+      const { data: baseTier } = await (supabase.from("plan_view_tiers" as any) as any)
+        .select("id")
+        .eq("plan_name", planName)
+        .eq("is_base", true)
+        .order("display_order", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (baseTier?.id) {
+        const { error: tierError } = await adminWrite(() =>
+          (supabase.from("plan_view_tiers" as any) as any)
+            .update({ daily_views: value, monthly_views: derivedMonthlyViews, updated_at: new Date().toISOString() } as any)
+            .eq("id", baseTier.id)
+            .select(),
+        );
+
+        if (tierError) {
+          toast.error(tierError.message || "Updated plan limit, but failed to sync the base view tier.");
+          return;
+        }
+      }
+    }
+
     if (error) {
       toast.error(error.message || "Failed to save");
     } else {
@@ -287,6 +321,11 @@ const AdminSubscriptionsPage = () => {
       queryClient.invalidateQueries({ queryKey: ["admin-plan-configs"] });
       queryClient.invalidateQueries({ queryKey: ["plan-configs"] });
       queryClient.invalidateQueries({ queryKey: ["plan-pricing"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-configs-landing"] });
+      queryClient.invalidateQueries({ queryKey: ["billing-tier-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-monthly-views"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-view-tiers"] });
+      queryClient.invalidateQueries({ queryKey: ["plan-view-tiers-public"] });
     }
   }, [queryClient]);
 
