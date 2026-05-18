@@ -556,7 +556,7 @@ section[id] {
   --text-secondary: #525866;
   --text-tertiary: #8E95A3;
   --logo-color: #0A0A0A;
-  --halo-color: 249,115,22;        /* saffron in light mode */
+  --halo-color: 10,10,10;          /* black in light mode */
 }
 [data-theme="dark"] {
   --bg-base: #050608;
