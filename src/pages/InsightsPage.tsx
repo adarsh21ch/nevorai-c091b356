@@ -349,13 +349,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     refetchInterval: visible ? 30_000 : false,
   });
 
-  const isLoading = authLoading || funnelsLoading || lpLoading;
   const error = funnelsError || lpError;
-
-  if (isLoading) {
-    const loadingState = <div className="premium-card p-10 text-center"><p className="text-sm text-muted-foreground">Loading insights…</p></div>;
-    return embedded ? loadingState : <DashboardLayout>{loadingState}</DashboardLayout>;
-  }
 
   if (error) {
     const errorState = (
