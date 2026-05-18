@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 // theme handled in ProfilePage
 import { useTrialStatus } from "@/hooks/useTrialStatus";
 import { TrialExpiredGate } from "@/components/TrialExpiredGate";
@@ -44,6 +46,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
   const { signOut, user } = useAuth();
   const { isAdmin } = useAdmin();
   const [collapsed, setCollapsed] = useState(false);
+  const { theme, toggleTheme } = useTheme();
   
   // theme toggle moved to Profile page
   const { isTrialExpired, trialDays } = useTrialStatus();
@@ -138,6 +141,13 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
             {!collapsed && <Logo size="sm" showByline />}
             <div className="flex items-center gap-1">
               <button
+                onClick={toggleTheme}
+                aria-label="Toggle theme"
+                className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button
                 onClick={() => setCollapsed(!collapsed)}
                 className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
@@ -188,6 +198,13 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
                   <Logo size="sm" showByline />
                 </div>
                 <div className="ml-2 flex shrink-0 items-center gap-1.5">
+                  <button
+                    onClick={toggleTheme}
+                    aria-label="Toggle theme"
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+                  </button>
                   <Link
                     to="/notifications"
                     className="relative flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"

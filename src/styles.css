@@ -69,97 +69,102 @@
   --color-border-strong: hsl(var(--border-strong));
 }
 
-/* === LIGHT MODE (default) — pure white + pure black + sky blue === */
+/* === LIGHT MODE (default) — monochrome + saffron accent === */
 :root,
 [data-theme="light"] {
   --background: 0 0% 100%;
-  --foreground: 0 0% 0%;
+  --foreground: 0 0% 4%;
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 0%;
+  --card-foreground: 0 0% 4%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 0%;
-  --primary: 221 83% 53%;
+  --popover-foreground: 0 0% 4%;
+  /* Primary = saffron #F97316 */
+  --primary: 25 95% 53%;
   --primary-foreground: 0 0% 100%;
-  --primary-subtle: 214 95% 93%;
-  --primary-text: 224 76% 38%;
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 0%;
-  --muted: 0 0% 96%;
+  --primary-subtle: 26 100% 96%;
+  --primary-text: 21 88% 40%;
+  --secondary: 0 0% 97%;
+  --secondary-foreground: 0 0% 4%;
+  --muted: 0 0% 95%;
   --muted-foreground: 0 0% 40%;
-  --accent: 214 95% 93%;
-  --accent-foreground: 224 76% 38%;
-  --destructive: 0 84% 50%;
+  --accent: 26 100% 96%;
+  --accent-foreground: 21 88% 40%;
+  --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --success: 142 71% 35%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 45%;
   --warning-foreground: 0 0% 0%;
-  --border: 0 0% 88%;
-  --input: 0 0% 88%;
-  --ring: 221 83% 53%;
+  --border: 0 0% 91%;
+  --input: 0 0% 91%;
+  --ring: 25 95% 53%;
   --radius: 0.625rem;
 
   --surface-1: 0 0% 100%;
   --surface-2: 0 0% 97%;
-  --surface-glass: 0 0% 0%;
-  --border-subtle: 0 0% 93%;
-  --border-strong: 0 0% 80%;
+  --surface-glass: 0 0% 4%;
+  --border-subtle: 0 0% 94%;
+  --border-strong: 0 0% 83%;
 
-  --sidebar-background: 0 0% 100%;
-  --sidebar-foreground: 0 0% 0%;
-  --sidebar-border: 0 0% 88%;
-  --sidebar-primary: 221 83% 53%;
+  --sidebar-background: 0 0% 98%;
+  --sidebar-foreground: 0 0% 4%;
+  --sidebar-border: 0 0% 91%;
+  --sidebar-primary: 25 95% 53%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 0 0% 95%;
-  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-accent-foreground: 0 0% 4%;
 }
 
-/* === DARK MODE — pure black + pure white === */
+/* === DARK MODE — pure black + saffron accent === */
 [data-theme="dark"] {
-  --background: 0 0% 0%;
-  --foreground: 0 0% 100%;
-  --card: 0 0% 5%;
-  --card-foreground: 0 0% 100%;
-  --popover: 0 0% 5%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 217 91% 60%;
-  --primary-foreground: 0 0% 0%;
-  --primary-subtle: 224 76% 16%;
-  --primary-text: 213 94% 78%;
-  --secondary: 0 0% 10%;
-  --secondary-foreground: 0 0% 100%;
-  --muted: 0 0% 10%;
-  --muted-foreground: 0 0% 65%;
-  --accent: 224 76% 22%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 84% 60%;
+  --background: 0 0% 4%;
+  --foreground: 0 0% 96%;
+  --card: 0 0% 9%;
+  --card-foreground: 0 0% 96%;
+  --popover: 0 0% 9%;
+  --popover-foreground: 0 0% 96%;
+  --primary: 25 95% 53%;
+  --primary-foreground: 0 0% 100%;
+  --primary-subtle: 22 60% 10%;
+  --primary-text: 27 96% 61%;
+  --secondary: 0 0% 7%;
+  --secondary-foreground: 0 0% 96%;
+  --muted: 0 0% 9%;
+  --muted-foreground: 0 0% 60%;
+  --accent: 22 60% 10%;
+  --accent-foreground: 27 96% 61%;
+  --destructive: 0 72% 55%;
   --destructive-foreground: 0 0% 100%;
   --success: 142 71% 45%;
   --success-foreground: 0 0% 100%;
   --warning: 38 92% 55%;
   --warning-foreground: 0 0% 0%;
-  --border: 0 0% 18%;
-  --input: 0 0% 18%;
-  --ring: 217 91% 60%;
+  --border: 0 0% 16%;
+  --input: 0 0% 16%;
+  --ring: 25 95% 53%;
 
-  --surface-1: 0 0% 5%;
-  --surface-2: 0 0% 9%;
+  --surface-1: 0 0% 9%;
+  --surface-2: 0 0% 7%;
   --surface-glass: 0 0% 100%;
-  --border-subtle: 0 0% 15%;
-  --border-strong: 0 0% 25%;
+  --border-subtle: 0 0% 12%;
+  --border-strong: 0 0% 22%;
 
-  --sidebar-background: 0 0% 3%;
-  --sidebar-foreground: 0 0% 100%;
-  --sidebar-border: 0 0% 15%;
-  --sidebar-primary: 217 91% 60%;
-  --sidebar-primary-foreground: 0 0% 0%;
-  --sidebar-accent: 0 0% 10%;
-  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-background: 0 0% 4%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 0 0% 16%;
+  --sidebar-primary: 25 95% 53%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 0 0% 9%;
+  --sidebar-accent-foreground: 0 0% 96%;
 }
 
 [data-theme="light"] .gradient-bg-subtle {
-  background: radial-gradient(ellipse at top, hsl(221 83% 53% / 0.05) 0%, transparent 60%),
-              radial-gradient(ellipse at bottom right, hsl(221 83% 53% / 0.04) 0%, transparent 50%);
+  background: radial-gradient(ellipse at top, hsl(25 95% 53% / 0.04) 0%, transparent 60%),
+              radial-gradient(ellipse at bottom right, hsl(25 95% 53% / 0.03) 0%, transparent 50%);
+}
+[data-theme="dark"] .gradient-bg-subtle {
+  background: radial-gradient(ellipse at top, hsl(25 95% 53% / 0.05) 0%, transparent 60%),
+              radial-gradient(ellipse at bottom right, hsl(25 95% 53% / 0.04) 0%, transparent 50%);
 }
 
 * { border-color: hsl(var(--border) / 0.08); }
@@ -179,18 +184,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .gradient-primary {
-  background: linear-gradient(135deg, #7EE83A, #00D4C8, #00AAFF, #1A4FD6);
+  background: linear-gradient(135deg, #0a0a0a, #F97316);
 }
 .gradient-text {
-  background-image: linear-gradient(135deg, #7EE83A, #00D4C8, #00AAFF, #1A4FD6);
+  background-image: linear-gradient(135deg, #0a0a0a, #F97316);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
 .gradient-bg-subtle {
-  background: radial-gradient(ellipse at top, rgba(0,212,200,0.08) 0%, transparent 60%),
-              radial-gradient(ellipse at bottom right, rgba(0,170,255,0.05) 0%, transparent 50%);
+  background: radial-gradient(ellipse at top, rgba(249,115,22,0.05) 0%, transparent 60%),
+              radial-gradient(ellipse at bottom right, rgba(249,115,22,0.04) 0%, transparent 50%);
 }
 .animate-grid {
   background-size: 40px 40px;
@@ -246,7 +251,7 @@ img, video, iframe { max-width: 100%; }
 
 /* Consistent keyboard focus ring across the app */
 *:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--color-brand-blue-deep, #0066FF) 75%, transparent);
+  outline: 2px solid color-mix(in oklab, #F97316 75%, transparent);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -261,31 +266,31 @@ img, video, iframe { max-width: 100%; }
    Use these instead of inline style={{ background: "linear-gradient(...)" }}
    ===================================================================== */
 .bg-gradient-brand {
-  background: linear-gradient(135deg, #00C896, #0066FF);
+  background: linear-gradient(135deg, #0a0a0a, #F97316);
 }
 .bg-gradient-brand-soft {
-  background: linear-gradient(90deg, #00C896, #0066FF);
+  background: linear-gradient(90deg, #1a1a1a, #F97316);
 }
 .bg-gradient-brand-rich {
-  background: linear-gradient(135deg, #7EE83A, #00D4C8, #00AAFF, #1A4FD6);
+  background: linear-gradient(90deg, transparent, #F97316, transparent);
 }
 .bg-gradient-danger {
   background: linear-gradient(90deg, #ef4444, #dc2626);
 }
 .bg-gradient-hero-glow {
-  background: radial-gradient(ellipse at top, rgba(0,212,200,0.08) 0%, transparent 60%),
-              radial-gradient(ellipse at bottom right, rgba(0,170,255,0.05) 0%, transparent 50%);
+  background: radial-gradient(ellipse at top, rgba(249,115,22,0.06) 0%, transparent 60%),
+              radial-gradient(ellipse at bottom right, rgba(249,115,22,0.04) 0%, transparent 50%);
 }
 .text-gradient-brand {
-  background-image: linear-gradient(135deg, #00C896, #0066FF);
+  background-image: linear-gradient(135deg, #0a0a0a, #F97316);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
 }
 
-.shadow-glow-brand   { box-shadow: 0 0 30px rgba(0,200,150,0.35); }
-.shadow-glow-brand-lg{ box-shadow: 0 0 30px rgba(0,200,150,0.40); }
+.shadow-glow-brand   { box-shadow: 0 0 30px rgba(249,115,22,0.30); }
+.shadow-glow-brand-lg{ box-shadow: 0 0 40px rgba(249,115,22,0.40); }
 .shadow-glow-danger  { box-shadow: 0 0 30px rgba(239,68,68,0.30); }
 .shadow-elegant      { box-shadow: 0 8px 40px rgba(0,0,0,0.4); }
 
