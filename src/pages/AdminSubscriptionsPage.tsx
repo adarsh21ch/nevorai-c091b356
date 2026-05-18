@@ -621,36 +621,6 @@ const AdminSubscriptionsPage = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="plans" className="space-y-3 pt-1">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">
-                Edit any field — changes save automatically. Choose a plan below to focus, or view all side-by-side.
-              </p>
-              <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 text-xs">
-                {(["all", "free", "basic", "pro"] as const).map((k) => (
-                  <button
-                    key={k}
-                    onClick={() => setPlanFilter(k)}
-                    className={`px-3 py-1 rounded-md transition-colors capitalize ${
-                      planFilter === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {k === "all" ? "All Plans" : k}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className={`grid gap-3 ${planFilter === "all" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
-              {(planFilter === "all" || planFilter === "free") && renderPlanCard("free", freeConfig)}
-              {(planFilter === "all" || planFilter === "basic") && renderPlanCard("basic", basicConfig)}
-              {(planFilter === "all" || planFilter === "pro") && renderPlanCard("pro", proConfig)}
-            </div>
-            <p className="text-[11px] text-muted-foreground italic mt-2">
-              Enterprise plan is managed separately in the Enterprise tab.
-            </p>
-            <TrialSettingsStrip />
-          </TabsContent>
-
           <TabsContent value="refunds" className="space-y-3 pt-1">
             <Suspense fallback={adminTabFallback}>
               <RefundsTab />
