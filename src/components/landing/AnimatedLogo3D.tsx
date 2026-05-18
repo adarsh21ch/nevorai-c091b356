@@ -1,4 +1,4 @@
-import logoImg from "@/assets/nevorai-mark.png";
+import logoImg from "@/assets/nevorai-mark-light.png";
 
 /**
  * Hero centerpiece: floating 3D Nevorai mark with pulsing glow + 6 orbiting dots.
