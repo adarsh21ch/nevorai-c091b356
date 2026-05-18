@@ -224,9 +224,17 @@ export default function AuthPage() {
       <div className="absolute inset-0 animate-grid opacity-30" />
       <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-brand-blue-deep) 12%, transparent) 0%, transparent 70%)" }} />
       <div className="w-full max-w-md relative z-10">
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-block"><Logo size="lg" showByline /></Link>
-          <p className="text-sm mt-3" style={{ color: "var(--color-hero-muted)" }}>
+        <div className="flex flex-col items-center text-center mb-8">
+          <Link to="/" className="inline-flex flex-col items-center gap-3">
+            <Logo size="lg" />
+            <span
+              className="text-[11px] font-medium tracking-wide"
+              style={{ color: "var(--text-secondary)", fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              Share videos that get watched.
+            </span>
+          </Link>
+          <p className="text-sm mt-4" style={{ color: "var(--color-hero-muted)" }}>
             {stage === "email" && "Welcome — let's get you in."}
             {stage === "login" && "Welcome back! Enter your password."}
             {stage === "signup" && "Create your Nevorai account."}
