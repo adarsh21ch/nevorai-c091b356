@@ -129,7 +129,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
   };
 
   return (
-    <div className="h-screen w-full max-w-full overflow-hidden bg-background" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="h-screen w-full max-w-full overflow-hidden bg-background">
       <div className="flex h-full w-full max-w-full overflow-hidden">
         <aside className={cn(
           "hidden h-full flex-col border-r border-border bg-sidebar transition-all duration-200 md:flex",
@@ -184,8 +184,8 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
 
         <main className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
           {!editorMode && (
-            <div className="sticky top-0 z-40 border-b border-border bg-card/85 backdrop-blur-sm md:hidden">
-              <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+            <div className="sticky top-0 z-40 border-b border-border bg-card/85 backdrop-blur-sm md:hidden" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+              <div className="flex items-center justify-between gap-3 px-3 py-1.5">
                 <div className="min-w-0 flex-1">
                   <Logo size="sm" showByline />
                 </div>
