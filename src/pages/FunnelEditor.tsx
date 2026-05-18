@@ -95,10 +95,11 @@ const MULTI_STEPS = [
   { icon: Settings, label: "Video Settings", num: "3" },
   { icon: User, label: "Speaker", num: "4" },
   { icon: ListChecks, label: "Video Topics", num: "5" },
-  { icon: MessageCircle, label: "Contact Info", num: "6" },
-  { icon: IndianRupee, label: "Payment", num: "7" },
-  { icon: Lock, label: "Privacy", num: "8" },
-  { icon: Rocket, label: "Publish", num: "9" },
+  { icon: ClipboardList, label: "Lead Capture", num: "6" },
+  { icon: MessageCircle, label: "Contact Info", num: "7" },
+  { icon: IndianRupee, label: "Payment", num: "8" },
+  { icon: Lock, label: "Privacy", num: "9" },
+  { icon: Rocket, label: "Publish", num: "10" },
 ];
 
 const UNLOCK_LABELS: Record<string, string> = {
@@ -469,8 +470,9 @@ const FunnelEditor = () => {
   };
 
   const baseSteps = isMulti ? MULTI_STEPS : SINGLE_STEPS;
+  // Show Lead Capture step always so users can enable/configure it.
+  // Payment step is still gated by its own toggle (set elsewhere in the editor).
   const visibleSteps = baseSteps.filter((s) => {
-    if (s.label === "Lead Capture" && !leadForm.capture_enabled) return false;
     if (s.label === "Payment" && !funnel.payment_enabled) return false;
     return true;
   });
