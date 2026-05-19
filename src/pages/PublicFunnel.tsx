@@ -1207,7 +1207,7 @@ const PublicFunnel = () => {
           </div>
         )}
 
-        {showLeadFormNow && <LeadFormCard className="max-w-md mx-auto mb-8" />}
+        {showLeadFormNow && {renderLeadFormCard("max-w-md mx-auto mb-8")}}
 
         {(!showLeadFormNow || leadSubmitted) && (
           <div className={`${showLeadFormSidebar && !leadSubmitted ? "lg:grid lg:grid-cols-[1fr_380px] lg:gap-8" : "max-w-4xl mx-auto"}`}>
@@ -1357,12 +1357,12 @@ const PublicFunnel = () => {
                 )}
               </div>
 
-              {showLeadFormAfterCta && <div className="lg:hidden"><LeadFormCard /></div>}
+              {showLeadFormAfterCta && <div className="lg:hidden">{renderLeadFormCard()}</div>}
             </div>
 
             {showLeadFormSidebar && !leadSubmitted && (
               <div className="hidden lg:block sticky top-6 self-start">
-                <LeadFormCard />
+                {renderLeadFormCard()}
                 {ctaEnabled && showCta && funnel.cta_url && (
                   <Button
                     className="w-full h-14 text-base font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-lg shadow-primary/20 mt-4 cta-pulse"
@@ -1376,7 +1376,7 @@ const PublicFunnel = () => {
           </div>
         )}
 
-        {showLeadFormAfterCta && !showLeadFormSidebar && <LeadFormCard className="max-w-md mx-auto mt-6" />}
+        {showLeadFormAfterCta && !showLeadFormSidebar && {renderLeadFormCard("max-w-md mx-auto mt-6")}}
 
         {funnel.payment_enabled && leadSubmitted && !paymentSubmitted && (
           <div className="rounded-2xl p-6 max-w-md mx-auto mt-6" style={{ background: tc.bgCard, border: `1px solid ${tc.border}` }}>
