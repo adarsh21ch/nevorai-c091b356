@@ -881,6 +881,7 @@ const FunnelEditor = () => {
               {[
                 { key: "name", label: "Full Name" }, { key: "phone", label: "Phone Number" },
                 { key: "email", label: "Email Address" }, { key: "city", label: "City" },
+                { key: "state", label: "State" }, { key: "whatsapp", label: "WhatsApp Number" },
               ].map(({ key, label }) => (
                 <div key={key} className="flex items-center justify-between gap-4 p-3.5">
                   <span className="text-sm font-medium">{label}</span>
