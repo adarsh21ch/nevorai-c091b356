@@ -182,15 +182,6 @@ export const CustomFieldsBuilder = ({ fields, onChange, enabled, maxFields }: Pr
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-xs">Placeholder (optional)</Label>
-                <Input
-                  value={editing.placeholder || ""}
-                  onChange={(e) => setEditing({ ...editing, placeholder: e.target.value })}
-                  placeholder="e.g. Enter your industry"
-                  maxLength={120}
-                />
-              </div>
               {(editing.type === "dropdown" || editing.type === "multi_choice") && (
                 <div className="space-y-1.5">
                   <Label className="text-xs">Options (comma-separated)</Label>
