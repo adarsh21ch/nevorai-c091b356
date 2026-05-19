@@ -111,9 +111,10 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
         className={cn(
           "relative flex items-center gap-3 rounded-lg border-l-2 px-3 py-2.5 text-sm font-medium transition-all",
           active
-            ? "border-foreground bg-muted text-foreground font-semibold"
+            ? "bg-muted text-foreground font-semibold"
             : "border-transparent text-muted-foreground hover:bg-muted/60 hover:text-foreground"
         )}
+        style={active ? { borderLeftColor: "var(--accent-saffron)" } : undefined}
       >
         <item.icon size={18} />
         {!collapsed && <span>{item.label}</span>}
