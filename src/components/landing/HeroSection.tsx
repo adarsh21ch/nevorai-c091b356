@@ -40,21 +40,15 @@ export const HeroSection = () => {
               }}
             >
               <motion.span
-                className="block text-5xl sm:text-6xl md:text-8xl"
+                className="block text-4xl sm:text-5xl md:text-7xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                Same effort.
-              </motion.span>
-              <motion.span
-                className="block text-5xl sm:text-6xl md:text-8xl italic"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                style={{ fontWeight: 700 }}
-              >
-                Twice the <span className="accent-saffron-underline">conversion</span>.
+                Same effort.{" "}
+                <span className="italic" style={{ fontWeight: 700 }}>
+                  Twice the <span className="accent-saffron-underline">conversion</span>.
+                </span>
               </motion.span>
             </h1>
           </div>
