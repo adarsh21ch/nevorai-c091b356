@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, ReactNode } from "react";
+import { useEffect, useRef, useState, ReactNode, Children, isValidElement } from "react";
 import { Check, Lock as LockIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -21,107 +21,38 @@ interface Props {
 }
 
 /**
- * Scrollable single-page editor layout.
- * - Desktop (lg+): sticky left sidebar with scroll-spy section list.
- * - Mobile: sticky horizontal chip strip below the header.
- * - Active section detection via IntersectionObserver.
+ * Single-section editor layout: only the active section is shown in the main
+ * pane (tab-style), so the workspace stays focused. Sidebar (desktop) and chip
+ * strip (mobile) act as the section switcher.
  */
 export function EditorScrollLayout({ sections, children, rightPane, header }: Props) {
   const [active, setActive] = useState<string>(sections[0]?.id ?? "");
-  const containerRef = useRef<HTMLDivElement>(null);
   const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const panelRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll active chip into horizontal center on mobile chip strip.
+  useEffect(() => {
+    if (!sections.find((s) => s.id === active)) {
+      setActive(sections[0]?.id ?? "");
+    }
+  }, [sections, active]);
+
   useEffect(() => {
     const el = chipRefs.current[active];
-    if (!el) return;
-    try {
-      el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    } catch {}
+    if (el) {
+      try { el.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" }); } catch {}
+    }
+    if (panelRef.current) {
+      panelRef.current.scrollTo?.({ top: 0, behavior: "auto" });
+    }
   }, [active]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const els = sections
-      .map((s) => document.getElementById(s.id))
-      .filter((el): el is HTMLElement => !!el);
-    if (els.length === 0) return;
-
-    // Use the actual scroll container as the IO root so active-section
-    // detection works inside DashboardLayout's scrollable main pane.
-    let root: HTMLElement | null = els[0].parentElement;
-    while (root && root !== document.body) {
-      const style = getComputedStyle(root);
-      const oy = style.overflowY;
-      if ((oy === "auto" || oy === "scroll") && root.scrollHeight > root.clientHeight + 1) break;
-      root = root.parentElement;
-    }
-    if (root === document.body) root = null;
-
-    const visible = new Map<string, number>();
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) visible.set(e.target.id, e.intersectionRatio);
-          else visible.delete(e.target.id);
-        }
-        if (visible.size > 0) {
-          let best = "";
-          let bestRatio = -1;
-          for (const [id, r] of visible) {
-            if (r > bestRatio) {
-              bestRatio = r;
-              best = id;
-            }
-          }
-          if (best) setActive(best);
-        }
-      },
-      { root, rootMargin: "-20% 0px -60% 0px", threshold: [0, 0.25, 0.5, 0.75, 1] }
-    );
-    els.forEach((el) => io.observe(el));
-    return () => io.disconnect();
-  }, [sections]);
-
-  const jumpTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    setActive(id);
-
-    // Find the nearest scrollable ancestor (DashboardLayout wraps content in
-    // <main><div class="overflow-y-auto"> on mobile so window doesn't scroll).
-    let scroller: HTMLElement | null = el.parentElement;
-    while (scroller && scroller !== document.body) {
-      const style = getComputedStyle(scroller);
-      const oy = style.overflowY;
-      if ((oy === "auto" || oy === "scroll") && scroller.scrollHeight > scroller.clientHeight + 1) {
-        break;
-      }
-      scroller = scroller.parentElement;
-    }
-
-    // Measure the sticky header group so we land below it, not behind it.
-    const stickyEl = containerRef.current?.querySelector<HTMLElement>(".sticky");
-    const stickyHeight = stickyEl?.offsetHeight ?? 0;
-    const gap = 12;
-
-    if (scroller && scroller !== document.body) {
-      const top =
-        el.getBoundingClientRect().top -
-        scroller.getBoundingClientRect().top +
-        scroller.scrollTop -
-        stickyHeight -
-        gap;
-      scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    } else {
-      const top = el.getBoundingClientRect().top + window.scrollY - stickyHeight - gap;
-      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    }
-  };
+  const childrenArray = Children.toArray(children);
+  const activeChild = childrenArray.find(
+    (c) => isValidElement(c) && (c.props as any)?.id === active,
+  );
 
   return (
-    <div className="flex gap-6 min-h-[calc(100vh-8rem)]" ref={containerRef}>
-      {/* Desktop sidebar */}
+    <div className="flex gap-6 min-h-[calc(100vh-8rem)]">
       <aside className="hidden lg:flex flex-col gap-1 w-52 shrink-0 sticky top-20 self-start max-h-[calc(100vh-6rem)] overflow-y-auto pr-1">
         {sections.map((s, i) => {
           const isActive = active === s.id;
@@ -129,7 +60,7 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
             <button
               key={s.id}
               type="button"
-              onClick={() => jumpTo(s.id)}
+              onClick={() => setActive(s.id)}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all border-l-[3px] ${
                 isActive
                   ? "bg-primary/10 border-primary text-foreground"
@@ -154,7 +85,6 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
 
       <div className="flex-1 flex gap-6 min-w-0">
         <div className="flex-1 max-w-2xl min-w-0">
-          {/* Sticky group: header + (mobile-only) chip strip pin together at top */}
           <div className="sticky top-0 z-30 mb-3 bg-background/95 backdrop-blur">
             {header}
             <div className="lg:hidden px-3 sm:px-4 py-2 border-b border-border">
@@ -166,7 +96,7 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
                       key={s.id}
                       ref={(el) => { chipRefs.current[s.id] = el; }}
                       type="button"
-                      onClick={() => jumpTo(s.id)}
+                      onClick={() => setActive(s.id)}
                       className={`shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
                         isActive
                           ? "bg-primary text-primary-foreground"
@@ -174,9 +104,7 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
                       }`}
                     >
                       <s.icon size={12} />
-                      <span>
-                        {s.num ?? i + 1} {s.label}
-                      </span>
+                      <span>{s.num ?? i + 1} {s.label}</span>
                       {s.locked && <LockIcon size={10} className="text-amber-500" />}
                       {s.complete && !isActive && <Check size={10} className="text-emerald-500" />}
                     </button>
@@ -186,7 +114,9 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
             </div>
           </div>
 
-          <div className="px-3 sm:px-4 md:px-8 space-y-6">{children}</div>
+          <div ref={panelRef} className="px-3 sm:px-4 md:px-8 space-y-6">
+            {activeChild ?? childrenArray[0]}
+          </div>
         </div>
 
         {rightPane && (
@@ -199,7 +129,7 @@ export function EditorScrollLayout({ sections, children, rightPane, header }: Pr
   );
 }
 
-/** Wraps a section block with a stable scroll target id. */
+/** Wraps a section block with a stable id used by the layout's section switcher. */
 export function EditorSectionBlock({
   id,
   children,
@@ -210,7 +140,7 @@ export function EditorSectionBlock({
   className?: string;
 }) {
   return (
-    <section id={id} className={`scroll-mt-24 glass-card p-4 sm:p-6 space-y-4 ${className}`}>
+    <section id={id} className={`glass-card p-4 sm:p-6 space-y-4 ${className}`}>
       {children}
     </section>
   );
