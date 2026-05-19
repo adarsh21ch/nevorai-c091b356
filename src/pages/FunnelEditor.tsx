@@ -885,8 +885,12 @@ const FunnelEditor = () => {
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl"><Label className="font-semibold">Custom Field</Label><Switch checked={leadForm.show_custom} onCheckedChange={(v) => setLeadForm({ ...leadForm, show_custom: v })} /></div>
-            {leadForm.show_custom && <Input placeholder="Custom field label" value={leadForm.custom_field_label} onChange={(e) => setLeadForm({ ...leadForm, custom_field_label: e.target.value })} className="bg-muted border-border" />}
+            <CustomFieldsBuilder
+              fields={leadForm.custom_fields}
+              onChange={(fields) => setLeadForm({ ...leadForm, custom_fields: fields })}
+              enabled={planLimits.features.customFormFields}
+              maxFields={planLimits.config.max_custom_form_fields ?? 0}
+            />
           </>
         )}
       </div>
