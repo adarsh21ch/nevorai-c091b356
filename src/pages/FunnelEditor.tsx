@@ -172,6 +172,7 @@ const FunnelEditor = () => {
     capture_enabled: false, capture_timing: "before_video",
     show_name: true, name_required: true, show_phone: true, phone_required: true,
     show_email: false, email_required: false, show_city: true, city_required: false,
+    show_state: false, state_required: false, show_whatsapp: false, whatsapp_required: false,
     custom_field_label: "", show_custom: false, custom_required: false,
     custom_fields: [] as CustomField[],
   });
