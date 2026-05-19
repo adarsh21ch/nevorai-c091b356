@@ -376,6 +376,8 @@ const FunnelEditor = () => {
         await supabase.from("funnel_steps").delete().eq("funnel_id", funnelId);
         const stepsPayload = await Promise.all(flowSteps.map(async (s, i) => {
           let accessCodeHash: string | null = s.access_code_hash || null;
+          let accessCodePlain: string | null = s.access_code_plain || (s as any)._access_code_raw || null;
+          if (accessCodePlain) accessCodePlain = String(accessCodePlain).trim().toUpperCase();
           if (s.access_code_enabled && (s as any)._access_code_raw) {
             const encoder = new TextEncoder();
             const buf = await crypto.subtle.digest("SHA-256", encoder.encode(String((s as any)._access_code_raw).trim().toUpperCase()));
