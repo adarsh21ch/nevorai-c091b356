@@ -23,6 +23,7 @@ import { StepTypeSelector, getStepTypeMeta } from "@/components/funnel/StepTypeS
 import { StepConfigPanel, type FlowStep as PanelFlowStep } from "@/components/funnel/StepConfigPanel";
 import { PrivacySettings } from "@/components/funnel/PrivacySettings";
 import { FunnelLivePreview } from "@/components/funnel/FunnelLivePreview";
+import { CustomFieldsBuilder, type CustomField } from "@/components/funnel/CustomFieldsBuilder";
 import { SpeakerPhotoUpload } from "@/components/funnel/SpeakerPhotoUpload";
 import { PerStepSpeakerAssignment } from "@/components/funnel/PerStepSpeakerAssignment";
 import { usePlan } from "@/hooks/usePlan";
