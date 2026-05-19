@@ -54,7 +54,7 @@ export const HeroSection = () => {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 style={{ fontWeight: 700 }}
               >
-                Twice the conversion.
+                Twice the <span className="accent-saffron-underline">conversion</span>.
               </motion.span>
             </h1>
           </div>
