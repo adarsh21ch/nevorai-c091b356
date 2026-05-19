@@ -570,6 +570,55 @@ section[id] {
   --logo-color: #FFFFFF;
   --halo-color: 255,255,255;       /* white in dark mode */
 }
+
+/* Saffron accent — used sparingly as a highlight on landing only */
+:root {
+  --accent-saffron: #F97316;
+  --accent-saffron-soft: rgba(249, 115, 22, 0.12);
+}
+
+/* Highlight word with saffron color */
+.landing-page .accent-saffron {
+  color: var(--accent-saffron) !important;
+  -webkit-text-fill-color: var(--accent-saffron) !important;
+}
+
+/* Highlight word with saffron brush-stroke underline */
+.landing-page .accent-saffron-underline {
+  position: relative;
+  display: inline-block;
+}
+.landing-page .accent-saffron-underline::after {
+  content: "";
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  bottom: 0.04em;
+  height: 0.18em;
+  background: var(--accent-saffron);
+  border-radius: 999px;
+  opacity: 0.85;
+  z-index: -1;
+}
+
+/* Saffron-accented pill (dot + soft border) */
+.landing-page .badge-pill.badge-pill-accent,
+.landing-page .badge-pill-accent {
+  border-color: rgba(249, 115, 22, 0.32) !important;
+  background: var(--accent-saffron-soft) !important;
+  color: var(--text-primary) !important;
+}
+.landing-page .badge-pill-accent::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent-saffron);
+  margin-right: 8px;
+  vertical-align: middle;
+  box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.18);
+}
 :root {
   --accent-cta: var(--text-primary);
   --accent-cta-hover: var(--text-primary);

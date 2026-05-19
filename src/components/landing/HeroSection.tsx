@@ -26,7 +26,7 @@ export const HeroSection = () => {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-6 badge-pill"
+            className="mb-6 badge-pill badge-pill-accent"
           >
             Built for Creators Who Sell
           </motion.div>
@@ -54,7 +54,7 @@ export const HeroSection = () => {
                 transition={{ duration: 0.6, delay: 0.4 }}
                 style={{ fontWeight: 700 }}
               >
-                Twice the conversion.
+                Twice the <span className="accent-saffron-underline">conversion</span>.
               </motion.span>
             </h1>
           </div>
@@ -67,7 +67,7 @@ export const HeroSection = () => {
             style={{ color: "var(--text-secondary)" }}
           >
             The video platform built for{" "}
-            <span style={{ color: "var(--text-primary)", fontWeight: 500 }}>creators who sell</span>.
+            <span className="accent-saffron" style={{ fontWeight: 600 }}>creators who sell</span>.
             Skip-protection, viewer tracking, and conversion insights — on every video you share.
           </motion.p>
 
