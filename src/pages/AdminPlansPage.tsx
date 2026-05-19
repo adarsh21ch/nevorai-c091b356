@@ -133,6 +133,7 @@ const FEATURE_GROUPS = [
   ]},
   { group: "Lead Generation", items: [
     { field: "feature_lead_capture", label: "Lead Capture", icon: Target },
+    { field: "feature_custom_form_fields", label: "Custom Form Fields", icon: FileText },
     { field: "feature_whatsapp_automation", label: "WhatsApp Auto-Message", icon: MessageSquare },
     { field: "feature_smart_reminders", label: "Smart Follow-up Reminders", icon: Bell },
   ]},
@@ -269,6 +270,7 @@ const AdminPlansPage = () => {
             <PlanField planName={planName} field="max_landing_pages" label="Max Landing Pages" hint="-1 = unlimited · 0 = disabled" value={config?.max_landing_pages} onSave={saveField} disabled={isDisabled} />
             <PlanField planName={planName} field="max_live_sessions" label="Max Live Sessions" hint="-1 = unlimited · 0 = disabled" value={config?.max_live_sessions} onSave={saveField} disabled={isDisabled} />
             <PlanField planName={planName} field="max_leads" label="Max Leads Stored" hint="-1 = unlimited" value={config?.max_leads} onSave={saveField} disabled={isDisabled} />
+            <PlanField planName={planName} field="max_custom_form_fields" label="Custom Form Fields / Funnel" hint="-1 = unlimited · 0 = blocked" value={config?.max_custom_form_fields} onSave={saveField} disabled={isDisabled} />
           </TabsContent>
 
           <TabsContent value="features" className="pt-2 space-y-2">

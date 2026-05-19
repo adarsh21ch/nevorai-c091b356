@@ -38,6 +38,8 @@ export interface PlanConfig {
   daily_view_limit?: number;
   max_leads?: number;
   plan_badge_text?: string | null;
+  feature_custom_form_fields?: boolean;
+  max_custom_form_fields?: number;
 }
 
 const FREE_FALLBACK: PlanConfig = {
@@ -124,6 +126,7 @@ export const usePlanLimits = () => {
     videoTopics: config.feature_video_topics !== false,
     contactForm: config.feature_contact_form !== false,
     privacySettings: config.feature_privacy_settings !== false,
+    customFormFields: config.feature_custom_form_fields === true,
   };
 
   return {

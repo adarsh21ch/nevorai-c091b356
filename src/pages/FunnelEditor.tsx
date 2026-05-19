@@ -23,6 +23,7 @@ import { StepTypeSelector, getStepTypeMeta } from "@/components/funnel/StepTypeS
 import { StepConfigPanel, type FlowStep as PanelFlowStep } from "@/components/funnel/StepConfigPanel";
 import { PrivacySettings } from "@/components/funnel/PrivacySettings";
 import { FunnelLivePreview } from "@/components/funnel/FunnelLivePreview";
+import { CustomFieldsBuilder, type CustomField } from "@/components/funnel/CustomFieldsBuilder";
 import { SpeakerPhotoUpload } from "@/components/funnel/SpeakerPhotoUpload";
 import { PerStepSpeakerAssignment } from "@/components/funnel/PerStepSpeakerAssignment";
 import { usePlan } from "@/hooks/usePlan";
@@ -120,7 +121,8 @@ const FunnelEditor = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { canUseMultiStep } = usePlan();
-  const { features, planConfigs } = usePlanLimits();
+  const planLimits = usePlanLimits();
+  const { features, planConfigs } = planLimits;
   const queryClient = useQueryClient();
   // Phase 6 gate: starting a brand-new funnel without any uploaded videos = upload first.
   useVideoGate(!isEdit);
@@ -171,6 +173,7 @@ const FunnelEditor = () => {
     show_name: true, name_required: true, show_phone: true, phone_required: true,
     show_email: false, email_required: false, show_city: true, city_required: false,
     custom_field_label: "", show_custom: false, custom_required: false,
+    custom_fields: [] as CustomField[],
   });
 
   const [flowSteps, setFlowSteps] = useState<FlowStep[]>([]);
@@ -242,7 +245,7 @@ const FunnelEditor = () => {
 
   useEffect(() => {
     if (existingLeadForm) {
-      const l = existingLeadForm;
+      const l: any = existingLeadForm;
       setLeadForm({
         capture_enabled: l.capture_enabled ?? true, capture_timing: l.capture_timing || "before_video",
         show_name: l.show_name ?? true, name_required: l.name_required ?? true,
@@ -251,6 +254,7 @@ const FunnelEditor = () => {
         show_city: l.show_city ?? true, city_required: l.city_required ?? false,
         custom_field_label: l.custom_field_label || "", show_custom: l.show_custom ?? false,
         custom_required: l.custom_required ?? false,
+        custom_fields: Array.isArray(l.custom_fields) ? (l.custom_fields as CustomField[]) : [],
       });
     }
   }, [existingLeadForm]);
@@ -351,12 +355,12 @@ const FunnelEditor = () => {
       if (isEdit) {
         const { error } = await supabase.from("funnels").update(payload).eq("id", id);
         if (error) throw error;
-        await supabase.from("funnel_lead_form_config").upsert({ funnel_id: id, ...leadForm }, { onConflict: "funnel_id" });
+        await (supabase.from("funnel_lead_form_config") as any).upsert({ funnel_id: id, ...leadForm }, { onConflict: "funnel_id" });
         funnelId = id!;
       } else {
         const { data, error } = await supabase.from("funnels").insert(payload).select("id").single();
         if (error) throw error;
-        await supabase.from("funnel_lead_form_config").insert({ funnel_id: data.id, ...leadForm });
+        await (supabase.from("funnel_lead_form_config") as any).insert({ funnel_id: data.id, ...leadForm });
         funnelId = data.id;
       }
       if (funnel.funnel_mode === "multi" && flowSteps.length > 0) {
@@ -422,7 +426,7 @@ const FunnelEditor = () => {
       try {
         setIsAutoSaving(true);
         await supabase.from("funnels").update(payload).eq("id", id);
-        await supabase.from("funnel_lead_form_config").upsert({ funnel_id: id, ...leadForm }, { onConflict: "funnel_id" });
+        await (supabase.from("funnel_lead_form_config") as any).upsert({ funnel_id: id, ...leadForm }, { onConflict: "funnel_id" });
         setLastSavedAt(new Date());
       } catch {
       } finally {
@@ -882,8 +886,12 @@ const FunnelEditor = () => {
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-xl"><Label className="font-semibold">Custom Field</Label><Switch checked={leadForm.show_custom} onCheckedChange={(v) => setLeadForm({ ...leadForm, show_custom: v })} /></div>
-            {leadForm.show_custom && <Input placeholder="Custom field label" value={leadForm.custom_field_label} onChange={(e) => setLeadForm({ ...leadForm, custom_field_label: e.target.value })} className="bg-muted border-border" />}
+            <CustomFieldsBuilder
+              fields={leadForm.custom_fields}
+              onChange={(fields) => setLeadForm({ ...leadForm, custom_fields: fields })}
+              enabled={planLimits.features.customFormFields}
+              maxFields={planLimits.config.max_custom_form_fields ?? 0}
+            />
           </>
         )}
       </div>

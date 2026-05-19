@@ -83,6 +83,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: "max_live_sessions", label: "Max Live Sessions", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_live_sessions" },
   { key: "max_leads", label: "Max Leads Stored", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_leads" },
   { key: "max_team_members", label: "Max Team Members", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_team_members" },
+  { key: "max_custom_form_fields", label: "Custom Form Fields per Funnel", type: "number", category: "Limits", hint: "-1 = unlimited · 0 = blocked", dbField: "max_custom_form_fields" },
 
   // ─── FEATURES ─────────────────────────────────────────────
   { key: "feature_funnel_creation", label: "Funnel Creation", type: "boolean", category: "Features", dbField: "feature_funnel_creation" },
@@ -91,6 +92,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: "feature_contact_form", label: "Contact Form", type: "boolean", category: "Features", hint: "Show contact info section in funnels", dbField: "feature_contact_form" },
   { key: "feature_privacy_settings", label: "Privacy & Access Codes", type: "boolean", category: "Features", hint: "Allow private funnels with access codes", dbField: "feature_privacy_settings" },
   { key: "feature_lead_capture", label: "Lead Capture", type: "boolean", category: "Features", dbField: "feature_lead_capture" },
+  { key: "feature_custom_form_fields", label: "Custom Form Fields", type: "boolean", category: "Features", hint: "Let users add custom fields to lead capture forms", dbField: "feature_custom_form_fields" },
   { key: "feature_video_upload", label: "Video Upload", type: "boolean", category: "Features", dbField: "feature_video_upload" },
   { key: "feature_youtube_import", label: "YouTube Video Import", type: "boolean", category: "Features", dbField: "feature_youtube_import" },
   { key: "feature_video_sharing", label: "Video Sharing", type: "boolean", category: "Features", dbField: "feature_video_sharing" },
