@@ -221,7 +221,7 @@ const AdminUsersPage = () => {
                           {p.created_at ? new Date(p.created_at).toLocaleDateString("en-IN") : "—"}
                         </td>
                         <td className="p-4">
-                          <ViewsCell used={used} limit={p.is_unlimited ? -1 : limit} />
+                          <ViewsCell used={used} />
                         </td>
                         <td className="p-4 text-right">
                           <div className="flex items-center justify-end gap-1">
@@ -265,7 +265,7 @@ const AdminUsersPage = () => {
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
                     <span className="text-[10px] text-muted-foreground">Views</span>
-                    <ViewsCell used={used} limit={p.is_unlimited ? -1 : limit} />
+                    <ViewsCell used={used} />
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-1">
                     <span className="text-[10px] text-muted-foreground">Verified</span>
