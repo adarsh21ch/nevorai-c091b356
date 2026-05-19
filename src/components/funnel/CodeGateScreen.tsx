@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 import { Lock, Loader2, Shield } from "lucide-react";
 import logoImg from "@/assets/nevorai-flow-logo.png";
 
@@ -54,14 +55,22 @@ export const CodeGateScreen = ({ funnelId, funnelTitle, creatorName, onSuccess, 
     if (!code.trim() || locked) return;
     setLoading(true); setError("");
     try {
-      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-funnel-code`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-        body: JSON.stringify({ funnel_id: funnelId, code: code.trim() }),
+      const { data, error: fnError } = await supabase.functions.invoke("verify-funnel-code", {
+        body: { funnel_id: funnelId, code: code.trim() },
       });
-      const data = await res.json();
-      if (data.success) {
+
+      let functionMessage = "";
+      if (fnError && "context" in fnError && fnError.context instanceof Response) {
+        try {
+          const payload = await fnError.context.json();
+          functionMessage = payload?.message || "";
+        } catch {}
+      }
+
+      if (!fnError && data?.success) {
         localStorage.setItem(`nf_code_verified_${funnelId}`, JSON.stringify({ verified: true, verifiedAt: Date.now() }));
+        localStorage.removeItem(`nf_code_lock_${funnelId}`);
+        localStorage.removeItem(`nf_code_attempts_${funnelId}`);
         onSuccess();
       } else {
         const attemptKey = `nf_code_attempts_${funnelId}`;
@@ -74,10 +83,12 @@ export const CodeGateScreen = ({ funnelId, funnelTitle, creatorName, onSuccess, 
           localStorage.removeItem(attemptKey);
           setLocked(true); setLockRemaining(3600);
         } else localStorage.setItem(attemptKey, JSON.stringify({ count: attempts }));
-        setError("That code doesn't match. Please check and try again.");
+        setError(functionMessage || data?.message || "That code doesn't match. Please check and try again.");
         setShake(true); setTimeout(() => setShake(false), 500);
       }
-    } catch { setError("Something went wrong. Please try again."); }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    }
     finally { setLoading(false); }
   };
 
