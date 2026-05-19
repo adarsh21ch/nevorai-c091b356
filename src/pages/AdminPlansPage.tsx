@@ -178,9 +178,48 @@ const AdminPlansPage = () => {
     const updateObj: Record<string, any> = { [field]: value, updated_at: new Date().toISOString() };
     if (field === "daily_view_limit") updateObj.monthly_views = derivedMonthlyViews;
 
+    // Cascade rule: lower tiers' features automatically flow up. If admin enables a
+    // boolean feature on Free, also enable on Basic & Pro. If admin disables it on
+    // Pro, also disable on Basic & Free. Same idea for numeric limits where bigger
+    // is better (max_*): Pro >= Basic >= Free, -1 (unlimited) ranks highest.
+    const TIER_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2 };
+    const cascadeTargets: string[] = [];
+    const isBooleanFeature = field.startsWith("feature_") || field === "multilevel_funnel_enabled";
+    const isMaxLimit = field.startsWith("max_") && typeof value === "number";
+    const myRank = TIER_RANK[planName];
+
+    if (myRank !== undefined && isBooleanFeature && typeof value === "boolean") {
+      for (const [p, r] of Object.entries(TIER_RANK)) {
+        if (value && r > myRank) cascadeTargets.push(p); // enabling cascades up
+        if (!value && r < myRank) cascadeTargets.push(p); // disabling cascades down
+      }
+    }
+    if (myRank !== undefined && isMaxLimit) {
+      const isBigger = (a: number, b: number) => a === -1 || (b !== -1 && a > b);
+      for (const [p, r] of Object.entries(TIER_RANK)) {
+        const other = planConfigs.find((c) => c.plan_name === p);
+        if (!other) continue;
+        const otherVal = other[field];
+        // Higher tier must be >= this value
+        if (r > myRank && typeof otherVal === "number" && isBigger(value, otherVal)) cascadeTargets.push(p);
+        // Lower tier must be <= this value
+        if (r < myRank && typeof otherVal === "number" && isBigger(otherVal, value)) cascadeTargets.push(p);
+      }
+    }
+
     const { error } = await adminWrite(() =>
       (supabase.from("plan_config") as any).update(updateObj).eq("plan_name", planName).select(),
     );
+
+    if (!error && cascadeTargets.length) {
+      await Promise.all(cascadeTargets.map((p) =>
+        adminWrite(() =>
+          (supabase.from("plan_config") as any)
+            .update({ [field]: value, updated_at: new Date().toISOString() })
+            .eq("plan_name", p).select(),
+        ),
+      ));
+    }
 
     if (!error && field === "daily_view_limit" && (planName === "basic" || planName === "pro") && typeof value === "number") {
       const { data: baseTier } = await (supabase.from("plan_view_tiers" as any) as any)
@@ -197,11 +236,11 @@ const AdminPlansPage = () => {
 
     if (error) toast.error(error.message || "Failed to save");
     else {
-      toast.success("Updated!");
+      toast.success(cascadeTargets.length ? `Updated! Cascaded to ${cascadeTargets.join(", ")}` : "Updated!");
       ["admin-plan-configs","plan-configs","plan-pricing","plan-configs-landing","billing-tier-plans","admin-monthly-views","plan-view-tiers","plan-view-tiers-public","user-plan","plan-config"]
         .forEach(k => queryClient.invalidateQueries({ queryKey: [k] }));
     }
-  }, [queryClient]);
+  }, [queryClient, planConfigs]);
 
   const handleTogglePlan = async (planName: string, enabled: boolean) => {
     const { error } = await adminWrite(() =>
