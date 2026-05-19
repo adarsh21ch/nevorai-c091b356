@@ -222,7 +222,8 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-bg-subtle relative">
       <div className="absolute inset-0 animate-grid opacity-30" />
-      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--color-brand-blue-deep) 12%, transparent) 0%, transparent 70%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(249,115,22,0.10) 0%, transparent 70%)" }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: "radial-gradient(ellipse 50% 30% at 50% 100%, rgba(249,115,22,0.06) 0%, transparent 70%)" }} />
       <div className="w-full max-w-md relative z-10">
         <div className="flex flex-col items-center text-center mb-8">
           <Link to="/" className="inline-flex flex-col items-center gap-3">
