@@ -772,7 +772,15 @@ const PublicFunnel = () => {
 
   const canView = funnel && funnel.is_published;
   const isPrivateFunnel = funnel?.visibility === "private";
-  const requiredFields = funnel?.required_fields || { email: false, city: false, state: false, whatsapp: false };
+  // Derive privacy-gated form fields from the Lead Capture config (single source
+  // of truth). Falls back to the legacy required_fields for older funnels.
+  const legacyRequired = funnel?.required_fields || { email: false, city: false, state: false, whatsapp: false };
+  const requiredFields = {
+    email: !!(formConfig?.show_email ?? legacyRequired.email),
+    city: !!(formConfig?.show_city ?? legacyRequired.city),
+    state: !!((formConfig as any)?.show_state ?? legacyRequired.state),
+    whatsapp: !!((formConfig as any)?.show_whatsapp ?? legacyRequired.whatsapp),
+  };
 
   const [dailyLimitState, setDailyLimitState] = useState<"unknown" | "allowed" | "blocked">("unknown");
   useEffect(() => {
