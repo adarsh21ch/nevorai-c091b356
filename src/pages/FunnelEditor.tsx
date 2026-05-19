@@ -404,6 +404,7 @@ const FunnelEditor = () => {
             video_topics_step: Array.isArray(s.video_topics_step) ? s.video_topics_step : [],
             access_code_enabled: !!s.access_code_enabled,
             access_code_hash: s.access_code_enabled ? accessCodeHash : null,
+            access_code_plain: s.access_code_enabled ? accessCodePlain : null,
             access_code_message: s.access_code_enabled ? (s.access_code_message ? sanitizeText(s.access_code_message) : null) : null,
             speaker_mode_step: s.speaker_mode_step || "inherit",
             speaker_name_custom: isStepOverride ? (s.speaker_name_custom ? sanitizeText(s.speaker_name_custom) : null) : null,
