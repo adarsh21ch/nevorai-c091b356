@@ -685,6 +685,7 @@ const PublicFunnel = () => {
   const [, setVideoDuration] = useState(0);
   const [videoPlaying, setVideoPlaying] = useState(false);
   const [leadForm, setLeadForm] = useState({ name: "", phone: "", email: "", city: "", custom_value: "", website: "" });
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string | string[]>>({});
   const [leadErrors, setLeadErrors] = useState<Record<string, string | null>>({});
   const leadRefs = useRef<Record<string, HTMLElement | null>>({});
   const [paymentProof, setPaymentProof] = useState({ upi_transaction_id: "", amount: 0 });
