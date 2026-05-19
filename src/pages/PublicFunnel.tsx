@@ -978,6 +978,22 @@ const PublicFunnel = () => {
     if (formConfig?.show_email && (formConfig.email_required || leadForm.email)) e.email = (formConfig.email_required || leadForm.email) ? validateEmail(leadForm.email) : null;
     if (formConfig?.show_city && formConfig.city_required) e.city = validateRequired(leadForm.city, "City");
     if (formConfig?.show_custom && formConfig.custom_required) e.custom_value = validateRequired(leadForm.custom_value, formConfig.custom_field_label || "This field");
+    const customFields = Array.isArray((formConfig as any)?.custom_fields) ? (formConfig as any).custom_fields : [];
+    for (const cf of customFields) {
+      if (cf.required) {
+        const v = customFieldValues[cf.id];
+        const isEmpty = v == null || (Array.isArray(v) ? v.length === 0 : String(v).trim() === "");
+        if (isEmpty) e[`cf_${cf.id}`] = `${cf.label} is required`;
+      }
+      if (cf.type === "email" && customFieldValues[cf.id]) {
+        const err = validateEmail(String(customFieldValues[cf.id]));
+        if (err) e[`cf_${cf.id}`] = err;
+      }
+      if (cf.type === "phone" && customFieldValues[cf.id]) {
+        const err = validatePhone(String(customFieldValues[cf.id]));
+        if (err) e[`cf_${cf.id}`] = err;
+      }
+    }
     return e;
   };
 
