@@ -1,6 +1,6 @@
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseProjectUrl } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -144,9 +144,20 @@ const AdminSettingsPage = () => {
         body: { return_to: returnTo },
       });
 
+      // Surface the REAL error so we can diagnose. `supabase.functions.invoke`
+      // puts non-2xx bodies on `error.context` (a Response), not on `data`.
       if (error || !data?.auth_url) {
+        let detail = data?.error as string | undefined;
+        try {
+          const ctx = (error as any)?.context;
+          if (ctx && typeof ctx.text === "function") {
+            const txt = await ctx.text();
+            try { detail = JSON.parse(txt)?.error || txt; } catch { detail = txt; }
+          }
+        } catch {}
+        console.error("[gmail-oauth-init] failed", { error, data, detail });
         try { popup?.close(); } catch {}
-        toast.error(data?.error || "Failed to start Gmail connection");
+        toast.error(detail || (error as any)?.message || "Failed to start Gmail connection");
         setConnectingGmail(false);
         return;
       }
@@ -158,7 +169,7 @@ const AdminSettingsPage = () => {
       popup.location.href = data.auth_url;
 
       const allowedOrigins = new Set<string>([
-        "https://atwnmovdnblcqyvhaxls.supabase.co",
+        supabaseProjectUrl,
         window.location.origin,
       ]);
 
@@ -395,7 +406,7 @@ const AdminSettingsPage = () => {
                 <div className="text-[10px] text-muted-foreground sm:text-[11px]">
                   <p className="mb-1">Redirect URI for Google Console:</p>
                   <code className="text-[10px] bg-muted px-2 py-1 rounded block break-all sm:text-xs">
-                    {`https://atwnmovdnblcqyvhaxls.supabase.co/functions/v1/gmail-oauth-callback`}
+                    {`${supabaseProjectUrl}/functions/v1/gmail-oauth-callback`}
                   </code>
                 </div>
               </div>
