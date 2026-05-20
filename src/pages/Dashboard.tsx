@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Navigate, Link, useNavigate } from "@/lib/router-compat";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -27,6 +27,20 @@ const Dashboard = () => {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const isFree = !plan.isPaid && plan.tier !== "trial";
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (sessionStorage.getItem("pixel_lead_fired") === "1") return;
+      const fbq = (window as any).fbq;
+      if (typeof fbq === "function") {
+        fbq("track", "Lead");
+        sessionStorage.setItem("pixel_lead_fired", "1");
+      }
+    } catch {
+      /* noop */
+    }
+  }, []);
 
   const openUploadFlow = () => uploadInputRef.current?.click();
   const handleUploadPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
