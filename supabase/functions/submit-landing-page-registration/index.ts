@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
       sent: false,
     }
 
-    if (page.send_confirmation_email && email) {
+    if (page.send_confirmation_email !== false && email) {
       emailDelivery.attempted = true
       const supabaseUrl = Deno.env.get('SUPABASE_URL')!
       const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
