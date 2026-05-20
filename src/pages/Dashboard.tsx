@@ -32,14 +32,21 @@ const Dashboard = () => {
     if (typeof window === "undefined") return;
     try {
       if (sessionStorage.getItem("pixel_lead_fired") === "1") return;
-      const fbq = (window as any).fbq;
-      if (typeof fbq === "function") {
-        fbq("track", "Lead");
-        sessionStorage.setItem("pixel_lead_fired", "1");
-      }
     } catch {
-      /* noop */
+      return;
     }
+    const timer = setTimeout(() => {
+      try {
+        const fbq = (window as any).fbq;
+        if (typeof fbq === "function") {
+          fbq("track", "Lead");
+          sessionStorage.setItem("pixel_lead_fired", "1");
+        }
+      } catch {
+        /* noop */
+      }
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   const openUploadFlow = () => uploadInputRef.current?.click();
