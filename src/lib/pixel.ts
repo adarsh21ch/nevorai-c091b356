@@ -90,7 +90,7 @@ export async function trackPixel(
 
   if (options.serverSide !== false) {
     try {
-      await fetch("/api/pixel/track", {
+      await fetch("/api/public/pixel/track", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
