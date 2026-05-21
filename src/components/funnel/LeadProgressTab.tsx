@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Unlock, Eye, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { Unlock, Eye, Search, ChevronDown, ChevronUp, Bell, UserCheck } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface LeadProgressTabProps {
   funnelId: string;
