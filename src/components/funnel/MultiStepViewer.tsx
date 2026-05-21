@@ -292,12 +292,66 @@ export const MultiStepViewer = ({
     return () => { if (progressSaveTimer.current) clearInterval(progressSaveTimer.current); };
   }, [activeStepIndex, progressMap, steps, funnel.id]);
 
+  // Realtime: re-fetch progress when creator manually unlocks a step for this session.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`funnel-progress-${funnel.id}-${sessionId.current}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "funnel_step_progress",
+          filter: `session_id=eq.${sessionId.current}`,
+        },
+        (payload: any) => {
+          const row = payload.new;
+          if (!row || row.funnel_id !== funnel.id) return;
+          setProgressMap((prev) => ({
+            ...prev,
+            [row.funnel_step_id]: { ...prev[row.funnel_step_id], ...row },
+          }));
+          if (row.manually_unlocked && row.status !== "locked") {
+            toast.success("A step was unlocked for you!");
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [funnel.id]);
+
+  // Substitute {prospect_name} / {funnel_title} / {step_title} in a wa.me URL's text= param.
+  const interpolateWaUrl = (url: string | null | undefined, step: FunnelStep): string => {
+    if (!url) return "";
+    try {
+      const u = new URL(url);
+      const text = u.searchParams.get("text");
+      if (text) {
+        const replaced = text
+          .replace(/\{prospect_name\}/g, leadForm.name?.trim() || "there")
+          .replace(/\{funnel_title\}/g, funnel.title || "")
+          .replace(/\{step_title\}/g, step.title || "");
+        u.searchParams.set("text", replaced);
+      }
+      return u.toString();
+    } catch {
+      return url;
+    }
+  };
+
   const handleCtaClick = async (stepIndex: number) => {
     const step = steps[stepIndex];
-    if (step.cta_url) window.open(step.cta_url, "_blank");
-    if (step.booking_url) window.open(step.booking_url, "_blank");
+    const target = step.cta_url || (step.booking_url ? interpolateWaUrl(step.booking_url, step) : "");
+    if (target) window.open(target, "_blank", "noopener,noreferrer");
     await completeStep(stepIndex);
     toast.success("Step completed!");
+  };
+
+  // Manual approval: open WhatsApp to request unlock (does NOT auto-complete; creator unlocks).
+  const handleManualUnlockRequest = (step: FunnelStep) => {
+    const target = step.booking_url ? interpolateWaUrl(step.booking_url, step) : "";
+    if (target) window.open(target, "_blank", "noopener,noreferrer");
+    toast.success("Opening WhatsApp — the creator will unlock this step shortly.");
   };
 
   const validateLead = (): Record<string, string | null> => {
@@ -750,16 +804,27 @@ export const MultiStepViewer = ({
 
                   {activeStep.step_type === "manual_approval" && (
                     <div className="rounded-2xl p-8 text-center" style={{ background: sc.cardBg, border: `1px solid ${sc.cardBorder}` }}>
-                      {activeProgress?.status === "completed" || activeProgress?.manually_unlocked ? (
+                      {activeProgress?.status === "completed" || activeProgress?.manually_unlocked || activeProgress?.status === "unlocked" ? (
                         <>
                           <CheckCircle2 size={40} className="text-green-400 mx-auto mb-3" />
                           <h3 className="font-heading font-bold" style={{ color: sc.text }}>Step Unlocked</h3>
+                          <p style={{ fontSize: "14px", color: sc.textMuted }} className="mt-2">You can now continue to the next step.</p>
                         </>
                       ) : (
                         <>
                           <Lock size={40} style={{ color: sc.textDimmer }} className="mx-auto mb-3" />
                           <h3 className="font-heading font-bold" style={{ color: sc.text }}>Awaiting Approval</h3>
                           <p style={{ fontSize: "14px", color: sc.textMuted }} className="mt-2">{activeStep.description || "The creator will unlock this step for you after review."}</p>
+                          {activeStep.booking_url && (
+                            <Button
+                              className="mt-5 h-12 px-6 text-sm font-bold rounded-xl"
+                              style={{ background: "#25d366", color: "#fff" }}
+                              onClick={() => handleManualUnlockRequest(activeStep)}
+                            >
+                              <MessageCircle size={16} className="mr-2" />
+                              {activeStep.cta_text || "Request Unlock on WhatsApp"}
+                            </Button>
+                          )}
                         </>
                       )}
                     </div>
