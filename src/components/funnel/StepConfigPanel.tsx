@@ -19,9 +19,10 @@ import { VideoThumbnail } from "@/components/VideoThumbnail";
 import { getStepTypeMeta } from "@/components/funnel/StepTypeSelector";
 import {
   Play, Video as VideoIcon, ExternalLink, MessageCircle, UserCheck, Lock,
-  Info, Check
+  Info, Check, Clock, ShieldCheck, Eye, EyeOff, ChevronDown
 } from "lucide-react";
 import { Link as RouterLink } from "@/lib/router-compat";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export interface FlowStep {
   id?: string;
