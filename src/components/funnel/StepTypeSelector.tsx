@@ -33,7 +33,9 @@ const STEP_TYPES = [
     description: "Collect UPI payment proof",
     color: "text-amber-400",
     bg: "bg-amber-500/10",
+    comingSoon: true,
   },
+
   {
     value: "cta",
     label: "CTA / Link",
@@ -69,25 +71,33 @@ export const StepTypeSelector = ({ open, onClose, onSelect }: StepTypeSelectorPr
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
-          {STEP_TYPES.map((type) => (
-            <button
-              key={type.value}
-              onClick={() => { onSelect(type.value); onClose(); }}
-              className="flex flex-col items-center gap-2 p-5 rounded-[14px] border border-border hover:border-primary/40 hover:bg-primary/[0.06] transition-all text-center group"
-            >
-              <div className={`w-11 h-11 rounded-xl ${type.bg} flex items-center justify-center`}>
-                <type.icon size={22} className={type.color} />
-              </div>
-              <div>
-                <p className="font-bold text-[14px] text-foreground group-hover:text-primary transition-colors" style={{ fontFamily: "'Plus Jakarta Sans', var(--font-heading), sans-serif" }}>
-                  {type.label}
-                </p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
-                  {type.description}
-                </p>
-              </div>
-            </button>
-          ))}
+          {STEP_TYPES.map((type) => {
+            const isLocked = (type as any).comingSoon === true;
+            return (
+              <button
+                key={type.value}
+                disabled={isLocked}
+                onClick={() => { if (isLocked) return; onSelect(type.value); onClose(); }}
+                className={`relative flex flex-col items-center gap-2 p-5 rounded-[14px] border border-border transition-all text-center group ${isLocked ? "opacity-55 cursor-not-allowed" : "hover:border-primary/40 hover:bg-primary/[0.06]"}`}
+              >
+                {isLocked && (
+                  <span className="absolute top-1.5 right-1.5 text-[9px] font-bold uppercase tracking-wider rounded-full bg-amber-500/15 text-amber-600 px-1.5 py-0.5">Soon</span>
+                )}
+                <div className={`w-11 h-11 rounded-xl ${type.bg} flex items-center justify-center`}>
+                  <type.icon size={22} className={type.color} />
+                </div>
+                <div>
+                  <p className={`font-bold text-[14px] text-foreground transition-colors ${!isLocked && "group-hover:text-primary"}`} style={{ fontFamily: "'Plus Jakarta Sans', var(--font-heading), sans-serif" }}>
+                    {type.label}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-snug">
+                    {type.description}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
+
         </div>
       </DialogContent>
     </Dialog>

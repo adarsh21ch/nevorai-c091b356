@@ -1,8 +1,27 @@
-// Stub-compatible StepConfigPanel matching the new editor's API.
-// Full feature port happens in a later pass.
+// Per-step configuration editor. One panel, per-type body.
+// Reuses existing funnel_steps columns to avoid a schema migration:
+//   description       → instruction text shown to the prospect
+//   cta_text          → button label
+//   cta_url           → URL for CTA / Link step
+//   booking_url       → pre-built wa.me URL (auto-derived from number+message)
+//   unlock_rule_value → JSON blob { number, message, open_in_new_tab, notify } for re-edit
+import { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { VideoThumbnail } from "@/components/VideoThumbnail";
+import { getStepTypeMeta } from "@/components/funnel/StepTypeSelector";
+import {
+  Play, Video as VideoIcon, ExternalLink, MessageCircle, UserCheck, Lock,
+  Info, Check
+} from "lucide-react";
+import { Link as RouterLink } from "@/lib/router-compat";
 
 export interface FlowStep {
   id?: string;
@@ -52,30 +71,301 @@ interface StepConfigPanelProps {
   userProfile?: any;
 }
 
-export const StepConfigPanel = ({ open, onClose, step, stepIndex, onUpdate, onOpenVideoPicker }: StepConfigPanelProps) => {
+// Helpers to read/write the JSON-encoded extras stored in unlock_rule_value
+type Extras = { number?: string; cc?: string; message?: string; open_in_new_tab?: boolean; notify?: boolean };
+const parseExtras = (raw: string | undefined | null): Extras => {
+  if (!raw) return {};
+  try { return JSON.parse(raw); } catch { return {}; }
+};
+const buildWaUrl = (cc: string, number: string, message: string) => {
+  const digits = `${cc}${number}`.replace(/\D/g, "");
+  if (!digits) return "";
+  const base = `https://wa.me/${digits}`;
+  return message?.trim() ? `${base}?text=${encodeURIComponent(message)}` : base;
+};
+
+export const StepConfigPanel = ({ open, onClose, step, stepIndex, totalSteps, onUpdate, onOpenVideoPicker }: StepConfigPanelProps) => {
   if (!step) return null;
-  return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle>Step {stepIndex + 1} settings</SheetTitle>
-        </SheetHeader>
-        <div className="space-y-4 mt-4">
-          <div>
-            <label className="text-sm font-medium">Title</label>
-            <Input value={step.title} onChange={(e) => onUpdate("title", e.target.value)} className="mt-1.5" />
-          </div>
-          <div>
-            <label className="text-sm font-medium">Description</label>
-            <Input value={step.description} onChange={(e) => onUpdate("description", e.target.value)} className="mt-1.5" />
-          </div>
-          {step.step_type === "video" && (
-            <Button variant="outline" size="sm" onClick={onOpenVideoPicker} className="w-full">
-              {step.video_asset_id ? "Change Video" : "Select Video"}
+  const meta = getStepTypeMeta(step.step_type);
+  const Icon = meta.icon;
+  const extras = useMemo(() => parseExtras(step.unlock_rule_value), [step.unlock_rule_value]);
+  const setExtras = (patch: Partial<Extras>) => {
+    onUpdate("unlock_rule_value", JSON.stringify({ ...extras, ...patch }));
+  };
+
+  // Video preview
+  const { data: videoInfo } = useQuery({
+    queryKey: ["step-video-preview", step.video_asset_id],
+    queryFn: async () => {
+      if (!step.video_asset_id) return null;
+      const { data } = await supabase
+        .from("video_assets")
+        .select("id, title, thumbnail_url, public_url, duration_seconds")
+        .eq("id", step.video_asset_id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!step.video_asset_id,
+  });
+
+  const renderHeader = () => (
+    <div className="flex items-center gap-3 pb-2">
+      <div className={`w-10 h-10 rounded-xl ${meta.bg} flex items-center justify-center`}>
+        <Icon size={20} className={meta.color} />
+      </div>
+      <div>
+        <div className="text-xs uppercase tracking-wide text-muted-foreground">Step {stepIndex + 1} of {totalSteps}</div>
+        <div className="font-heading text-lg font-semibold leading-tight">{meta.label} settings</div>
+      </div>
+    </div>
+  );
+
+  const renderCommon = () => (
+    <div className="space-y-3">
+      <div>
+        <Label className="text-sm">Title</Label>
+        <Input value={step.title} onChange={(e) => onUpdate("title", e.target.value)} placeholder="Step title" className="mt-1.5" />
+      </div>
+    </div>
+  );
+
+  // VIDEO
+  const renderVideo = () => {
+    const pct = step.unlock_percentage ?? 80;
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label className="text-sm mb-1.5 block">Video</Label>
+          {videoInfo ? (
+            <div className="rounded-xl border border-border p-3 flex items-center gap-3 bg-muted/30">
+              <div className="w-24 flex-shrink-0">
+                <VideoThumbnail thumbnailUrl={videoInfo.thumbnail_url} videoUrl={videoInfo.public_url} title={videoInfo.title} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">{videoInfo.title}</p>
+                {videoInfo.duration_seconds ? (
+                  <p className="text-xs text-muted-foreground">
+                    {Math.floor(videoInfo.duration_seconds / 60)}:{(videoInfo.duration_seconds % 60).toString().padStart(2, "0")}
+                  </p>
+                ) : null}
+                <Button variant="link" size="sm" className="px-0 h-auto mt-1" onClick={onOpenVideoPicker}>Change video</Button>
+              </div>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={onOpenVideoPicker} className="w-full justify-center gap-2">
+              <VideoIcon size={16} /> Select a video from your gallery
             </Button>
           )}
-          <p className="text-xs text-muted-foreground">Full step configuration UI will be ported in a later pass.</p>
-          <Button onClick={onClose} className="w-full">Done</Button>
+        </div>
+
+        <div>
+          <Label className="text-sm">Unlock next step after</Label>
+          <div className="mt-2 flex items-center gap-3">
+            <Slider
+              value={[pct]}
+              min={0}
+              max={100}
+              step={5}
+              onValueChange={(v) => {
+                onUpdate("unlock_percentage", v[0]);
+                onUpdate("unlock_rule_type", v[0] >= 100 ? "watch_complete" : v[0] === 0 ? "auto" : "watch_percent");
+              }}
+              className="flex-1"
+            />
+            <span className="text-sm font-semibold w-12 text-right">{pct}%</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            {pct === 0 ? "Unlock immediately (no watch required)" : pct >= 100 ? "Prospect must finish the full video" : `Prospect must watch at least ${pct}% to unlock the next step`}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
+  // LEAD FORM — funnel-level lead capture fields are reused. Per-step lead forms aren't in schema.
+  const renderLeadForm = () => (
+    <div className="space-y-4">
+      <div className="rounded-xl border border-border bg-muted/30 p-3 flex gap-3">
+        <Info size={16} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+        <div className="text-xs text-muted-foreground leading-relaxed">
+          Lead-form fields are shared across the funnel. Configure them once under the
+          {" "}
+          <RouterLink to="/tools?tab=funnels" className="text-primary underline">Lead Capture</RouterLink>
+          {" "}section. This step will use that form.
+        </div>
+      </div>
+      <div>
+        <Label className="text-sm">Submit button label</Label>
+        <Input
+          value={step.cta_text}
+          onChange={(e) => onUpdate("cta_text", e.target.value)}
+          placeholder="Submit & Continue"
+          className="mt-1.5"
+        />
+      </div>
+      <div>
+        <Label className="text-sm">Description (shown above the form)</Label>
+        <Textarea
+          value={step.description}
+          onChange={(e) => onUpdate("description", e.target.value)}
+          placeholder="Tell prospects why you need this info…"
+          rows={3}
+          className="mt-1.5"
+        />
+      </div>
+    </div>
+  );
+
+  // BOOKING (WhatsApp deep link)
+  const renderBooking = () => {
+    const cc = extras.cc ?? "+91";
+    const number = extras.number ?? "";
+    const message = extras.message ?? "Hi! I just finished {step_title} from your funnel and I'd like to book a call.";
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label className="text-sm">Instruction to prospect</Label>
+          <Textarea value={step.description} onChange={(e) => onUpdate("description", e.target.value)} placeholder="Tap the button below to message me on WhatsApp and book your call." rows={2} className="mt-1.5" />
+        </div>
+        <div className="grid grid-cols-[90px_1fr] gap-2">
+          <div>
+            <Label className="text-sm">Code</Label>
+            <Input value={cc} onChange={(e) => { setExtras({ cc: e.target.value }); onUpdate("booking_url", buildWaUrl(e.target.value, number, message)); }} className="mt-1.5" />
+          </div>
+          <div>
+            <Label className="text-sm">WhatsApp number</Label>
+            <Input value={number} onChange={(e) => { setExtras({ number: e.target.value }); onUpdate("booking_url", buildWaUrl(cc, e.target.value, message)); }} placeholder="9876543210" className="mt-1.5" />
+          </div>
+        </div>
+        <div>
+          <Label className="text-sm">Pre-filled message</Label>
+          <Textarea value={message} onChange={(e) => { setExtras({ message: e.target.value }); onUpdate("booking_url", buildWaUrl(cc, number, e.target.value)); }} rows={3} className="mt-1.5" />
+          <p className="text-xs text-muted-foreground mt-1">Variables: <code>{`{prospect_name}`}</code>, <code>{`{funnel_title}`}</code>, <code>{`{step_title}`}</code></p>
+        </div>
+        <div>
+          <Label className="text-sm">Button label</Label>
+          <Input value={step.cta_text} onChange={(e) => onUpdate("cta_text", e.target.value)} placeholder="Book Your Call on WhatsApp" className="mt-1.5" />
+        </div>
+      </div>
+    );
+  };
+
+  // CTA / Link
+  const renderCta = () => {
+    const openNew = extras.open_in_new_tab !== false;
+    const urlError = step.cta_url && !/^https?:\/\//i.test(step.cta_url) ? "URL must start with http:// or https://" : "";
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label className="text-sm">Instruction to prospect</Label>
+          <Textarea value={step.description} onChange={(e) => onUpdate("description", e.target.value)} placeholder="Click the button below to continue." rows={2} className="mt-1.5" />
+        </div>
+        <div>
+          <Label className="text-sm">Button label</Label>
+          <Input value={step.cta_text} onChange={(e) => onUpdate("cta_text", e.target.value)} placeholder="Click to Continue" className="mt-1.5" />
+        </div>
+        <div>
+          <Label className="text-sm">Redirect URL</Label>
+          <Input value={step.cta_url} onChange={(e) => onUpdate("cta_url", e.target.value)} placeholder="https://example.com" className="mt-1.5" />
+          {urlError && <p className="text-xs text-destructive mt-1">{urlError}</p>}
+        </div>
+        <div className="flex items-center justify-between rounded-xl bg-muted/30 border border-border p-3">
+          <div>
+            <Label className="text-sm font-medium">Open in new tab</Label>
+            <p className="text-xs text-muted-foreground">Recommended for external links</p>
+          </div>
+          <Switch checked={openNew} onCheckedChange={(v) => setExtras({ open_in_new_tab: v })} />
+        </div>
+      </div>
+    );
+  };
+
+  // Manual unlock
+  const renderManualUnlock = () => {
+    const cc = extras.cc ?? "+91";
+    const number = extras.number ?? "";
+    const message = extras.message ?? "Hi! I'd like to request unlock for {step_title} in your funnel.";
+    const notify = extras.notify !== false;
+    return (
+      <div className="space-y-4">
+        <div>
+          <Label className="text-sm">Instruction to prospect</Label>
+          <Textarea value={step.description} onChange={(e) => onUpdate("description", e.target.value)} placeholder="Contact me on WhatsApp to unlock this step." rows={2} className="mt-1.5" />
+        </div>
+        <div className="grid grid-cols-[90px_1fr] gap-2">
+          <div>
+            <Label className="text-sm">Code</Label>
+            <Input value={cc} onChange={(e) => { setExtras({ cc: e.target.value }); onUpdate("booking_url", buildWaUrl(e.target.value, number, message)); }} className="mt-1.5" />
+          </div>
+          <div>
+            <Label className="text-sm">Your WhatsApp number</Label>
+            <Input value={number} onChange={(e) => { setExtras({ number: e.target.value }); onUpdate("booking_url", buildWaUrl(cc, e.target.value, message)); }} placeholder="9876543210" className="mt-1.5" />
+          </div>
+        </div>
+        <div>
+          <Label className="text-sm">Pre-filled message</Label>
+          <Textarea value={message} onChange={(e) => { setExtras({ message: e.target.value }); onUpdate("booking_url", buildWaUrl(cc, number, e.target.value)); }} rows={3} className="mt-1.5" />
+        </div>
+        <div>
+          <Label className="text-sm">Button label</Label>
+          <Input value={step.cta_text} onChange={(e) => onUpdate("cta_text", e.target.value)} placeholder="Contact Mentor on WhatsApp" className="mt-1.5" />
+        </div>
+        <div className="flex items-center justify-between rounded-xl bg-muted/30 border border-border p-3">
+          <div>
+            <Label className="text-sm font-medium">Notify me on WhatsApp when prospect requests unlock</Label>
+            <p className="text-xs text-muted-foreground">A pending unlock will appear in your Leads view.</p>
+          </div>
+          <Switch checked={notify} onCheckedChange={(v) => setExtras({ notify: v })} />
+        </div>
+      </div>
+    );
+  };
+
+  // Payment — locked / coming soon
+  const renderPayment = () => (
+    <div className="rounded-2xl border border-border bg-muted/40 p-6 text-center space-y-3">
+      <div className="w-14 h-14 mx-auto rounded-full bg-amber-500/10 flex items-center justify-center">
+        <Lock className="text-amber-500" size={26} />
+      </div>
+      <div>
+        <p className="font-heading text-base font-semibold">Payment step is coming soon</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          We're building this feature. You'll be able to collect UPI payment proof directly inside a funnel step in the next update.
+        </p>
+      </div>
+      <span className="inline-block text-[10px] font-bold uppercase tracking-wider rounded-full bg-amber-500/15 text-amber-600 px-2.5 py-1">Coming Soon</span>
+    </div>
+  );
+
+  const renderBody = () => {
+    switch (step.step_type) {
+      case "video": return renderVideo();
+      case "lead_form": return renderLeadForm();
+      case "booking": return renderBooking();
+      case "cta": return renderCta();
+      case "manual_approval": return renderManualUnlock();
+      case "payment": return renderPayment();
+      default: return renderVideo();
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="right" className="w-full sm:max-w-md overflow-y-auto p-6">
+        <SheetHeader className="space-y-0">
+          <SheetTitle className="sr-only">Step {stepIndex + 1} settings</SheetTitle>
+          <SheetDescription className="sr-only">Configure this step</SheetDescription>
+        </SheetHeader>
+        {renderHeader()}
+        <div className="mt-4 space-y-5">
+          {step.step_type !== "payment" && renderCommon()}
+          {renderBody()}
+        </div>
+        <div className="pt-6 mt-6 border-t border-border">
+          <Button onClick={onClose} className="w-full h-11">
+            <Check size={16} className="mr-1.5" /> Done
+          </Button>
+          <p className="text-[11px] text-muted-foreground text-center mt-2">Changes are saved when you click <span className="font-medium">Save</span> at the top of the funnel.</p>
         </div>
       </SheetContent>
     </Sheet>
