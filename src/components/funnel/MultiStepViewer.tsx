@@ -292,12 +292,66 @@ export const MultiStepViewer = ({
     return () => { if (progressSaveTimer.current) clearInterval(progressSaveTimer.current); };
   }, [activeStepIndex, progressMap, steps, funnel.id]);
 
+  // Realtime: re-fetch progress when creator manually unlocks a step for this session.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`funnel-progress-${funnel.id}-${sessionId.current}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "funnel_step_progress",
+          filter: `session_id=eq.${sessionId.current}`,
+        },
+        (payload: any) => {
+          const row = payload.new;
+          if (!row || row.funnel_id !== funnel.id) return;
+          setProgressMap((prev) => ({
+            ...prev,
+            [row.funnel_step_id]: { ...prev[row.funnel_step_id], ...row },
+          }));
+          if (row.manually_unlocked && row.status !== "locked") {
+            toast.success("A step was unlocked for you!");
+          }
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [funnel.id]);
+
+  // Substitute {prospect_name} / {funnel_title} / {step_title} in a wa.me URL's text= param.
+  const interpolateWaUrl = (url: string | null | undefined, step: FunnelStep): string => {
+    if (!url) return "";
+    try {
+      const u = new URL(url);
+      const text = u.searchParams.get("text");
+      if (text) {
+        const replaced = text
+          .replace(/\{prospect_name\}/g, leadForm.name?.trim() || "there")
+          .replace(/\{funnel_title\}/g, funnel.title || "")
+          .replace(/\{step_title\}/g, step.title || "");
+        u.searchParams.set("text", replaced);
+      }
+      return u.toString();
+    } catch {
+      return url;
+    }
+  };
+
   const handleCtaClick = async (stepIndex: number) => {
     const step = steps[stepIndex];
-    if (step.cta_url) window.open(step.cta_url, "_blank");
-    if (step.booking_url) window.open(step.booking_url, "_blank");
+    const target = step.cta_url || (step.booking_url ? interpolateWaUrl(step.booking_url, step) : "");
+    if (target) window.open(target, "_blank", "noopener,noreferrer");
     await completeStep(stepIndex);
     toast.success("Step completed!");
+  };
+
+  // Manual approval: open WhatsApp to request unlock (does NOT auto-complete; creator unlocks).
+  const handleManualUnlockRequest = (step: FunnelStep) => {
+    const target = step.booking_url ? interpolateWaUrl(step.booking_url, step) : "";
+    if (target) window.open(target, "_blank", "noopener,noreferrer");
+    toast.success("Opening WhatsApp — the creator will unlock this step shortly.");
   };
 
   const validateLead = (): Record<string, string | null> => {
