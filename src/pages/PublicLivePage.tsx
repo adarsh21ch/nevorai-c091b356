@@ -499,7 +499,7 @@ const PublicLivePage = () => {
             </div>
           )}
           {!isEnded && needsRegistration && !registered && (
-            <RegistrationForm session={session} form={form} setForm={setForm} onSubmit={handleRegister} submitting={submitting} errors={formErrors} setErrors={setFormErrors} fieldRefs={formRefs} />
+            <RegistrationForm session={session} form={form} setForm={setForm} customValues={customValues} setCustomValues={setCustomValues} onSubmit={handleRegister} submitting={submitting} errors={formErrors} setErrors={setFormErrors} fieldRefs={formRefs} />
           )}
           {(isLive || (registered && !isEnded)) && stateData.meeting_url && (
             <Button variant="hero" size="lg" className="w-full" onClick={() => window.open(stateData.meeting_url!, "_blank")}>
@@ -546,7 +546,7 @@ const PublicLivePage = () => {
         {stateData.state === "waiting" && (
           <>
             {needsRegistration && !registered ? (
-              <RegistrationForm session={session} form={form} setForm={setForm} onSubmit={handleRegister} submitting={submitting} errors={formErrors} setErrors={setFormErrors} fieldRefs={formRefs} />
+              <RegistrationForm session={session} form={form} setForm={setForm} customValues={customValues} setCustomValues={setCustomValues} onSubmit={handleRegister} submitting={submitting} errors={formErrors} setErrors={setFormErrors} fieldRefs={formRefs} />
             ) : (
               <div className="glass-card p-6 sm:p-8 text-center space-y-5">
                 {/* "Just ended" banner — shown only when a previous slot ended recently and there's a next one */}
