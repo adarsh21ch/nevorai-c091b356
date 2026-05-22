@@ -960,6 +960,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                 </div>
               </EditorSectionBlock>
               </EditorScrollLayout>
+              </div>
             </div>
           </div>
           );
