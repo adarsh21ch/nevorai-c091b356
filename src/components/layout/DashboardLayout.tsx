@@ -231,23 +231,20 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
                   <Logo size="sm" showByline />
                 </div>
                 <div className="ml-2 flex shrink-0 items-center gap-1.5">
-                  <button
-                    onClick={toggleTheme}
-                    aria-label="Toggle theme"
-                    className="flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
-                  </button>
                   <Link
-                    to="/notifications"
+                    to="/help"
+                    aria-label="Nevorai Academy"
                     className="relative flex h-11 w-11 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    style={{ boxShadow: "0 0 0 1px color-mix(in oklab, var(--accent-saffron) 30%, transparent)" }}
                   >
-                    <Bell size={20} />
-                    {unreadCount > 0 && (
-                      <span className="absolute right-2 top-2 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                        {unreadCount > 9 ? "9+" : unreadCount}
-                      </span>
-                    )}
+                    <GraduationCap size={20} />
+                    <span
+                      className="absolute -right-0.5 -top-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full text-[8px] font-bold text-background"
+                      style={{ background: "var(--accent-saffron)" }}
+                      aria-hidden
+                    >
+                      ▶
+                    </span>
                   </Link>
                 </div>
               </div>
