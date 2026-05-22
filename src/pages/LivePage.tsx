@@ -804,7 +804,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                         const active = form.repeat_type === opt.val;
                         return (
                           <button key={opt.val} onClick={() => upd("repeat_type", opt.val as RepeatType)}
-                            className={`text-left p-3 rounded-xl border-2 transition-all ${active ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/40"}`}>
+                            className={`text-left p-3 rounded-xl border-2 transition-all ${active ? "border-primary bg-primary/10 text-primary shadow-[0_0_0_4px_hsl(var(--primary)/0.08)]" : "border-border hover:border-primary/40 hover:bg-muted/40"}`}>
                             <div className="flex items-start gap-2">
                               <opt.icon size={16} className={active ? "text-primary mt-0.5" : "text-muted-foreground mt-0.5"} />
                               <div className="flex-1">
