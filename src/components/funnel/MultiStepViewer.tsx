@@ -417,7 +417,11 @@ export const MultiStepViewer = ({
       );
       setLeadSubmitted(true);
       await completeStep(stepIndex);
-      toast.success("Details submitted!");
+      toast.success(
+        leadForm.email?.trim()
+          ? "You're registered! Please check your email (and spam folder) for a confirmation."
+          : "You're registered! The creator will be in touch shortly.",
+      );
     } catch (err: any) {
       toast.error("Something went wrong. Please try again.");
     } finally {
