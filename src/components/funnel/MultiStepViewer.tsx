@@ -896,6 +896,54 @@ export const MultiStepViewer = ({
                     </div>
                   )}
 
+                  {(() => {
+                    const mode = funnel.speaker_mode || "none";
+                    if (mode === "none") return null;
+                    const stepOverride = activeStep && (activeStep.speaker_mode_step === "override" || activeStep.speaker_mode_step === "custom");
+                    let name = "", photo = "", about = "", verified = false;
+                    if (stepOverride && activeStep) {
+                      name = activeStep.speaker_name_custom || "";
+                      photo = activeStep.speaker_photo_url_custom || "";
+                      about = activeStep.speaker_bio || activeStep.speaker_title || "";
+                    } else if (mode === "account") {
+                      name = creatorProfile?.full_name || "";
+                      photo = creatorProfile?.avatar_url || "";
+                      about = creatorProfile?.bio || "";
+                      verified = creatorProfile?.kyc_status === "approved";
+                    } else if (mode === "custom") {
+                      name = funnel.speaker_name || "";
+                      photo = funnel.speaker_photo_url || "";
+                      about = funnel.speaker_about || "";
+                    }
+                    if (!name && !photo) return null;
+                    return (
+                      <div className="flex items-start gap-3 sm:gap-4 mt-4 p-3 sm:p-4 rounded-2xl" style={{ background: sc.itemBg, border: `1px solid ${sc.border}` }}>
+                        <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden shrink-0 flex items-center justify-center" style={{ border: "2px solid rgba(249,115,22,0.35)" }}>
+                          {photo ? (
+                            <img src={photo} alt={name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[#F97316] font-heading font-bold text-base">{name.charAt(0).toUpperCase() || "?"}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.1em] mb-0.5" style={{ color: sc.textDimmer }}>Presented by</p>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <p className="font-heading font-bold text-[14px] sm:text-[16px] truncate" style={{ color: sc.text }}>{name || "Speaker"}</p>
+                            {verified && (
+                              <span title="Verified" className="inline-flex items-center text-[#F97316] shrink-0">
+                                <BadgeCheck size={14} />
+                              </span>
+                            )}
+                          </div>
+                          {about && (
+                            <p className="text-[12px] sm:text-[13px] mt-0.5 line-clamp-2" style={{ color: sc.textMuted }}>{about}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+
                   {nextStepUnlocked && (
                     <button onClick={() => setActiveStepIndex(activeStepIndex + 1)}
                       className="w-full flex items-center justify-between transition-all"
