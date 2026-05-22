@@ -114,7 +114,7 @@ export default function HelpCenterPage() {
 
   const progress = tutorials.length === 0
     ? 0
-    : Math.round((completions.filter((id) => tutorials.some((t) => t.id === id)).length / tutorials.length) * 100);
+    : Math.round((completions.filter((id: string) => tutorials.some((t) => t.id === id)).length / tutorials.length) * 100);
 
   return (
     <div className="space-y-6">
