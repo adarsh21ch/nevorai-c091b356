@@ -5,6 +5,7 @@ import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
   User, Bell, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Crown, HelpCircle, Home, Wrench, Activity,
+  GitBranch, Layout,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -158,7 +159,49 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
           </div>
 
           <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
-            {navItems.map((item) => renderNavItem(item))}
+            {navItems.map((item) => {
+              if (item.path === "/tools") {
+                const onTools = location.pathname.startsWith("/tools");
+                const search = typeof window !== "undefined" ? window.location.search : "";
+                const tabMatch = search.match(/[?&]tab=([^&]+)/);
+                const activeTab = onTools ? (tabMatch?.[1] || "funnels") : null;
+                const subItems = [
+                  { key: "funnels", label: "Funnels", icon: GitBranch },
+                  ...(features.landingPages ? [{ key: "landing-pages", label: "Landing Pages", icon: Layout }] : []),
+                  ...(features.goLive ? [{ key: "live", label: "Live", icon: Radio }] : []),
+                ];
+                return (
+                  <div key={item.path}>
+                    {renderNavItem(item)}
+                    {!collapsed && onTools && (
+                      <div className="ml-6 mt-1 space-y-0.5 border-l border-border pl-2">
+                        {subItems.map((sub) => {
+                          const subActive = activeTab === sub.key;
+                          return (
+                            <Link
+                              key={sub.key}
+                              to={`/tools?tab=${sub.key}`}
+                              onMouseEnter={() => preloadRoute("/tools")}
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all",
+                                subActive
+                                  ? "bg-muted text-foreground font-semibold"
+                                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                              )}
+                              style={subActive ? { color: "var(--accent-saffron)" } : undefined}
+                            >
+                              <sub.icon size={14} />
+                              <span>{sub.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return renderNavItem(item);
+            })}
             {isAdmin && (
               <div className="px-3 pb-2 pt-4">
                 <Link
