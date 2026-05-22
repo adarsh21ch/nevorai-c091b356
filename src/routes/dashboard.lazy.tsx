@@ -167,29 +167,12 @@ function DashboardPage() {
           ))}
         </div>
 
-        {/* Collapsible deeper analytics */}
-        <details className="group rounded-xl border border-border bg-card/40 p-4">
-          <summary className="cursor-pointer list-none text-sm font-semibold text-foreground flex items-center justify-between">
-            <span>View more insights</span>
-            <ArrowRight size={14} className="transition-transform group-open:rotate-90" />
-          </summary>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 pt-4">
-            {[stats[5], stats[4], stats[2]].map((s) => (
-              <Link
-                key={s.label}
-                to={s.href}
-                className={`group flex flex-col gap-1.5 rounded-xl border border-border bg-card/60 p-3 transition-all hover:border-primary/40 ${accentClass[s.color]}`}
-              >
-                <div className="flex items-center gap-2">
-                  <s.icon size={13} className={iconClass[s.color]} />
-                  <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
-                </div>
-                <div className="text-xl font-heading font-bold leading-none">{s.value}</div>
-                <p className="text-[10px] text-muted-foreground">{s.sub}</p>
-              </Link>
-            ))}
-          </div>
-        </details>
+        <div className="flex justify-end">
+          <Link to="/insights" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            View more insights <ArrowRight size={12} />
+          </Link>
+        </div>
+
 
         <DashboardContentRow />
 
