@@ -159,7 +159,7 @@ const ProfilePage = () => {
   ];
 
   const supportItems = [
-    { icon: HelpCircle, label: "Help & Support", path: "/help", desc: "Tutorials, FAQs and contact support" },
+    { icon: HelpCircle, label: "Nevorai Academy", path: "/help", desc: "Tutorials, FAQs and contact support" },
     { icon: Download, label: "Install App", path: "/install", desc: "Add to home screen" },
   ];
 
