@@ -490,6 +490,24 @@ const AdminSettingsPage = () => {
 
             {activeTab === "landing" && <LandingContentTab />}
 
+            {activeTab === "academy" && <AcademyTab />}
+
+            {activeTab === "whatsapp" && (
+              <div className="glass-card p-3 sm:p-6 space-y-3">
+                <h2 className="text-sm font-heading font-semibold flex items-center gap-2 sm:text-base">
+                  <MessageCircle size={16} className="text-primary" /> WhatsApp Console
+                </h2>
+                <p className="text-[11px] text-muted-foreground leading-relaxed sm:text-xs">
+                  Manage WhatsApp Business API connection, automations, templates, and message logs.
+                </p>
+                <Link to="/admin/whatsapp">
+                  <Button variant="hero" size="sm" className="min-h-[40px] text-xs">
+                    <ExternalLink size={14} /> Open WhatsApp Console
+                  </Button>
+                </Link>
+              </div>
+            )}
+
             {showSaveBar && (
               <Button variant="hero" className="w-full min-h-[44px] text-sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
                 <Save size={16} /> {saveMutation.isPending ? "Saving..." : "Save Settings"}
