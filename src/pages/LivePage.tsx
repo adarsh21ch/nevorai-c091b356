@@ -67,6 +67,11 @@ interface FormState {
   show_phone: boolean;
   show_email: boolean;
   show_city: boolean;
+  name_required: boolean;
+  phone_required: boolean;
+  email_required: boolean;
+  city_required: boolean;
+  custom_fields: CustomField[];
   show_viewer_count: boolean;
   payment_amount: number;
   upi_id: string;
