@@ -925,7 +925,15 @@ const PublicFunnel = () => {
         }),
       );
     },
-    onSuccess: () => { setLeadSubmitted(true); toast.success("Thank you! Your details have been submitted."); },
+    onSuccess: (_data, vars) => {
+      setLeadSubmitted(true);
+      const hasEmail = !!(vars as any)?.email;
+      toast.success(
+        hasEmail
+          ? "You're registered! Please check your email (and spam folder) for a confirmation."
+          : "You're registered! The creator will be in touch shortly.",
+      );
+    },
     onError: () => toast.error("Something went wrong. Please try again."),
   });
 
