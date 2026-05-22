@@ -266,7 +266,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
       return jsonResponse({ error: `Method ${req.method} not allowed` }, 405)
     }
 
-    if (!authHeader) {
+    const apiKeyHeader = req.headers.get('apikey')
+
+    if (!authHeader && !apiKeyHeader) {
       return jsonResponse({ error: 'Unauthorized' }, 401)
     }
 
@@ -281,7 +283,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
     //      signing-keys system where the JWT may not parse with role claim
     //      that we expect).
     const isInternalServiceRole =
-      claims?.role === 'service_role' || (token && token === serviceRoleKey)
+      claims?.role === 'service_role' ||
+      (token && token === serviceRoleKey) ||
+      (apiKeyHeader && apiKeyHeader === serviceRoleKey)
 
     let supabase: any
     if (isInternalServiceRole) {
