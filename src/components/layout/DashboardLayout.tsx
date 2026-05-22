@@ -36,7 +36,7 @@ const tailNavItems = [
 ];
 
 const bottomItems = [
-  { icon: HelpCircle, label: "Help Center", path: "/help" },
+  { icon: GraduationCap, label: "Nevorai Academy", path: "/help" },
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
