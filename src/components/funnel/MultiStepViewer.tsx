@@ -421,6 +421,7 @@ export const MultiStepViewer = ({
         }),
       );
       setLeadSubmitted(true);
+      try { localStorage.setItem(`nf_lead_${funnel.id}`, "true"); } catch {}
       await completeStep(stepIndex);
       toast.success(
         leadForm.email?.trim()
