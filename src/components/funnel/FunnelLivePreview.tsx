@@ -11,6 +11,8 @@ interface PreviewStep {
   timer_cta_text?: string;
   timer_cta_style?: string;
   access_code_enabled?: boolean;
+  video_topics_step_enabled?: boolean;
+  video_topics_step?: string[] | null;
 }
 
 interface FunnelLivePreviewProps {
@@ -27,6 +29,9 @@ interface FunnelLivePreviewProps {
     contact_phone: string;
     payment_enabled: boolean;
     required_fields: { email: boolean; city: boolean; state: boolean; whatsapp: boolean };
+    video_topics_enabled?: boolean;
+    video_topics?: string[];
+    video_topics_scope?: "global" | "per_step";
   };
   selectedVideo: { title: string; url: string | null; thumbnail?: string | null } | null;
   flowSteps: PreviewStep[];
