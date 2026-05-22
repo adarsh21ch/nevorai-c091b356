@@ -117,13 +117,24 @@ export const usePlan = () => {
   const isPaid = isActive && subscription?.tier && subscription.tier !== "free";
   const tier = trialActive ? "trial" : (isActive ? (subscription?.tier || "free") : "free");
 
+  // SINGLE SOURCE OF TRUTH: plan_config is what the admin "Plans & Features"
+  // editor writes to. Read multi_step from there for ALL tiers (free + paid)
+  // so admin toggles take effect immediately for every user without needing
+  // a duplicate column on admin_subscription_plans.
+  const lookupTierForConfig = tier === "trial" ? "pro" : (isPaid ? (subscription?.tier || "free") : "free");
+  const tierPlanCfg = planConfigs.find((c) => (c as any).plan_name === lookupTierForConfig);
+  const multiStepEnabled = tierPlanCfg
+    ? !!(tierPlanCfg as any).multilevel_funnel_enabled
+    : freeLimits.multi_step_funnel_enabled;
+
   const limits: PlanLimits = (isPaid || trialActive) && planConfig ? {
     funnel_limit: planConfig.funnel_limit,
     video_max_size_mb: planConfig.video_max_size_mb,
     landing_page_limit: (planConfig as any).landing_page_limit ?? null,
     live_session_limit: (planConfig as any).live_session_limit ?? null,
-    multi_step_funnel_enabled: (planConfig as any).multi_step_funnel_enabled ?? false,
-  } : freeLimits;
+    multi_step_funnel_enabled: multiStepEnabled,
+  } : { ...freeLimits, multi_step_funnel_enabled: multiStepEnabled };
+
 
   const plan: PlanInfo = {
     isActive,
