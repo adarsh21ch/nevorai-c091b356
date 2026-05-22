@@ -55,9 +55,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  // After login: warm common queries + preload primary tab JS chunks so the
-  // first tab click feels instant. Critical queries fire immediately; the
-  // rest (and route chunks) wait for idle so they don't fight the first paint.
+  // After login: warm only critical header queries. Heavy bulk prefetches of
+  // funnels/videos/landing-pages/live-sessions/leads were removed — they
+  // shipped megabytes per session (esp. video_assets with base64 thumbnails)
+  // and routes load their own data on demand. Route JS chunks are now
+  // preloaded on hover/focus via the router's defaultPreload: "intent".
   useEffect(() => {
     const uid = user?.id;
     if (!uid) return;
@@ -66,7 +68,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const prefetch = (key: any[], queryFn: () => Promise<any>, staleTime = 60_000) =>
       queryClient.prefetchQuery({ queryKey: key, queryFn, staleTime }).catch(() => {});
 
-    // Critical: dashboard summary + unread notifications (used by header).
     prefetch(["dashboard-summary", uid], async () => {
       const { data } = await sb.rpc("dashboard_summary", { p_user_id: uid });
       return data ?? { funnels: [], total_leads: 0, active_live_session: null };
@@ -76,43 +77,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .select("*", { count: "exact", head: true })
         .eq("user_id", uid).eq("is_read", false);
       return count ?? 0;
-    }, 30_000);
+    }, 5 * 60_000);
+  }, [user?.id, queryClient]);
+  void router;
 
-    // Defer secondary prefetch + route-chunk preload until the browser is idle.
-    runIdle(() => {
-      // Preload JS chunks for every primary tab — turns 3–5s first nav into
-      // a chunk-cache hit. Mobile users never hover, so this is the only way.
-      for (const path of PRELOAD_ROUTES) {
-        try { void router.preloadRoute({ to: path as any }); } catch {}
-      }
-
-      prefetch(["my-funnels", uid], async () => {
-        const { data } = await supabase.from("funnels").select("*")
-          .eq("owner_id", uid).order("created_at", { ascending: false });
-        return data || [];
-      });
-      prefetch(["videos", uid], async () => {
-        const { data } = await sb.from("video_assets").select("*")
-          .eq("owner_id", uid).order("created_at", { ascending: false });
-        return data || [];
-      });
-      prefetch(["landing-pages", uid], async () => {
-        const { data } = await sb.from("landing_pages").select("*")
-          .eq("owner_id", uid).order("created_at", { ascending: false });
-        return data || [];
-      });
-      prefetch(["live-sessions", uid], async () => {
-        const { data } = await sb.from("live_sessions").select("*")
-          .eq("owner_id", uid).order("created_at", { ascending: false });
-        return data || [];
-      });
-      prefetch(["all-funnel-leads", uid], async () => {
-        const { data } = await sb.from("funnel_leads").select("*, funnels!inner(owner_id)")
-          .eq("funnels.owner_id", uid).order("created_at", { ascending: false }).limit(500);
-        return data || [];
-      });
-    });
-  }, [user?.id, queryClient, router]);
 
   const fetchProfile = useCallback(async (userId: string) => {
     const { data } = await supabase.from("profiles").select("*").eq("id", userId).single();
