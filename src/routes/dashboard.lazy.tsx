@@ -5,9 +5,9 @@ import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 // UpgradeBanner removed from Home — upgrade prompts now live only in Profile/Billing.
 import { MonthlyViewsBanner } from "@/components/MonthlyViewsBanner";
-import { DashboardKpiStrip } from "@/components/dashboard/DashboardKpiStrip";
+import { ViewsOverviewCard } from "@/components/dashboard/ViewsOverviewCard";
 import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
-import { Layers, Users, Eye, IndianRupee, TrendingUp, BarChart3, Calendar, Plus, ArrowRight } from "lucide-react";
+import { Layers, Users, Eye, IndianRupee, TrendingUp, Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
