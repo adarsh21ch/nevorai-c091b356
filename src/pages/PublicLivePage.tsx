@@ -168,7 +168,7 @@ const PublicLivePage = () => {
   useEffect(() => { fetchState(); }, [fetchState]);
 
   useEffect(() => {
-    const i = setInterval(fetchState, 30_000);
+    const i = setInterval(fetchState, 60_000);
     return () => clearInterval(i);
   }, [fetchState]);
 
