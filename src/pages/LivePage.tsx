@@ -24,6 +24,7 @@ import { computeSessionSlots, currentLiveSlot, nextSlot as nextSlotFn, sessionDu
 import { VideoPickerModal } from "@/components/VideoPickerModal";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { EditorScrollLayout, EditorSectionBlock, type EditorSection } from "@/components/editor/EditorScrollLayout";
+import { CustomFieldsBuilder, type CustomField } from "@/components/funnel/CustomFieldsBuilder";
 
 import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
 
@@ -67,6 +68,11 @@ interface FormState {
   show_phone: boolean;
   show_email: boolean;
   show_city: boolean;
+  name_required: boolean;
+  phone_required: boolean;
+  email_required: boolean;
+  city_required: boolean;
+  custom_fields: CustomField[];
   show_viewer_count: boolean;
   payment_amount: number;
   upi_id: string;
@@ -102,6 +108,8 @@ const emptyForm = (): FormState => ({
   max_attendees: null,
   access_type: "public",
   show_name: true, show_phone: true, show_email: true, show_city: false,
+  name_required: true, phone_required: true, email_required: false, city_required: false,
+  custom_fields: [],
   show_viewer_count: true,
   payment_amount: 0, upi_id: "", payment_instructions: "",
 });
@@ -327,6 +335,9 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       status: scheduled_times.length ? "scheduled" : "draft",
       show_name: form.show_name, show_phone: form.show_phone,
       show_email: form.show_email, show_city: form.show_city,
+      name_required: form.name_required, phone_required: form.phone_required,
+      email_required: form.email_required, city_required: form.city_required,
+      custom_fields: form.custom_fields as any,
       show_viewer_count: form.show_viewer_count,
       repeat_type: form.repeat_type,
       repeat_interval_hours: form.repeat_type === "interval" ? form.repeat_interval_hours : null,
@@ -447,6 +458,11 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       access_type: s.access_type || "public",
       show_name: !!s.show_name, show_phone: !!s.show_phone,
       show_email: !!s.show_email, show_city: !!s.show_city,
+      name_required: s.name_required !== false,
+      phone_required: s.phone_required !== false,
+      email_required: s.email_required === true,
+      city_required: s.city_required === true,
+      custom_fields: Array.isArray(s.custom_fields) ? (s.custom_fields as CustomField[]) : [],
       show_viewer_count: s.show_viewer_count !== false,
       payment_amount: s.payment_amount || 0,
       upi_id: s.upi_id || "",
@@ -734,22 +750,45 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                   </div>
 
                   {form.access_type === "lead_gated" && (
-                    <div className="space-y-2 p-3 bg-muted/40 rounded-xl border border-border">
+                    <div className="space-y-3 p-3 bg-muted/40 rounded-xl border border-border">
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Registration Form</p>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-2">
                         {[
-                          { key: "show_name", label: "Name" },
-                          { key: "show_phone", label: "Phone" },
-                          { key: "show_email", label: "Email" },
-                          { key: "show_city", label: "City" },
-                        ].map((f) => (
-                          <div key={f.key} className="flex items-center justify-between">
-                            <Label className="text-xs">{f.label}</Label>
-                            <Switch checked={(form as any)[f.key]} onCheckedChange={(v) => upd(f.key as any, v as any)} />
-                          </div>
-                        ))}
+                          { key: "name", label: "Name" },
+                          { key: "phone", label: "Phone" },
+                          { key: "email", label: "Email" },
+                          { key: "city", label: "City" },
+                        ].map((f) => {
+                          const showKey = `show_${f.key}` as keyof FormState;
+                          const reqKey = `${f.key}_required` as keyof FormState;
+                          const shown = !!(form as any)[showKey];
+                          return (
+                            <div key={f.key} className="flex items-center justify-between gap-3 rounded-lg bg-background/60 border border-border px-3 py-2">
+                              <span className="text-xs font-medium">{f.label}</span>
+                              <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                                  Show
+                                  <Switch checked={shown} onCheckedChange={(v) => upd(showKey as any, v as any)} />
+                                </label>
+                                <label className={`flex items-center gap-1.5 text-[11px] ${shown ? "text-muted-foreground" : "text-muted-foreground/40"}`}>
+                                  Required
+                                  <Switch
+                                    checked={!!(form as any)[reqKey]}
+                                    disabled={!shown}
+                                    onCheckedChange={(v) => upd(reqKey as any, v as any)}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <p className="text-[10px] text-muted-foreground pt-1">Custom registration fields are coming soon.</p>
+                      <CustomFieldsBuilder
+                        fields={form.custom_fields}
+                        onChange={(fields) => upd("custom_fields", fields as any)}
+                        enabled={(features as any)?.customFormFields === true}
+                        maxFields={(config as any)?.max_custom_form_fields ?? 0}
+                      />
                     </div>
                   )}
                 </div>
