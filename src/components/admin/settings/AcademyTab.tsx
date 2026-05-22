@@ -248,7 +248,7 @@ export const AcademyTab = () => {
                       onClick={() => fileRef.current?.click()} className="text-xs">
                       {uploading ? <><Loader2 size={14} className="animate-spin" /> Uploading…</> : <><Upload size={14} /> Upload video file</>}
                     </Button>
-                    <span className="text-[10px] text-muted-foreground">MP4/WebM up to 500MB</span>
+                    <span className="text-[10px] text-muted-foreground">MP4/WebM — no size limit</span>
                   </div>
                 </div>
               </div>
