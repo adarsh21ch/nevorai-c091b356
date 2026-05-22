@@ -924,6 +924,15 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="flex items-center justify-between pt-2 border-t border-border">
+                        <div className="flex-1 pr-3">
+                          <Label className="text-xs font-medium">Allow viewers to skip / fast-forward</Label>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
+                            {form.replay_allow_seek ? "Viewers can scrub the replay timeline." : "Viewers must watch in real-time — no skipping ahead."}
+                          </p>
+                        </div>
+                        <Switch checked={form.replay_allow_seek} onCheckedChange={(v) => upd("replay_allow_seek", v)} />
+                      </div>
                     </div>
                   )}
 
