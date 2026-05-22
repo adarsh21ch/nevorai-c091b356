@@ -854,7 +854,11 @@ const PublicFunnel = () => {
     const codeVerified = localStorage.getItem(`nf_code_verified_${funnel.id}`);
     if (codeVerified) setCodeGateUnlocked(true);
     const leadStored = localStorage.getItem(`nf_lead_${funnel.id}`);
-    if (leadStored) setPrivateLeadSubmitted(true);
+    if (leadStored) {
+      setPrivateLeadSubmitted(true);
+      // Skip the lead form on refresh — same browser, same prospect.
+      setLeadSubmitted(true);
+    }
   }, [funnel]);
 
   useEffect(() => {
@@ -927,6 +931,7 @@ const PublicFunnel = () => {
     },
     onSuccess: (_data, vars) => {
       setLeadSubmitted(true);
+      try { if (funnel?.id) localStorage.setItem(`nf_lead_${funnel.id}`, "true"); } catch {}
       const hasEmail = !!(vars as any)?.email;
       toast.success(
         hasEmail
