@@ -3,7 +3,7 @@ import { Link as TLink } from "@tanstack/react-router";
 import { Logo } from "@/components/landing/Logo";
 import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
-  User, Bell, LogOut, ChevronLeft, ChevronRight, Shield,
+  User, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Crown, GraduationCap, Home, Wrench, Activity,
   GitBranch, Layout,
 } from "lucide-react";
