@@ -1071,6 +1071,7 @@ export const MultiStepViewer = ({
           )}
         </div>
       </div>
+      <MobileContactBar />
     </div>
   );
 };
