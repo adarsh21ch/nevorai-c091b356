@@ -1,7 +1,7 @@
 import { Link, useLocation } from "@/lib/router-compat";
 import { DashboardLayout } from "./DashboardLayout";
 import { AdminRoute } from "@/components/auth/AdminRoute";
-import { LayoutDashboard, Video, Users, UserCheck, CreditCard, Cog, MessageSquare, MessageCircle, Layers, IndianRupee } from "lucide-react";
+import { LayoutDashboard, Video, Users, UserCheck, CreditCard, Cog, MessageSquare, Layers, IndianRupee } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const adminTabs = [
@@ -12,7 +12,6 @@ const adminTabs = [
   { icon: Users, label: "Users", path: "/admin/users" },
   { icon: UserCheck, label: "KYC", path: "/admin/kyc" },
   { icon: CreditCard, label: "Subs", path: "/admin/subscriptions" },
-  { icon: MessageCircle, label: "WhatsApp", path: "/admin/whatsapp" },
   { icon: MessageSquare, label: "Support", path: "/admin/support" },
   { icon: Cog, label: "Settings", path: "/admin/settings" },
 ];
