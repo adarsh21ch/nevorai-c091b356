@@ -589,7 +589,7 @@ const FunnelEditor = () => {
           <div className="w-11 h-11 rounded-xl bg-accent/20 flex items-center justify-center mb-3">
             <Layers size={22} className="text-accent-foreground" />
           </div>
-          <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors">Multi-Step Flow</h3>
+          <h3 className="font-heading font-bold text-sm group-hover:text-primary transition-colors">Multi-Step Funnel</h3>
           <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
             A guided journey with sequential steps, unlock rules, and progress tracking.
           </p>
