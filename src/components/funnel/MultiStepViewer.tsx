@@ -110,13 +110,18 @@ const UNLOCK_HINTS: Record<string, (value?: string | null) => string> = {
 };
 
 const getSessionId = (funnelId: string): string => {
-  const key = `nf_session_${funnelId}`;
-  let sid = localStorage.getItem(key);
-  if (!sid) {
-    sid = crypto.randomUUID();
-    localStorage.setItem(key, sid);
+  if (typeof window === "undefined") return "";
+  try {
+    const key = `nf_session_${funnelId}`;
+    let sid = localStorage.getItem(key);
+    if (!sid) {
+      sid = crypto.randomUUID();
+      localStorage.setItem(key, sid);
+    }
+    return sid;
+  } catch {
+    return "";
   }
-  return sid;
 };
 
 export const MultiStepViewer = ({
