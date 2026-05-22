@@ -9,9 +9,9 @@ import LandingPagesPage from "@/pages/LandingPagesPage";
 import LivePage from "@/pages/LivePage";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 
-const parseTab = (search: string): string => {
-  const m = search.match(/[?&]tab=([^&]+)/);
-  return m?.[1] || "funnels";
+const parseTab = (search: string, validTabs: string[]): string => {
+  const tab = new URLSearchParams(search).get("tab") || "funnels";
+  return validTabs.includes(tab) ? tab : validTabs[0] || "funnels";
 };
 
 const ToolsPage = () => {
@@ -30,9 +30,9 @@ const ToolsPage = () => {
   // Read from window on mount (post-hydration) to avoid SSR/CSR mismatch.
   useEffect(() => {
     const search = location.search || (typeof window !== "undefined" ? window.location.search : "");
-    const next = parseTab(search);
+    const next = parseTab(search, TOOL_TABS.map((tab) => tab.key));
     setActiveTab((prev) => (prev === next ? prev : next));
-  }, [location.search]);
+  }, [TOOL_TABS, location.search]);
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
