@@ -162,9 +162,8 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
             {navItems.map((item) => {
               if (item.path === "/tools") {
                 const onTools = location.pathname.startsWith("/tools");
-                const search = typeof window !== "undefined" ? window.location.search : "";
-                const tabMatch = search.match(/[?&]tab=([^&]+)/);
-                const activeTab = onTools ? (tabMatch?.[1] || "funnels") : null;
+                const search = location.search || (typeof window !== "undefined" ? window.location.search : "");
+                const activeTab = onTools ? (new URLSearchParams(search).get("tab") || "funnels") : null;
                 const subItems = [
                   { key: "funnels", label: "Funnels", icon: GitBranch },
                   ...(features.landingPages ? [{ key: "landing-pages", label: "Landing Pages", icon: Layout }] : []),
