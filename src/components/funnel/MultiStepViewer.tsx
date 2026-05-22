@@ -28,6 +28,14 @@ import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 import { StepCodeGate } from "@/components/funnel/StepCodeGate";
 
+// Real WhatsApp brand mark (inline SVG, currentColor for brand green).
+const WhatsAppIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+    <path d="M19.11 17.205c-.372 0-1.088 1.39-1.518 1.39a.633.633 0 0 1-.315-.1c-.802-.402-1.504-.817-2.163-1.447-.545-.516-1.146-1.29-1.46-1.963a.426.426 0 0 1-.073-.215c0-.33.99-.945.99-1.49 0-.143-.73-2.09-.832-2.335-.143-.372-.214-.487-.6-.487-.187 0-.36-.043-.53-.043-.302 0-.53.115-.746.315-.688.645-1.032 1.318-1.06 2.264v.114c-.015.99.472 1.977 1.017 2.78 1.23 1.82 2.506 3.41 4.554 4.34.616.287 2.035.888 2.722.888.817 0 2.15-.515 2.478-1.318.116-.286.187-.616.187-.93 0-.732-1.43-1.207-1.844-1.764zm-2.91 7.413c-1.732 0-3.434-.53-4.864-1.49L7.708 24.18l1.072-3.582a8.744 8.744 0 0 1-1.71-5.197c0-4.857 3.98-8.81 8.84-8.81 4.85 0 8.81 3.953 8.81 8.81 0 4.855-3.952 8.81-8.81 8.81zm0-19.292c-5.74 0-10.41 4.674-10.41 10.42 0 1.91.516 3.78 1.5 5.42L5.05 27.59l5.658-1.78a10.357 10.357 0 0 0 5.494 1.58c5.74 0 10.41-4.673 10.41-10.42 0-5.744-4.668-10.42-10.41-10.42z"/>
+  </svg>
+);
+
+
 interface FunnelStep {
   id: string;
   step_order: number;
@@ -587,19 +595,19 @@ export const MultiStepViewer = ({
         </div>
       </div>
       {hasContact && (
-        <div className="shrink-0 px-3 py-3" style={{ borderTop: `1px solid ${sc.border}`, background: sc.bg }}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.1em] mb-2.5 px-1" style={{ color: sc.textDim }}>Contact Creator</p>
-          <div className="space-y-2">
+        <div className="shrink-0 px-3 pt-2.5 pb-3" style={{ borderTop: `1px solid ${sc.border}`, background: sc.bg }}>
+          <p className="text-[10px] font-bold uppercase tracking-[0.1em] mb-2 px-1" style={{ color: sc.textDim }}>Contact Creator</p>
+          <div className="space-y-1.5">
             {waOn && (
               <button onClick={() => window.open(`https://wa.me/${funnel.contact_whatsapp?.replace(/\D/g, "")}`)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
-                style={{ background: "rgba(37,211,102,0.15)", color: "#25d366", border: "1px solid rgba(37,211,102,0.2)" }}>
-                <MessageCircle size={15} /> WhatsApp
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+                style={{ background: "rgba(37,211,102,0.15)", color: "#25d366", border: "1px solid rgba(37,211,102,0.25)" }}>
+                <WhatsAppIcon size={16} /> WhatsApp
               </button>
             )}
             {phoneOn && (
               <button onClick={() => window.open(`tel:${funnel.contact_phone}`)}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
                 style={{ background: sc.itemIconBg, color: sc.text, border: `1px solid ${sc.border}` }}>
                 <PhoneIcon size={15} /> Call
               </button>
@@ -610,7 +618,7 @@ export const MultiStepViewer = ({
                 const url = v.startsWith("http") ? v : `https://instagram.com/${v.replace(/^@/, "")}`;
                 window.open(url, "_blank");
               }}
-                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
+                className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all hover:opacity-90"
                 style={{ background: "linear-gradient(135deg, rgba(225,48,108,0.15), rgba(253,29,29,0.15))", color: "#e1306c", border: "1px solid rgba(225,48,108,0.25)" }}>
                 <Instagram size={15} /> Instagram
               </button>
@@ -621,10 +629,51 @@ export const MultiStepViewer = ({
     </div>
   );
 
+  const MobileContactBar = () => {
+    if (!hasContact) return null;
+    return (
+      <div
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex gap-2 px-3 py-2.5"
+        style={{
+          background: sc.bg,
+          borderTop: `1px solid ${sc.border}`,
+          paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 10px)",
+        }}
+      >
+        {waOn && (
+          <button onClick={() => window.open(`https://wa.me/${funnel.contact_whatsapp?.replace(/\D/g, "")}`)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-[12px] font-semibold"
+            style={{ background: "rgba(37,211,102,0.15)", color: "#25d366", border: "1px solid rgba(37,211,102,0.25)" }}>
+            <WhatsAppIcon size={16} /> WhatsApp
+          </button>
+        )}
+        {phoneOn && (
+          <button onClick={() => window.open(`tel:${funnel.contact_phone}`)}
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-[12px] font-semibold"
+            style={{ background: sc.itemIconBg, color: sc.text, border: `1px solid ${sc.border}` }}>
+            <PhoneIcon size={15} /> Call
+          </button>
+        )}
+        {igOn && (
+          <button onClick={() => {
+            const v = funnel.contact_instagram!.trim();
+            const url = v.startsWith("http") ? v : `https://instagram.com/${v.replace(/^@/, "")}`;
+            window.open(url, "_blank");
+          }}
+            className="flex-1 flex items-center justify-center gap-1.5 px-2 py-2.5 rounded-xl text-[12px] font-semibold"
+            style={{ background: "linear-gradient(135deg, rgba(225,48,108,0.15), rgba(253,29,29,0.15))", color: "#e1306c", border: "1px solid rgba(225,48,108,0.25)" }}>
+            <Instagram size={15} /> Instagram
+          </button>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="flex min-h-[calc(100vh-52px)]">
       <JourneySidebar />
-      <div className="flex flex-col flex-1 min-w-0">
+      <div className="flex flex-col flex-1 min-w-0 pb-[88px] lg:pb-0">
+
         <div className="lg:hidden text-center py-4 px-4" style={{ borderBottom: `1px solid ${sc.border}` }}>
           <h1 className="font-heading font-extrabold tracking-tight leading-tight" style={{ fontSize: "clamp(18px, 5vw, 28px)", letterSpacing: "-0.02em", color: sc.text }}>
             {funnel.title}
@@ -1022,6 +1071,7 @@ export const MultiStepViewer = ({
           )}
         </div>
       </div>
+      <MobileContactBar />
     </div>
   );
 };
