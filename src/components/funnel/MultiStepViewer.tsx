@@ -526,8 +526,9 @@ export const MultiStepViewer = ({
   const hasContact = funnel.show_contact_buttons && (waOn || phoneOn || igOn);
 
   const JourneySidebar = () => (
-    <div className="hidden lg:flex flex-col w-[280px] min-w-[280px] shrink-0 h-screen sticky top-0 border-r"
+    <div className="hidden lg:flex flex-col w-[280px] min-w-[280px] shrink-0 h-[calc(100dvh-52px)] sticky top-[52px] border-r"
       style={{ background: sc.bg, borderColor: sc.border }}>
+
       <div className="flex-1 overflow-y-auto" style={{ padding: "20px 14px" }}>
         {creatorProfile?.full_name && (
           <div className="flex items-center gap-3 pb-4 mb-4" style={{ borderBottom: `1px solid ${sc.border}` }}>
