@@ -156,6 +156,20 @@ export const FunnelLivePreview = ({ funnel, selectedVideo, flowSteps, leadForm, 
               {funnel.required_fields.email && <div className="h-6 rounded bg-muted border border-border px-2 flex items-center text-[9px] text-muted-foreground">Email</div>}
             </div>
           )}
+          {topicsEnabled && cleanedTopics.length > 0 && (
+            <div className="space-y-1 pt-1.5 border-t border-border">
+              <p className="text-[8px] font-bold text-muted-foreground uppercase tracking-wider mb-1">What you'll learn</p>
+              {cleanedTopics.slice(0, 5).map((topic, idx) => (
+                <div key={idx} className="flex items-start gap-1.5 py-0.5">
+                  <div className="w-3 h-3 rounded-full flex items-center justify-center shrink-0 mt-[1px]" style={{ background: "rgba(249,115,22,0.15)" }}>
+                    <Check size={7} className="text-[#F97316]" />
+                  </div>
+                  <span className="text-[9px] leading-snug text-foreground truncate">{topic}</span>
+                </div>
+              ))}
+              {cleanedTopics.length > 5 && <p className="text-[8px] text-muted-foreground pl-4.5">+{cleanedTopics.length - 5} more</p>}
+            </div>
+          )}
           {funnel.cta_enabled && !isMulti && (
             <div className="w-full py-1.5 rounded-md bg-primary text-center text-[10px] font-bold text-primary-foreground">{funnel.cta_text || "Get Started"} →</div>
           )}
