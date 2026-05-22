@@ -56,8 +56,8 @@ function DashboardPage() {
   useDocumentTitle("Dashboard");
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
-  const monthly = useMonthlyViews();
-  const daily = useDailyViews();
+
+
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
