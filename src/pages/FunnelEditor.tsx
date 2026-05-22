@@ -371,12 +371,12 @@ const FunnelEditor = () => {
       }
       let funnelId: string;
       if (isEdit) {
-        const { error } = await supabase.from("funnels").update(payload).eq("id", id);
+        const { error } = await (supabase.from("funnels") as any).update(payload).eq("id", id);
         if (error) throw error;
         await (supabase.from("funnel_lead_form_config") as any).upsert({ funnel_id: id, ...leadForm }, { onConflict: "funnel_id" });
         funnelId = id!;
       } else {
-        const { data, error } = await supabase.from("funnels").insert(payload).select("id").single();
+        const { data, error } = await (supabase.from("funnels") as any).insert(payload).select("id").single();
         if (error) throw error;
         await (supabase.from("funnel_lead_form_config") as any).insert({ funnel_id: data.id, ...leadForm });
         funnelId = data.id;
@@ -446,7 +446,7 @@ const FunnelEditor = () => {
       if (!payload || !payload.title) return;
       try {
         setIsAutoSaving(true);
-        await supabase.from("funnels").update(payload).eq("id", id);
+        await (supabase.from("funnels") as any).update(payload).eq("id", id);
         await (supabase.from("funnel_lead_form_config") as any).upsert({ funnel_id: id, ...leadForm }, { onConflict: "funnel_id" });
         setLastSavedAt(new Date());
       } catch {
