@@ -155,10 +155,28 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
                 </div>
                 <Switch
                   id="allow-seek"
-                  checked={allowSeek}
+                  checked={skipUnlocked ? allowSeek : true}
+                  disabled={!skipUnlocked}
                   onCheckedChange={setAllowSeek}
                 />
               </div>
+
+              {!skipUnlocked && (
+                <div className="mt-2 rounded-md border border-primary/30 bg-primary/5 p-2.5 text-[11px] leading-relaxed flex items-start gap-2">
+                  <Lock size={12} className="text-primary mt-0.5 shrink-0" />
+                  <div className="flex-1">
+                    <span className="text-foreground font-medium">Skip-forward control is a paid feature.</span>{" "}
+                    <span className="text-muted-foreground">Upgrade to unlock this on all your videos.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => { onClose(); navigate("/pricing"); }}
+                    className="text-[11px] font-semibold text-primary hover:underline shrink-0"
+                  >
+                    Upgrade
+                  </button>
+                </div>
+              )}
 
               {isMobile && showSkipInfo && (
                 <div className="rounded-md bg-background/60 border border-border p-2.5 text-[11px] text-muted-foreground leading-relaxed">
