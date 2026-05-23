@@ -586,6 +586,13 @@ const VideosPage = () => {
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ["shared-videos"] })}
         />
 
+        <YouTubeLinkModal
+          open={youtubeModalOpen}
+          onClose={() => setYoutubeModalOpen(false)}
+          onSuccess={invalidateVideos}
+        />
+
+
         {shareVideo && (
           <VideoShareModal
             open={!!shareVideo}
