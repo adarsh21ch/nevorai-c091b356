@@ -98,7 +98,9 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     setTipDismissed(true);
     setTipOpen(false);
   };
-  const [allowCopyLink, setAllowCopyLink] = useState(true);
+  // "Allow others to reuse" lives in Edit Details now. New uploads start OFF;
+  // creators can flip it on per-video from the details modal.
+  const allowCopyLink = false;
   const [doneVideoId, setDoneVideoId] = useState<string | null>(null);
   const [storageLimitOpen, setStorageLimitOpen] = useState(false);
   const storage = useStorageUsage();
