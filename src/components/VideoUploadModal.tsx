@@ -132,7 +132,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     setEta("");
     setError(null);
     setFormatWarning(null);
-    setAllowCopyLink(true);
+    // allowCopyLink is now a constant — nothing to reset
     setDoneVideoId(null);
   };
 
