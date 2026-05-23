@@ -97,16 +97,7 @@ const SpeedControl = ({
 };
 
 /* ─── Custom Video Player ─── */
-const CustomVideoPlayer = ({
-  src,
-  poster,
-  allowSeek,
-  allowSpeed,
-  autoplay = false,
-  initialTime = 0,
-  onTimeUpdate,
-  onPlay,
-}: {
+type CustomVideoPlayerProps = {
   src: string;
   poster?: string;
   allowSeek: boolean;
@@ -115,7 +106,36 @@ const CustomVideoPlayer = ({
   initialTime?: number;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   onPlay?: () => void;
-}) => {
+};
+
+const CustomVideoPlayer = (props: CustomVideoPlayerProps) => {
+  if (isYouTubeUrl(props.src)) {
+    return (
+      <div
+        className="relative w-full bg-black rounded-2xl overflow-hidden"
+        style={{ aspectRatio: "16 / 9" }}
+      >
+        <YouTubeEmbed
+          src={props.src}
+          autoplay={props.autoplay}
+          initialTime={props.initialTime}
+        />
+      </div>
+    );
+  }
+  return <NativeCustomVideoPlayer {...props} />;
+};
+
+const NativeCustomVideoPlayer = ({
+  src,
+  poster,
+  allowSeek,
+  allowSpeed,
+  autoplay = false,
+  initialTime = 0,
+  onTimeUpdate,
+  onPlay,
+}: CustomVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const maxWatched = useRef(0);
