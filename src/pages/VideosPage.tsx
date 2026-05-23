@@ -83,6 +83,8 @@ const VideosPage = () => {
   const [detailsVideo, setDetailsVideo] = useState<{ id: string } | null>(null);
   const [deleteVideo, setDeleteVideo] = useState<{ id: string; title: string } | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "ready" | "processing" | "failed">("all");
+  const [skipUpgradeOpen, setSkipUpgradeOpen] = useState(false);
+  const { features, tier } = usePlanLimits();
 
   const { data: ownVideos = [], isLoading, error, refetch } = useQuery({
     queryKey: ["videos", user?.id],
