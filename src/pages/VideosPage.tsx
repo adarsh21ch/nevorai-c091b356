@@ -198,6 +198,10 @@ const VideosPage = () => {
   }
 
   const toggleAllowSeek = async (videoId: string, current: boolean) => {
+    if (!features.skipControl) {
+      setSkipUpgradeOpen(true);
+      return;
+    }
     const next = !current;
     // Optimistic update
     queryClient.setQueryData(["videos", user?.id], (old: any) =>
