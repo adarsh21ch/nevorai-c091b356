@@ -107,33 +107,54 @@ export const uploadFileToR2 = async ({
 
     videoId = data.videoId || null;
 
-    await new Promise<void>((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
+    // PUT to R2 with a silent one-time retry on transient network failure.
+    // Many "network hiccup" reports were a single dropped TLS handshake or
+    // a CORS-preflight race that succeeds immediately on the second try.
+    const putOnce = () =>
+      new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("PUT", data.uploadUrl);
+        xhr.timeout = timeoutMs;
+        xhr.setRequestHeader("Content-Type", contentType);
 
-      xhr.open("PUT", data.uploadUrl);
-      xhr.timeout = timeoutMs;
-      xhr.setRequestHeader("Content-Type", contentType);
+        xhr.upload.addEventListener("progress", (event) => {
+          if (!event.lengthComputable) return;
+          const percent = Math.round((event.loaded / event.total) * 100);
+          onProgress?.(percent, { loaded: event.loaded, total: event.total });
+        });
 
-      xhr.upload.addEventListener("progress", (event) => {
-        if (!event.lengthComputable) return;
-        const percent = Math.round((event.loaded / event.total) * 100);
-        onProgress?.(percent, { loaded: event.loaded, total: event.total });
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            onProgress?.(100, { loaded: file.size, total: file.size });
+            resolve();
+            return;
+          }
+          const err: any = new Error(`Upload failed (HTTP ${xhr.status})`);
+          err.retryable = xhr.status >= 500 || xhr.status === 0;
+          reject(err);
+        };
+        xhr.onerror = () => {
+          const err: any = new Error("Network error while uploading video");
+          err.retryable = true;
+          reject(err);
+        };
+        xhr.ontimeout = () => {
+          const err: any = new Error("Upload timed out. Try a smaller file or a faster connection.");
+          err.retryable = false;
+          reject(err);
+        };
+        xhr.send(file);
       });
 
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          onProgress?.(100, { loaded: file.size, total: file.size });
-          resolve();
-          return;
-        }
-
-        reject(new Error(`Upload failed (HTTP ${xhr.status})`));
-      };
-
-      xhr.onerror = () => reject(new Error("Network error while uploading video"));
-      xhr.ontimeout = () => reject(new Error("Upload timed out. Try a smaller file or a faster connection."));
-      xhr.send(file);
-    });
+    try {
+      await putOnce();
+    } catch (firstErr: any) {
+      if (!firstErr?.retryable) throw firstErr;
+      // Reset progress UI and try once more silently.
+      onProgress?.(0, { loaded: 0, total: file.size });
+      await new Promise((r) => setTimeout(r, 800));
+      await putOnce();
+    }
 
     if (data.confirmRequired === false) {
       if (!data.publicUrl) {
