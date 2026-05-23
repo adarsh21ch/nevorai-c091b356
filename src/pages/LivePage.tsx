@@ -647,15 +647,15 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                     <div>
                       <Label className="text-sm font-medium">Select Video *</Label>
                       <p className="text-[11px] text-muted-foreground mt-0.5 mb-2">Pick the recorded video you want to play live.</p>
-                      {selectedFunnel ? (
+                      {selectedVideo ? (
                         <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl border border-border">
-                          {selectedFunnel.thumbnail_url ? (
-                            <img src={selectedFunnel.thumbnail_url} alt="" className="w-20 h-14 rounded object-cover shrink-0" />
+                          {selectedVideo.thumbnail_url ? (
+                            <img src={selectedVideo.thumbnail_url} alt="" className="w-20 h-14 rounded object-cover shrink-0" />
                           ) : (
                             <div className="w-20 h-14 rounded bg-muted flex items-center justify-center shrink-0"><Video size={18} className="text-muted-foreground" /></div>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold truncate">{selectedFunnel.title}</p>
+                            <p className="text-sm font-semibold truncate">{selectedVideo.title}</p>
                             <p className="text-xs text-muted-foreground">Duration: {formatDuration(form.video_duration_seconds)}</p>
                           </div>
                           <Button type="button" variant="outline" size="sm" onClick={() => setVideoPickerOpen(true)}>
@@ -681,18 +681,17 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
                         open={videoPickerOpen}
                         onClose={() => setVideoPickerOpen(false)}
                         onSelect={(videoId, title) => {
+                          // Any uploaded video works — no funnel attachment required.
+                          // If the chosen video happens to also belong to a funnel,
+                          // link the funnel too so legacy speaker/CTA metadata still flows.
                           const match = (funnels as any[]).find((f) => f.video_asset_id === videoId);
-                          if (match) {
-                            upd("funnel_id", match.id);
-                            toast.success(`Selected "${title}"`);
-                          } else {
-                            toast.error(`"${title}" isn't attached to a funnel yet. Create a funnel with this video first.`, {
-                              action: { label: "Create funnel", onClick: () => navigate("/funnels") },
-                            });
-                          }
+                          upd("video_asset_id", videoId);
+                          upd("funnel_id", match ? match.id : null);
+                          toast.success(`Selected "${title}"`);
                           setVideoPickerOpen(false);
                         }}
                       />
+
                     </div>
                   ) : (
                     <div className="grid sm:grid-cols-2 gap-3">
