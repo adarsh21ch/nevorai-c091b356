@@ -427,6 +427,7 @@ function NativeVideoPlayer({
       }}
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
+      onTouchCancel={onTouchCancel}
     >
       <video
         ref={videoRef}
