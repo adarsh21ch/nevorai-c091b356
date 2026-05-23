@@ -218,6 +218,29 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
               </div>
             </div>
 
+            {/* Allow others to reuse this video via Nevorai Link */}
+            <div className="rounded-lg bg-muted/40 border border-border p-3">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <Copy size={13} className="text-primary shrink-0" />
+                    <Label className="text-sm font-medium cursor-pointer" htmlFor="allow-copy-link">
+                      Allow others to reuse this video
+                    </Label>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground mt-1 leading-relaxed">
+                    Public viewers see a "Copy Nevorai Link" button so they can add this video to their own gallery. Daily view limits still apply.
+                  </p>
+                </div>
+                <Switch
+                  id="allow-copy-link"
+                  checked={allowCopyLink}
+                  onCheckedChange={setAllowCopyLink}
+                />
+              </div>
+            </div>
+
+
             <div className="flex gap-2 pt-2">
               <Button variant="outline" onClick={onClose} className="flex-1" disabled={saving}>
                 Cancel
