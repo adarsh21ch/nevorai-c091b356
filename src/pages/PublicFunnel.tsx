@@ -22,6 +22,8 @@ import { PrivateLeadForm } from "@/components/funnel/PrivateLeadForm";
 import { FunnelDailyLimitGate } from "@/components/funnel/FunnelDailyLimitGate";
 import { CreatorInactiveGate } from "@/components/funnel/CreatorInactiveGate";
 import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
+import { YouTubeEmbed } from "@/components/YouTubeEmbed";
+import { isYouTubeUrl } from "@/lib/youtube";
 import { sanitizeText } from "@/lib/sanitize";
 import { trackEntityView, captureAttribution } from "@/lib/tracking";
 import {
