@@ -1026,6 +1026,16 @@ const LandingPageEditor = () => {
     </div>
   ) : undefined;
 
+  if (authLoading || !user) {
+    return (
+      <DashboardLayout editorMode>
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout editorMode>
       <EditorScrollLayout sections={editorSections} header={headerNode} rightPane={rightPaneNode}>
