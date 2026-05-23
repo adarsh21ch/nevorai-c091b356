@@ -67,6 +67,8 @@ const VideosPage = () => {
   const debouncedSearch = useDebouncedValue(search, 200);
   const [view, setView] = useState<"grid" | "list">("list");
   const [linkModalOpen, setLinkModalOpen] = useState(false);
+  const [youtubeModalOpen, setYoutubeModalOpen] = useState(false);
+  const [youtubeUpgradeOpen, setYoutubeUpgradeOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
