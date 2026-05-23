@@ -518,7 +518,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const canNextFromStep1 = !!form.session_type;
   const canNextFromStep2 =
     form.session_type === "funnel_video"
-      ? !!form.title.trim() && !!form.funnel_id
+      ? !!form.title.trim() && !!form.video_asset_id
       : !!form.title.trim() && !!form.platform;
   const canNextFromStep3 =
     form.session_type === "funnel_video"
@@ -526,7 +526,7 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       : !!form.meeting_url;
   const finalCanSubmit =
     form.session_type === "funnel_video"
-      ? !!form.title.trim() && !!form.funnel_id && form.scheduled_times.some(Boolean)
+      ? !!form.title.trim() && !!form.video_asset_id && form.scheduled_times.some(Boolean)
       : !!form.title.trim() && !!form.meeting_url;
 
   const content = (
