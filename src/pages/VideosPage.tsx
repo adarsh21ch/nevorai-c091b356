@@ -193,6 +193,25 @@ const VideosPage = () => {
     queryClient.invalidateQueries({ queryKey: ["shared-videos"] });
   }
 
+  const toggleAllowSeek = async (videoId: string, current: boolean) => {
+    const next = !current;
+    // Optimistic update
+    queryClient.setQueryData(["videos", user?.id], (old: any) =>
+      Array.isArray(old) ? old.map((v) => (v.id === videoId ? { ...v, allow_seek: next } : v)) : old
+    );
+    const { error } = await (supabase as any)
+      .from("video_assets")
+      .update({ allow_seek: next })
+      .eq("id", videoId)
+      .eq("owner_id", user!.id);
+    if (error) {
+      toast.error("Could not update skip setting");
+      invalidateVideos();
+    } else {
+      toast.success(next ? "Skip forward enabled" : "Skip forward disabled");
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 w-full max-w-full overflow-x-hidden box-border">
