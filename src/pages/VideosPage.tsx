@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useRef } from "react";
-import { Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Loader2, Settings, Play, MoreVertical, Users } from "lucide-react";
+import { Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Loader2, Settings, Play, MoreVertical, Users, FastForward } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -193,6 +193,25 @@ const VideosPage = () => {
     queryClient.invalidateQueries({ queryKey: ["shared-videos"] });
   }
 
+  const toggleAllowSeek = async (videoId: string, current: boolean) => {
+    const next = !current;
+    // Optimistic update
+    queryClient.setQueryData(["videos", user?.id], (old: any) =>
+      Array.isArray(old) ? old.map((v) => (v.id === videoId ? { ...v, allow_seek: next } : v)) : old
+    );
+    const { error } = await (supabase as any)
+      .from("video_assets")
+      .update({ allow_seek: next })
+      .eq("id", videoId)
+      .eq("owner_id", user!.id);
+    if (error) {
+      toast.error("Could not update skip setting");
+      invalidateVideos();
+    } else {
+      toast.success(next ? "Skip forward enabled" : "Skip forward disabled");
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6 w-full max-w-full overflow-x-hidden box-border">
@@ -354,16 +373,18 @@ const VideosPage = () => {
                   {/* Inline actions */}
                   {isReady && (
                     <div className="flex items-center gap-1 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                      {/* Desktop: visible buttons */}
+                      {/* Copy link — icon only */}
                       <button
                         onClick={() => copyLink(v)}
-                        className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors"
+                        className="inline-flex items-center justify-center p-2 rounded-md border border-border hover:bg-muted transition-colors"
                         title="Copy share link"
+                        aria-label="Copy share link"
                       >
-                        <Copy size={13} /> Copy Link
+                        <Copy size={14} />
                       </button>
                       {v._source === "own" && (
                         <>
+                          {/* Insights */}
                           <button
                             onClick={() => navigate({ to: "/insights" })}
                             className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors"
@@ -371,24 +392,36 @@ const VideosPage = () => {
                           >
                             <Users size={13} /> Insights
                           </button>
+                          {/* Allow skip forward quick toggle — synced with Edit Details */}
                           <button
-                            onClick={() => useInFunnel(v.id)}
-                            className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-border hover:bg-muted transition-colors"
-                            title="Use in a funnel"
+                            onClick={() => toggleAllowSeek(v.id, (v as any).allow_seek !== false)}
+                            className={cn(
+                              "hidden md:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md border transition-colors",
+                              (v as any).allow_seek !== false
+                                ? "border-success/30 bg-success/10 text-success hover:bg-success/15"
+                                : "border-border bg-muted/40 text-muted-foreground hover:bg-muted"
+                            )}
+                            title={(v as any).allow_seek !== false ? "Skip forward: ON — click to disable" : "Skip forward: OFF — click to enable"}
                           >
-                            <Rocket size={13} /> Use in Funnel
+                            <FastForward size={13} />
+                            {(v as any).allow_seek !== false ? "Skip: On" : "Skip: Off"}
+                          </button>
+                          {/* Mobile compact skip toggle */}
+                          <button
+                            onClick={() => toggleAllowSeek(v.id, (v as any).allow_seek !== false)}
+                            className={cn(
+                              "md:hidden inline-flex items-center justify-center p-2 rounded-md border transition-colors",
+                              (v as any).allow_seek !== false
+                                ? "border-success/30 bg-success/10 text-success"
+                                : "border-border bg-muted/40 text-muted-foreground"
+                            )}
+                            aria-label="Toggle skip forward"
+                            title={(v as any).allow_seek !== false ? "Skip on" : "Skip off"}
+                          >
+                            <FastForward size={14} />
                           </button>
                         </>
                       )}
-                      {/* Mobile: single Copy Link icon */}
-                      <button
-                        onClick={() => copyLink(v)}
-                        className="md:hidden p-1.5 rounded-lg hover:bg-muted transition-colors"
-                        aria-label="Copy share link"
-                        title="Copy link"
-                      >
-                        <Copy size={15} className="text-muted-foreground" />
-                      </button>
                     </div>
                   )}
 
