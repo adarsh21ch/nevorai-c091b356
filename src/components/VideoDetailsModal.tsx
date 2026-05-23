@@ -48,6 +48,7 @@ export const VideoDetailsModal = ({ open, onClose, videoId, onSuccess }: Props) 
       setDescription(data?.description || "");
       setAllowSeek(data?.allow_seek !== false);
       setShowUploadDate(data?.show_upload_date !== false);
+      setAllowCopyLink(data?.allow_copy_link === true);
       setHydrating(false);
     })();
   }, [open, videoId]);
