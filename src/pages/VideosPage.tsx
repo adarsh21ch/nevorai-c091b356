@@ -245,14 +245,27 @@ const VideosPage = () => {
           />
         </div>
 
-        <div className="-mt-2">
+        <div className="-mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             onClick={() => setLinkModalOpen(true)}
             className="flex items-center gap-1.5 text-xs text-primary font-medium hover:underline"
           >
             <Link2 size={12} /> Add via Nevorai Link
           </button>
+          <button
+            onClick={() => {
+              if (!features.youtubeImport) {
+                setYoutubeUpgradeOpen(true);
+                return;
+              }
+              setYoutubeModalOpen(true);
+            }}
+            className="flex items-center gap-1.5 text-xs font-medium text-[#FF0000] hover:underline"
+          >
+            <YoutubeIcon size={13} /> Add YouTube Video
+          </button>
         </div>
+
 
         {/* Search */}
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border">
