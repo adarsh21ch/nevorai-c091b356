@@ -1,4 +1,4 @@
-// Meta WhatsApp Cloud API webhook for Nevorai. (deploy v4 — Phase 2: personalized for paid users)
+// Meta WhatsApp Cloud API webhook for Nevorai. (deploy v5 — Phase 2 + bug fixes: word-boundary matching, intent reordering)
 //   GET  → token verification handshake
 //   POST → inbound message → user lookup → verification check → personalized reply or Gemini AI → send → log
 //
@@ -185,8 +185,16 @@ function normalizeText(message: string): string {
   return message.toLowerCase().trim();
 }
 
+// Word-boundary safe matcher. "hi" won't match "this"; "compare plans" still matches in longer text.
+function escapeRegex(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 function includesAny(text: string, keywords: string[]): boolean {
-  return keywords.some((k) => text.includes(k));
+  return keywords.some((k) => {
+    const pattern = new RegExp(`\\b${escapeRegex(k)}\\b`, "i");
+    return pattern.test(text);
+  });
 }
 
 interface Intent {
@@ -271,6 +279,35 @@ Visit: ${NEVORAI_APP_LINK}`,
 4. WhatsApp automation
 5. Lead calling and follow-up tracking
 6. Team tracking and AI lead assistant`,
+  },
+
+  // ── Account info (MUST come before Pricing — "my plan" contains "plan") ─
+  {
+    match: (t) => includesAny(t, ["my account", "my plan", "my subscription", "account info", "account status", "account details"]),
+    reply: (ctx) => ctx.isKnown
+      ? `Hi ${ctx.name?.split(" ")[0] || "there"}, please reply with your registered email so I can confirm it's you, then I'll share your account details.`
+      : `It looks like you're not signed up yet. Create your account at ${NEVORAI_APP_LINK}/auth to get started.`,
+  },
+
+  // ── My views (MUST come before Views/limits and Pricing) ─────
+  {
+    match: (t) => includesAny(t, ["my views", "views left", "views remaining", "my view limit", "views today", "views used"]),
+    reply: (ctx) => ctx.isKnown
+      ? `Hi ${ctx.name?.split(" ")[0] || "there"}, please reply with your registered email so I can confirm it's you, then I'll share your view stats.`
+      : `${BRAND_NAME} has tiered view limits depending on your plan. Visit ${NEVORAI_APP_LINK}/pricing for details.`,
+  },
+
+  // ── My audience / who is this for ─────────────────────────────
+  {
+    match: (t) => includesAny(t, ["for whom", "for whome", "who is this for", "who is it for", "target audience", "who uses nevorai", "who is nevorai for"]),
+    reply: () => `${BRAND_NAME} is built for:
+
+• Creators sharing video content with prospects
+• Entrepreneurs running video sales funnels
+• Business owners doing lead capture & follow-up
+• Sales teams managing leads and calls
+
+Are you one of these? Tell me more about your business and I'll show how ${BRAND_NAME} can help.`,
   },
 
   // ── Compare plans (MUST come before Pricing) ──────────────────
@@ -403,20 +440,10 @@ Our team will reach out to confirm.`,
     reply: () => `Reset your password at ${NEVORAI_APP_LINK}/auth — click "Forgot password" and follow the email instructions.`,
   },
 
-  // ── Account info ──────────────────────────────────────────────
+  // ── View limits (general, non-personal) ───────────────────────
   {
-    match: (t) => includesAny(t, ["my account", "my plan", "my subscription", "account info", "account status"]),
-    reply: (ctx) => ctx.isKnown
-      ? `Hi ${ctx.name?.split(" ")[0] || "there"}, you can see your full account details at ${NEVORAI_APP_LINK}/profile. (Detailed info via WhatsApp is coming soon.)`
-      : `It looks like you're not signed up yet. Create your account at ${NEVORAI_APP_LINK}/auth to get started.`,
-  },
-
-  // ── Views / limits ────────────────────────────────────────────
-  {
-    match: (t) => includesAny(t, ["views", "view limit", "daily views", "monthly views", "how many views"]),
-    reply: (ctx) => ctx.isKnown
-      ? `You can see your daily and monthly view usage at ${NEVORAI_APP_LINK}/dashboard. Need a top-up? Visit ${NEVORAI_APP_LINK}/billing.`
-      : `${BRAND_NAME} has tiered view limits depending on your plan. Visit ${NEVORAI_APP_LINK}/pricing for details.`,
+    match: (t) => includesAny(t, ["view limit", "daily views", "monthly views", "how many views", "view tiers"]),
+    reply: () => `${BRAND_NAME} has tiered view limits depending on your plan. See full tiers at ${NEVORAI_APP_LINK}/pricing. Need a top-up? Visit ${NEVORAI_APP_LINK}/billing.`,
   },
 
   // ── Storage ───────────────────────────────────────────────────
