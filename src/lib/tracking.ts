@@ -4,6 +4,15 @@ type EntityType = "funnel" | "landing_page" | "live_session";
 
 const SESSION_KEY = "nv_session_id";
 
+export function getTrackingSessionId(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return localStorage.getItem(SESSION_KEY);
+  } catch {
+    return null;
+  }
+}
+
 function getOrCreateSessionId(): string {
   if (typeof window === "undefined") return "ssr-no-session";
   try {
