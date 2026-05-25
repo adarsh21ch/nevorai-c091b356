@@ -304,6 +304,8 @@ Deno.serve(async (req: Request): Promise<Response> => {
     const subject = typeof payload?.subject === 'string' ? payload.subject.trim() : ''
     const html = typeof payload?.html === 'string' ? payload.html.trim() : ''
     const sender_name = typeof payload?.sender_name === 'string' ? payload.sender_name.trim() : undefined
+    const attachments: Array<{ filename: string; content: string; mimeType: string }> =
+      Array.isArray(payload?.attachments) ? payload.attachments : []
 
     if (!to || !subject || !html) {
       return jsonResponse({ error: 'Missing required fields: to, subject, html' }, 400)
@@ -326,19 +328,52 @@ Deno.serve(async (req: Request): Promise<Response> => {
       accessToken = await refreshAccessToken(supabase, tokenRow)
     }
 
-    // Build MIME message
+    // Build MIME message. If attachments present, use multipart/mixed.
     const fromName = sender_name || 'nFlow'
     const fromEmail = tokenRow.gmail_email
-    const mimeMessage = [
-      `From: ${encodeMimeHeader(fromName)} <${fromEmail}>`,
-      `To: ${to}`,
-      `Subject: ${encodeMimeHeader(subject)}`,
-      'MIME-Version: 1.0',
-      'Content-Type: text/html; charset=UTF-8',
-      'Content-Transfer-Encoding: 8bit',
-      '',
-      html,
-    ].join('\r\n')
+    let mimeMessage: string
+    if (attachments.length > 0) {
+      const boundary = `nflow_${Date.now()}_${Math.random().toString(36).slice(2)}`
+      const parts: string[] = [
+        `From: ${encodeMimeHeader(fromName)} <${fromEmail}>`,
+        `To: ${to}`,
+        `Subject: ${encodeMimeHeader(subject)}`,
+        'MIME-Version: 1.0',
+        `Content-Type: multipart/mixed; boundary="${boundary}"`,
+        '',
+        `--${boundary}`,
+        'Content-Type: text/html; charset=UTF-8',
+        'Content-Transfer-Encoding: 8bit',
+        '',
+        html,
+      ]
+      for (const att of attachments) {
+        if (!att?.filename || !att?.content || !att?.mimeType) continue
+        // Split base64 to 76-char lines per RFC 2045
+        const wrapped = att.content.replace(/(.{76})/g, '$1\r\n')
+        parts.push(
+          `--${boundary}`,
+          `Content-Type: ${att.mimeType}; name="${att.filename}"`,
+          'Content-Transfer-Encoding: base64',
+          `Content-Disposition: attachment; filename="${att.filename}"`,
+          '',
+          wrapped,
+        )
+      }
+      parts.push(`--${boundary}--`, '')
+      mimeMessage = parts.join('\r\n')
+    } else {
+      mimeMessage = [
+        `From: ${encodeMimeHeader(fromName)} <${fromEmail}>`,
+        `To: ${to}`,
+        `Subject: ${encodeMimeHeader(subject)}`,
+        'MIME-Version: 1.0',
+        'Content-Type: text/html; charset=UTF-8',
+        'Content-Transfer-Encoding: 8bit',
+        '',
+        html,
+      ].join('\r\n')
+    }
 
     const encodedMessage = base64url(mimeMessage)
 
