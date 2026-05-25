@@ -174,6 +174,13 @@ const PublicLandingPage = () => {
         { duration: 5000 }
       );
       setSubmitted(true);
+
+      // Optional post-registration redirect
+      if ((page as any).redirect_url) {
+        setTimeout(() => {
+          window.location.href = (page as any).redirect_url;
+        }, 2000);
+      }
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     } finally {
@@ -514,6 +521,12 @@ const PublicLandingPage = () => {
                     {submitting ? <><Loader2 className="animate-spin mr-2" size={16} /> Submitting…</> : <>{page.form_button_text} →</>}
                   </Button>
                 </form>
+
+                {Number((page as any).total_registrations) > 5 && (
+                  <p className="text-xs text-center font-medium text-foreground/80">
+                    🔥 {(page as any).total_registrations} people already registered
+                  </p>
+                )}
 
                 <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                   <Lock size={12} /> Your information is safe with us

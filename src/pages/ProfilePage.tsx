@@ -24,6 +24,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { sanitizeFields, normalizePhone } from "@/lib/sanitize";
 import { StorageUsageCard } from "@/components/StorageUsageCard";
 import { ProfilePhotoCropModal } from "@/components/ProfilePhotoCropModal";
+import { WhatsAppVerification } from "@/components/profile/WhatsAppVerification";
 
 const ProfilePage = () => {
   useDocumentTitle("Profile");
@@ -315,6 +316,9 @@ const ProfilePage = () => {
 
         {/* Storage Usage */}
         <StorageUsageCard />
+
+        {/* WhatsApp Notifications */}
+        <WhatsAppVerification />
 
         {/* PREFERENCES */}
         <div className="premium-card p-2 space-y-0.5">
