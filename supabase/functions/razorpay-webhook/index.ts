@@ -301,7 +301,7 @@ Deno.serve(async (req) => {
     const isValid = await verifyWebhookSignature(rawBody, signature, webhookSecret);
     if (!isValid) {
       console.error("Invalid webhook signature");
-      return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 200 });
+      return new Response(JSON.stringify({ error: "Invalid signature" }), { status: 200, headers: jsonCors });
     }
 
     const event = JSON.parse(rawBody);
