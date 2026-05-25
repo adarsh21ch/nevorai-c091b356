@@ -24,10 +24,12 @@ const ToolsPage = () => {
     ...(features.landingPages ? [{ key: "landing-pages", label: "Landing Pages", icon: Layout, Component: LandingPagesPage }] : []),
     ...(features.goLive ? [{ key: "live", label: "Live", icon: Radio, Component: LivePage }] : []),
   ], [features.landingPages, features.goLive]);
-  const [activeTab, setActiveTab] = useState<string>("funnels");
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const search = (typeof window !== "undefined" ? window.location.search : "") || "";
+    return parseTab(search, ["funnels", "landing-pages", "live"]);
+  });
 
   // Keep tab in sync with URL ?tab= so sidebar Link clicks switch instantly.
-  // Read from window on mount (post-hydration) to avoid SSR/CSR mismatch.
   useEffect(() => {
     const search = location.search || (typeof window !== "undefined" ? window.location.search : "");
     const next = parseTab(search, TOOL_TABS.map((tab) => tab.key));

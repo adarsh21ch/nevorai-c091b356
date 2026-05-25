@@ -250,10 +250,11 @@ const LandingPageEditor = () => {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success(isEdit ? "Landing page updated" : "Landing page created");
-      queryClient.invalidateQueries({ queryKey: ["landing-pages"] });
-      if (!isEdit) navigate("/landing-pages");
+      await queryClient.invalidateQueries({ queryKey: ["landing-pages"] });
+      await queryClient.refetchQueries({ queryKey: ["landing-pages"] });
+      if (!isEdit) navigate("/tools?tab=landing-pages");
     },
     onError: (e: any) => toast.error(e.message || "Failed to save"),
   });
@@ -988,7 +989,7 @@ const LandingPageEditor = () => {
       style={{ paddingTop: "calc(env(safe-area-inset-top) + 0.75rem)" }}
     >
       <div className="flex items-center gap-3 min-w-0 flex-1">
-        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/landing-pages")}>
+        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate("/tools?tab=landing-pages")}>
           <ArrowLeft size={18} />
         </Button>
         <h1 className="text-lg sm:text-xl font-heading font-bold truncate">
