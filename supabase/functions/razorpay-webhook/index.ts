@@ -315,7 +315,7 @@ Deno.serve(async (req) => {
 
     if (existing) {
       console.log("Duplicate webhook, skipping:", idempotencyKey);
-      return new Response(JSON.stringify({ status: "duplicate" }), { status: 200 });
+      return new Response(JSON.stringify({ status: "duplicate" }), { status: 200, headers: jsonCors });
     }
 
     const paymentEntity = payload?.payment?.entity;
