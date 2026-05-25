@@ -99,7 +99,9 @@ const ProfilePage = () => {
       "full_name", "city", "bio", "company", "instagram_url", "cta_label",
     ]) as any;
     cleanForm.phone = normalizePhone(form.phone);
-    cleanForm.whatsapp_number = normalizePhone(form.whatsapp_number);
+    // whatsapp_number changes only via OTP re-verification, never via this form.
+    delete cleanForm.whatsapp_number;
+    delete cleanForm.email;
     cleanForm.username = form.username.trim().toLowerCase() || null;
     cleanForm.cta_url = form.cta_url.trim() || null;
     cleanForm.cta_label = (cleanForm.cta_label || "").slice(0, 30) || null;
@@ -110,6 +112,22 @@ const ProfilePage = () => {
     await refreshProfile();
     toast.success("Profile updated!");
   };
+
+  const handleEmailChange = async () => {
+    const newEmail = form.email.trim().toLowerCase();
+    if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+      toast.error("Enter a valid email"); return;
+    }
+    if (newEmail === (profile?.email || "").toLowerCase()) {
+      toast.info("That's your current email."); return;
+    }
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    setEmailSaving(false);
+    if (error) { toast.error(error.message || "Could not update email"); return; }
+    toast.success("Check both inboxes — Supabase sent a confirmation link.");
+  };
+
 
   const onPickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
