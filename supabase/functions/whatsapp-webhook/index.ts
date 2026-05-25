@@ -1,4 +1,4 @@
-// Meta WhatsApp Cloud API webhook for Nevorai. (deploy v7 — Phase 3: lead capture + CRM pipeline)
+// Meta WhatsApp Cloud API webhook for Nevorai. (deploy v8 — Phase 5: respects per-phone bot pause for admin takeover)
 //   GET  → token verification handshake
 //   POST → inbound message → user lookup → verification check → personalized reply or Gemini AI → send → log
 //
@@ -1238,6 +1238,26 @@ Deno.serve(async (req) => {
       if (lead) {
         leadUpdate = await updateLeadFromMessage(supabase, lead, userText);
       }
+    }
+
+    // Phase 5: check if bot is paused for this phone (admin took over)
+    const { data: pause } = await supabase
+      .from("whatsapp_bot_pauses")
+      .select("phone_number")
+      .eq("phone_number", from)
+      .maybeSingle();
+
+    if (pause) {
+      console.log(`Bot paused for ${from} — skipping auto-reply`);
+      await supabase.from("whatsapp_conversations").insert({
+        phone_number: from,
+        direction: "outbound",
+        message_body: null,
+        status: "skipped",
+        reply_method: "none",
+        error_message: "Bot paused for this phone (admin taking over)",
+      });
+      return respond();
     }
 
     if (!settings || !settings.is_connected || !settings.phone_number_id || !settings.access_token) {

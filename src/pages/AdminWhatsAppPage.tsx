@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2, MessageCircle } from "lucide-react";
+import { WhatsAppConversationsTab } from "@/components/admin/WhatsAppConversationsTab";
+import { WhatsAppLeadsTab } from "@/components/admin/WhatsAppLeadsTab";
 
 const AUTOMATIONS: { id: string; label: string; description: string }[] = [
   { id: "welcome_signup", label: "Welcome on signup", description: "Sent right after a user signs up." },
@@ -153,13 +155,23 @@ const AdminWhatsAppPage = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="credentials" className="w-full">
+        <Tabs defaultValue="conversations" className="w-full">
           <TabsList>
+            <TabsTrigger value="conversations">Conversations</TabsTrigger>
+            <TabsTrigger value="leads">Leads</TabsTrigger>
             <TabsTrigger value="credentials">Credentials</TabsTrigger>
             <TabsTrigger value="templates">Templates</TabsTrigger>
             <TabsTrigger value="automations">Automations</TabsTrigger>
             <TabsTrigger value="logs">Logs</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="conversations" className="space-y-4 mt-4">
+            <WhatsAppConversationsTab />
+          </TabsContent>
+
+          <TabsContent value="leads" className="space-y-4 mt-4">
+            <WhatsAppLeadsTab />
+          </TabsContent>
 
           <TabsContent value="credentials" className="space-y-4 mt-4">
             <Card>
