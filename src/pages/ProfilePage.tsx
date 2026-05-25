@@ -49,7 +49,10 @@ const ProfilePage = () => {
     full_name: "", phone: "", city: "", bio: "", company: "",
     instagram_url: "", whatsapp_number: "",
     username: "", cta_label: "", cta_url: "",
+    email: "",
   });
+  const [emailSaving, setEmailSaving] = useState(false);
+
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [cropFile, setCropFile] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -62,9 +65,11 @@ const ProfilePage = () => {
         bio: profile.bio || "", company: profile.company || "",
         instagram_url: profile.instagram_url || "", whatsapp_number: profile.whatsapp_number || "",
         username: p.username || "", cta_label: p.cta_label || "", cta_url: p.cta_url || "",
+        email: profile.email || "",
       });
       setAvatarUrl(profile.avatar_url || null);
     }
+
   }, [profile]);
 
   // Username uniqueness check (debounced)
