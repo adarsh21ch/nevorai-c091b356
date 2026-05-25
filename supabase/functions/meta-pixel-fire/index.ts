@@ -24,10 +24,29 @@ Deno.serve(async (req) => {
     return new Response("Method not allowed", { status: 405, headers: corsHeaders });
   }
 
-  // Service-role gate: require the bearer to equal the service role key.
+  // Auth: allow either (a) service-role bearer (server-to-server) or
+  // (b) an authenticated admin user's JWT (for the admin UI test button).
   const auth = req.headers.get("authorization") ?? "";
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  if (!auth.startsWith("Bearer ") || auth.slice(7).trim() !== serviceKey) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+
+  let authorized = false;
+  if (bearer && bearer === serviceKey) {
+    authorized = true;
+  } else if (bearer) {
+    const adminClient = createClient(supabaseUrl, serviceKey);
+    const { data: userData } = await adminClient.auth.getUser(bearer);
+    if (userData?.user?.id) {
+      const { data: isAdmin } = await adminClient.rpc("has_role", {
+        _user_id: userData.user.id,
+        _role: "admin",
+      });
+      if (isAdmin === true) authorized = true;
+    }
+  }
+
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "forbidden" }), {
       status: 403, headers: { ...corsHeaders, "content-type": "application/json" },
     });
