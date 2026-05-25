@@ -926,6 +926,40 @@ const PublicFunnel = () => {
     return () => clearInterval(interval);
   }, [funnel, videoPlaying, watchSeconds]);
 
+  // Milestone + exit engagement tracking
+  const milestoneFiredRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!funnel?.id) return;
+    logFunnelEngagement({ funnel_id: funnel.id, event_type: "view_start" });
+    void trackPixel("ViewContent", { content_name: funnel.title, content_category: "funnel" });
+
+    const fireExit = () => {
+      logFunnelEngagement({
+        funnel_id: funnel.id,
+        event_type: "exit",
+        video_position_sec: watchSeconds,
+        useBeacon: true,
+      });
+    };
+    const onVis = () => { if (document.visibilityState === "hidden") fireExit(); };
+    window.addEventListener("beforeunload", fireExit);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("beforeunload", fireExit);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [funnel?.id]);
+
+  useEffect(() => {
+    if (!funnel?.id) return;
+    const fired = milestoneFiredRef.current;
+    const dur = (window as any).__nfDur || 0;
+    // duration is captured via setVideoDuration; read latest from state via closure isn't ideal,
+    // use watchSeconds + a sentinel below
+  }, [funnel?.id]);
+
+
   const submitLead = useMutation({
     mutationFn: async () => {
       if (leadForm.website) return;
