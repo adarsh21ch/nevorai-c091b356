@@ -44,7 +44,9 @@ export default function AuthPage() {
   const [resendCount, setResendCount] = useState(0);
   const [otpSendStatus, setOtpSendStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [otpShake, setOtpShake] = useState(false);
+  const [loginMode, setLoginMode] = useState<"email" | "phone">("email");
   const otpInputRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
