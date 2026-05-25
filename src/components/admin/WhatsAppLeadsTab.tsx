@@ -49,6 +49,27 @@ interface Lead {
   created_at: string;
 }
 
+function toLead(row: any): Lead {
+  return {
+    id: String(row?.id ?? ""),
+    phone_number: String(row?.phone_number ?? ""),
+    name: typeof row?.name === "string" ? row.name : null,
+    email: typeof row?.email === "string" ? row.email : null,
+    business_type: typeof row?.business_type === "string" ? row.business_type : null,
+    interest: typeof row?.interest === "string" ? row.interest : null,
+    plan_interest: typeof row?.plan_interest === "string" ? row.plan_interest : null,
+    status: String(row?.status ?? "new"),
+    score: String(row?.score ?? "cold"),
+    message_count: typeof row?.message_count === "number" ? row.message_count : 0,
+    notes: typeof row?.notes === "string" ? row.notes : null,
+    first_message_at: String(row?.first_message_at ?? ""),
+    last_message_at: String(row?.last_message_at ?? ""),
+    admin_notified_at: typeof row?.admin_notified_at === "string" ? row.admin_notified_at : null,
+    converted_to_user_id: typeof row?.converted_to_user_id === "string" ? row.converted_to_user_id : null,
+    created_at: String(row?.created_at ?? ""),
+  };
+}
+
 const STATUS_STYLES: Record<string, string> = {
   new: "bg-blue-500/10 text-blue-600 border-blue-500/30",
   engaged: "bg-amber-500/10 text-amber-600 border-amber-500/30",
@@ -83,7 +104,9 @@ export function WhatsAppLeadsTab() {
         .select("*")
         .order("last_message_at", { ascending: false })
         .limit(500);
-      return (data || []) as unknown as Lead[];
+
+      const rows = Array.isArray(data) ? data : [];
+      return rows.map(toLead);
     },
   });
 

@@ -43,6 +43,31 @@ interface AcademyTutorial {
   category: string;
 }
 
+function toHelpArticle(row: any): HelpArticle {
+  return {
+    id: String(row?.id ?? ""),
+    slug: String(row?.slug ?? ""),
+    title: String(row?.title ?? ""),
+    content: String(row?.content ?? ""),
+    keywords: Array.isArray(row?.keywords)
+      ? row.keywords.filter((keyword: unknown): keyword is string => typeof keyword === "string")
+      : [],
+    academy_tutorial_id: typeof row?.academy_tutorial_id === "string" ? row.academy_tutorial_id : null,
+    media_key: typeof row?.media_key === "string" ? row.media_key : null,
+    is_published: Boolean(row?.is_published),
+    category: String(row?.category ?? "general"),
+    updated_at: String(row?.updated_at ?? ""),
+  };
+}
+
+function toAcademyTutorial(row: any): AcademyTutorial {
+  return {
+    id: String(row?.id ?? ""),
+    title: String(row?.title ?? ""),
+    category: String(row?.category ?? "general"),
+  };
+}
+
 const CATEGORIES = ["videos", "funnels", "leads", "landing", "live", "billing", "branding", "account", "general"];
 
 export function WhatsAppHelpArticlesTab() {
@@ -59,7 +84,9 @@ export function WhatsAppHelpArticlesTab() {
         .select("*")
         .order("category", { ascending: true })
         .order("title", { ascending: true });
-      return (data || []) as unknown as HelpArticle[];
+
+      const rows = Array.isArray(data) ? data : [];
+      return rows.map(toHelpArticle);
     },
   });
 
@@ -71,7 +98,9 @@ export function WhatsAppHelpArticlesTab() {
         .select("id, title, category")
         .eq("is_published", true)
         .order("category");
-      return (data || []) as unknown as AcademyTutorial[];
+
+      const rows = Array.isArray(data) ? data : [];
+      return rows.map(toAcademyTutorial);
     },
   });
 
