@@ -1060,6 +1060,8 @@ const PublicFunnel = () => {
     if (formConfig?.show_phone && (formConfig.phone_required || leadForm.phone)) e.phone = (formConfig.phone_required || leadForm.phone) ? validatePhone(leadForm.phone) : null;
     if (formConfig?.show_email && (formConfig.email_required || leadForm.email)) e.email = (formConfig.email_required || leadForm.email) ? validateEmail(leadForm.email) : null;
     if (formConfig?.show_city && formConfig.city_required) e.city = validateRequired(leadForm.city, "City");
+    if ((formConfig as any)?.show_state && (formConfig as any)?.state_required) e.state = validateRequired(leadForm.state, "State");
+    if ((formConfig as any)?.show_whatsapp && (formConfig as any)?.whatsapp_required) e.whatsapp = validatePhone(leadForm.whatsapp);
     if (formConfig?.show_custom && formConfig.custom_required) e.custom_value = validateRequired(leadForm.custom_value, formConfig.custom_field_label || "This field");
     const customFields = Array.isArray((formConfig as any)?.custom_fields) ? (formConfig as any).custom_fields : [];
     for (const cf of customFields) {
