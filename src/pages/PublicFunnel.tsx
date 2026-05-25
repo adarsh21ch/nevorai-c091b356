@@ -990,6 +990,21 @@ const PublicFunnel = () => {
       setLeadSubmitted(true);
       try { if (funnel?.id) localStorage.setItem(`nf_lead_${funnel.id}`, "true"); } catch {}
       const hasEmail = !!(vars as any)?.email;
+      // Engagement event + Meta Lead pixel (browser + CAPI mirror).
+      if (funnel?.id) {
+        const phone = leadForm.phone ? normalizePhone(leadForm.phone) : null;
+        logFunnelEngagement({
+          funnel_id: funnel.id,
+          event_type: "lead_submitted",
+          viewer_phone: phone,
+          viewer_email: leadForm.email || null,
+        });
+        void trackLead(`${funnel.id}:${phone ?? leadForm.email ?? Date.now()}`, {
+          content_name: funnel.title,
+          email: leadForm.email || undefined,
+          phone: phone ?? undefined,
+        });
+      }
       toast.success(
         hasEmail
           ? "You're registered! Please check your email (and spam folder) for a confirmation."
