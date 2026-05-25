@@ -498,6 +498,8 @@ const AdminSettingsPage = () => {
 
             {activeTab === "academy" && <AcademyTab />}
 
+            {activeTab === "form_diagnostics" && <FormDiagnosticsTab />}
+
             {activeTab === "whatsapp" && (
               <div className="glass-card p-3 sm:p-6 space-y-3">
                 <h2 className="text-sm font-heading font-semibold flex items-center gap-2 sm:text-base">
