@@ -180,6 +180,57 @@ Deno.serve(async (req) => {
       emailDelivery.timestamp = new Date().toISOString()
     }
 
+    // ── WhatsApp notifications (best-effort, never blocks) ───────────────
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+
+    // 1) Notify creator if they have a verified WhatsApp number
+    try {
+      const { data: ownerProfile } = await supabase
+        .from('profiles')
+        .select('whatsapp_number, whatsapp_verified')
+        .eq('id', page.owner_id)
+        .maybeSingle()
+      if (ownerProfile?.whatsapp_verified && ownerProfile.whatsapp_number) {
+        const msg = `🔔 *New Lead!*\n\n👤 ${name || '—'}\n📱 ${phone || '—'}\n📧 ${email || '—'}\n📋 ${page.title || 'Landing page'}\n\nReply to follow up!`
+        fetch(`${supabaseUrl}/functions/v1/whatsapp-send-text`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+          body: JSON.stringify({ to: String(ownerProfile.whatsapp_number).replace(/\D/g, ''), message: msg }),
+        }).catch((e) => console.error('Owner WA notify failed:', e?.message))
+      }
+    } catch (e: any) {
+      console.error('Owner WA lookup failed:', e?.message)
+    }
+
+    // 2) Confirmation WhatsApp to prospect (if phone provided)
+    try {
+      if (phone) {
+        const cleanPhone = String(phone).replace(/\D/g, '')
+        if (cleanPhone.length >= 10) {
+          let when = ''
+          if ((page as any).session_datetime) {
+            try {
+              when = '\n' + new Date((page as any).session_datetime).toLocaleString('en-IN', {
+                weekday: 'short', day: 'numeric', month: 'long',
+                hour: 'numeric', minute: '2-digit', hour12: true,
+                timeZone: 'Asia/Kolkata',
+              })
+            } catch {}
+          }
+          const msg = `✅ *You're registered!*\n\n${page.title || 'Session'}${when}\n\nCheck your email for full details. See you there! 🙌`
+          fetch(`${supabaseUrl}/functions/v1/whatsapp-send-text`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+            body: JSON.stringify({ to: cleanPhone, message: msg }),
+          }).catch((e) => console.error('Prospect WA confirm failed:', e?.message))
+        }
+      }
+    } catch (e: any) {
+      console.error('Prospect WA confirm error:', e?.message)
+    }
+
+
 
 
     return new Response(JSON.stringify({
