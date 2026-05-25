@@ -296,7 +296,22 @@ const ProfilePage = () => {
                   <div><Label className="text-xs">Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">City</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">Company</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div><Label className="text-xs">WhatsApp</Label><Input value={form.whatsapp_number} onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })} className="mt-1 bg-muted border-border" /></div>
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs">Email <span className="text-muted-foreground">(used for login)</span></Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        className="bg-muted border-border"
+                      />
+                      <Button variant="outline" size="sm" onClick={handleEmailChange} disabled={emailSaving || form.email === (profile?.email || "")}>
+                        {emailSaving ? "Saving…" : "Change"}
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Supabase will email a confirmation link to both addresses.</p>
+                  </div>
+
                   <div><Label className="text-xs">Instagram URL</Label><Input value={form.instagram_url} onChange={(e) => setForm({ ...form, instagram_url: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div>
                     <Label className="text-xs">Username</Label>
