@@ -174,6 +174,13 @@ const PublicLandingPage = () => {
         { duration: 5000 }
       );
       setSubmitted(true);
+
+      // Optional post-registration redirect
+      if ((page as any).redirect_url) {
+        setTimeout(() => {
+          window.location.href = (page as any).redirect_url;
+        }, 2000);
+      }
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     } finally {
