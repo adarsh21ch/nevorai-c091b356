@@ -26,6 +26,8 @@ import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { isYouTubeUrl } from "@/lib/youtube";
 import { sanitizeText } from "@/lib/sanitize";
 import { trackEntityView, captureAttribution } from "@/lib/tracking";
+import { logFunnelEngagement } from "@/lib/funnelEngagement";
+import { trackLead, trackPixel } from "@/lib/pixel";
 import {
   normalizePhone,
   trimSmart,
@@ -924,6 +926,35 @@ const PublicFunnel = () => {
     return () => clearInterval(interval);
   }, [funnel, videoPlaying, watchSeconds]);
 
+  // Milestone + exit engagement tracking
+  const milestoneFiredRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!funnel?.id) return;
+    logFunnelEngagement({ funnel_id: funnel.id, event_type: "view_start" });
+    void trackPixel("ViewContent", { content_name: funnel.title, content_category: "funnel" });
+
+    const fireExit = () => {
+      logFunnelEngagement({
+        funnel_id: funnel.id,
+        event_type: "exit",
+        video_position_sec: watchSeconds,
+        useBeacon: true,
+      });
+    };
+    const onVis = () => { if (document.visibilityState === "hidden") fireExit(); };
+    window.addEventListener("beforeunload", fireExit);
+    document.addEventListener("visibilitychange", onVis);
+    return () => {
+      window.removeEventListener("beforeunload", fireExit);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [funnel?.id]);
+
+
+
+
+
   const submitLead = useMutation({
     mutationFn: async () => {
       if (leadForm.website) return;
@@ -959,6 +990,21 @@ const PublicFunnel = () => {
       setLeadSubmitted(true);
       try { if (funnel?.id) localStorage.setItem(`nf_lead_${funnel.id}`, "true"); } catch {}
       const hasEmail = !!(vars as any)?.email;
+      // Engagement event + Meta Lead pixel (browser + CAPI mirror).
+      if (funnel?.id) {
+        const phone = leadForm.phone ? normalizePhone(leadForm.phone) : null;
+        logFunnelEngagement({
+          funnel_id: funnel.id,
+          event_type: "lead_submitted",
+          viewer_phone: phone,
+          viewer_email: leadForm.email || null,
+        });
+        void trackLead(`${funnel.id}:${phone ?? leadForm.email ?? Date.now()}`, {
+          content_name: funnel.title,
+          email: leadForm.email || undefined,
+          phone: phone ?? undefined,
+        });
+      }
       toast.success(
         hasEmail
           ? "You're registered! Please check your email (and spam folder) for a confirmation."
@@ -1318,7 +1364,28 @@ const PublicFunnel = () => {
                   allowSeek={funnel.allow_seek !== false && (videoAsset as any)?.allow_seek !== false}
                   allowSpeed={funnel.allow_speed_change !== false && (videoAsset as any)?.allow_playback_speed !== false}
                   autoplay={true}
-                  onTimeUpdate={(ct, dur) => { setWatchSeconds(Math.floor(ct)); setVideoDuration(dur); }}
+                  onTimeUpdate={(ct, dur) => {
+                    setWatchSeconds(Math.floor(ct));
+                    setVideoDuration(dur);
+                    if (!funnel?.id || !dur || !isFinite(dur)) return;
+                    const pct = (ct / dur) * 100;
+                    const fired = milestoneFiredRef.current;
+                    const check = (key: "progress_25" | "progress_50" | "progress_75" | "completed", at: number) => {
+                      if (pct >= at && !fired.has(key)) {
+                        fired.add(key);
+                        logFunnelEngagement({
+                          funnel_id: funnel.id,
+                          event_type: key,
+                          video_position_sec: Math.floor(ct),
+                          video_duration_sec: Math.floor(dur),
+                        });
+                      }
+                    };
+                    check("progress_25", 25);
+                    check("progress_50", 50);
+                    check("progress_75", 75);
+                    check("completed", 95);
+                  }}
                   onPlay={() => setVideoPlaying(true)}
                 />
               )}

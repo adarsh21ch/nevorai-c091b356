@@ -5,13 +5,39 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Trim to defend against trailing spaces/newlines pasted into the Supabase secret UI
-const RAZORPAY_KEY_ID = (Deno.env.get("RAZORPAY_KEY_ID") ?? "").trim();
-const RAZORPAY_KEY_SECRET = (Deno.env.get("RAZORPAY_KEY_SECRET") ?? "").trim();
+// Trim to defend against trailing spaces/newlines pasted into the Supabase secret UI.
+// These are now MUTABLE — at request time we try to load admin-managed credentials
+// from `payment_provider_settings` and override env fallbacks if a row is active.
+let RAZORPAY_KEY_ID = (Deno.env.get("RAZORPAY_KEY_ID") ?? "").trim();
+let RAZORPAY_KEY_SECRET = (Deno.env.get("RAZORPAY_KEY_SECRET") ?? "").trim();
 const RAZORPAY_API = "https://api.razorpay.com/v1";
 
-// Build marker — bumping this string forces a fresh deploy. v=2026-05-11h-upgradefix2
-console.log("razorpay-portal build v=2026-05-11h-upgradefix2 key_id_prefix=", RAZORPAY_KEY_ID.slice(0, 8));
+// Build marker — bumping this string forces a fresh deploy. v=2026-05-25a-dbcreds
+console.log("razorpay-portal build v=2026-05-25a-dbcreds key_id_prefix=", RAZORPAY_KEY_ID.slice(0, 8));
+
+let credsLoadedAt = 0;
+async function ensureRazorpayCreds() {
+  // Reload at most once per 60s to keep latency low.
+  if (Date.now() - credsLoadedAt < 60_000) return;
+  try {
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data } = await admin
+      .from("payment_provider_settings")
+      .select("key_id, key_secret, is_active")
+      .limit(1)
+      .maybeSingle();
+    if (data?.is_active && data.key_id && data.key_secret) {
+      RAZORPAY_KEY_ID = String(data.key_id).trim();
+      RAZORPAY_KEY_SECRET = String(data.key_secret).trim();
+    }
+    credsLoadedAt = Date.now();
+  } catch (e) {
+    console.warn("ensureRazorpayCreds: falling back to env", e);
+  }
+}
 
 function rzpHeaders() {
   return {
@@ -83,6 +109,7 @@ function pickTierPrice(tierRow: any, interval: string) {
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  await ensureRazorpayCreds();
 
   // Public version probe — no auth required. Lets us confirm which build is live.
   const url = new URL(req.url);
