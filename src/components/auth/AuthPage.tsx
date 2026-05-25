@@ -346,12 +346,24 @@ export default function AuthPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm">Phone <span style={{ color: "var(--color-hero-muted)" }} className="text-xs">(optional)</span></Label>
-                  <div className="relative">
-                    <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
-                    <Input id="phone" placeholder="+91 9876543210" className="auth-input pl-9" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  <Label htmlFor="phone" className="text-sm">WhatsApp Number <span className="text-destructive">*</span></Label>
+                  <div className="flex gap-2">
+                    <span className="inline-flex items-center px-3 rounded-md bg-muted text-sm font-medium border border-input">+91</span>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="9876543210"
+                      className="auth-input"
+                      maxLength={10}
+                      required
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                    />
                   </div>
+                  <p className="text-[11px]" style={{ color: "var(--color-hero-muted)" }}>You'll verify this on the next step via WhatsApp OTP.</p>
                 </div>
+
                 <PasswordField form={form} setForm={setForm} showPassword={showPassword} setShowPassword={setShowPassword} />
                 <Button variant="hero" className="w-full" size="lg" disabled={submitting} style={{ borderRadius: "12px" }}>
                   {submitting ? (<span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Creating account…</span>) : "Create Account"}
