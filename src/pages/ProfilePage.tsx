@@ -49,7 +49,10 @@ const ProfilePage = () => {
     full_name: "", phone: "", city: "", bio: "", company: "",
     instagram_url: "", whatsapp_number: "",
     username: "", cta_label: "", cta_url: "",
+    email: "",
   });
+  const [emailSaving, setEmailSaving] = useState(false);
+
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [cropFile, setCropFile] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -62,9 +65,11 @@ const ProfilePage = () => {
         bio: profile.bio || "", company: profile.company || "",
         instagram_url: profile.instagram_url || "", whatsapp_number: profile.whatsapp_number || "",
         username: p.username || "", cta_label: p.cta_label || "", cta_url: p.cta_url || "",
+        email: profile.email || "",
       });
       setAvatarUrl(profile.avatar_url || null);
     }
+
   }, [profile]);
 
   // Username uniqueness check (debounced)
@@ -94,7 +99,9 @@ const ProfilePage = () => {
       "full_name", "city", "bio", "company", "instagram_url", "cta_label",
     ]) as any;
     cleanForm.phone = normalizePhone(form.phone);
-    cleanForm.whatsapp_number = normalizePhone(form.whatsapp_number);
+    // whatsapp_number changes only via OTP re-verification, never via this form.
+    delete cleanForm.whatsapp_number;
+    delete cleanForm.email;
     cleanForm.username = form.username.trim().toLowerCase() || null;
     cleanForm.cta_url = form.cta_url.trim() || null;
     cleanForm.cta_label = (cleanForm.cta_label || "").slice(0, 30) || null;
@@ -105,6 +112,22 @@ const ProfilePage = () => {
     await refreshProfile();
     toast.success("Profile updated!");
   };
+
+  const handleEmailChange = async () => {
+    const newEmail = form.email.trim().toLowerCase();
+    if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
+      toast.error("Enter a valid email"); return;
+    }
+    if (newEmail === (profile?.email || "").toLowerCase()) {
+      toast.info("That's your current email."); return;
+    }
+    setEmailSaving(true);
+    const { error } = await supabase.auth.updateUser({ email: newEmail });
+    setEmailSaving(false);
+    if (error) { toast.error(error.message || "Could not update email"); return; }
+    toast.success("Check both inboxes — Supabase sent a confirmation link.");
+  };
+
 
   const onPickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -273,7 +296,22 @@ const ProfilePage = () => {
                   <div><Label className="text-xs">Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">City</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">Company</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div><Label className="text-xs">WhatsApp</Label><Input value={form.whatsapp_number} onChange={(e) => setForm({ ...form, whatsapp_number: e.target.value })} className="mt-1 bg-muted border-border" /></div>
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs">Email <span className="text-muted-foreground">(used for login)</span></Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        type="email"
+                        value={form.email}
+                        onChange={(e) => setForm({ ...form, email: e.target.value })}
+                        className="bg-muted border-border"
+                      />
+                      <Button variant="outline" size="sm" onClick={handleEmailChange} disabled={emailSaving || form.email === (profile?.email || "")}>
+                        {emailSaving ? "Saving…" : "Change"}
+                      </Button>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground mt-1">Supabase will email a confirmation link to both addresses.</p>
+                  </div>
+
                   <div><Label className="text-xs">Instagram URL</Label><Input value={form.instagram_url} onChange={(e) => setForm({ ...form, instagram_url: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div>
                     <Label className="text-xs">Username</Label>

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/landing/Logo";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-import { Eye, EyeOff, Mail, Lock, User as UserIcon, Phone, Sparkles, ArrowLeft, ShieldCheck, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, User as UserIcon, Sparkles, ArrowLeft, ShieldCheck, Loader2, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCapsLock } from "@/hooks/useCapsLock";
 import { supabase } from "@/integrations/supabase/client";
@@ -44,7 +44,9 @@ export default function AuthPage() {
   const [resendCount, setResendCount] = useState(0);
   const [otpSendStatus, setOtpSendStatus] = useState<"idle" | "sending" | "sent" | "failed">("idle");
   const [otpShake, setOtpShake] = useState(false);
+  const [loginMode, setLoginMode] = useState<"email" | "phone">("email");
   const otpInputRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -168,21 +170,53 @@ export default function AuthPage() {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name.trim()) { toast.error("Please enter your name"); return; }
+    const cleanPhone = form.phone.replace(/\D/g, "").slice(-10);
+    if (cleanPhone.length !== 10) { toast.error("Enter a valid 10-digit Indian mobile number"); return; }
     if (form.password.length < 8) { toast.error("Password must be at least 8 characters"); return; }
     setSubmitting(true);
     try {
-      const { error } = await signUp(form.email, form.password, form.name, form.phone);
+      // Pre-check: duplicate verified WhatsApp number
+      const { data: dup } = await (supabase as any)
+        .from("profiles")
+        .select("id")
+        .eq("whatsapp_number", cleanPhone)
+        .eq("whatsapp_verified", true)
+        .maybeSingle();
+      if (dup) {
+        toast.error("This WhatsApp number is already registered. Please login instead.");
+        return;
+      }
+      const { error } = await signUp(form.email, form.password, form.name, cleanPhone);
       if (error) { toast.error(error.message); return; }
-      toast.success("Account created! Please check your email to verify.");
+      toast.success("Account created! Verify your WhatsApp to continue.");
+      // The dashboard gate will route to /verify-whatsapp; navigate explicitly.
+      navigate({ to: "/verify-whatsapp", replace: true });
     } finally { setSubmitting(false); }
   };
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      let loginEmail = form.email.trim().toLowerCase();
+
+      if (loginMode === "phone") {
+        const cleanPhone = form.phone.replace(/\D/g, "").slice(-10);
+        if (cleanPhone.length !== 10) { toast.error("Enter a valid 10-digit number"); return; }
+        const { data: lookup, error: lkErr } = await supabase.functions.invoke("lookup-email-by-phone", {
+          body: { phone_number: cleanPhone },
+        });
+        if (lkErr || !lookup?.email) {
+          toast.error("No account found with this number.");
+          return;
+        }
+        loginEmail = lookup.email;
+        setForm((f) => ({ ...f, email: loginEmail }));
+      }
+
       try {
-        const { data: lockData } = await supabase.rpc("check_auth_lockout", { _email: form.email, _ip: null as unknown as string });
+        const { data: lockData } = await supabase.rpc("check_auth_lockout", { _email: loginEmail, _ip: null as unknown as string });
         const lock = lockData as { locked?: boolean; unlock_at?: string } | null;
         if (lock?.locked) {
           const unlockAt = lock.unlock_at ? new Date(lock.unlock_at) : null;
@@ -192,20 +226,21 @@ export default function AuthPage() {
         }
       } catch { /* lockout RPC missing — proceed */ }
 
-      const { error } = await signIn(form.email, form.password);
+      const { error } = await signIn(loginEmail, form.password);
       void (async () => {
         try {
-          await supabase.rpc("record_auth_attempt", { _email: form.email, _ip: null as unknown as string, _success: !error });
+          await supabase.rpc("record_auth_attempt", { _email: loginEmail, _ip: null as unknown as string, _success: !error });
         } catch {
           return undefined;
         }
       })();
 
-      if (error) { toast.error("Invalid email or password."); return; }
+      if (error) { toast.error(loginMode === "phone" ? "Wrong password for this number." : "Invalid email or password."); return; }
       toast.success("Welcome back!");
       navigate({ to: redirectWithPlan, replace: true });
     } finally { setSubmitting(false); }
   };
+
 
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -330,12 +365,24 @@ export default function AuthPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone" className="text-sm">Phone <span style={{ color: "var(--color-hero-muted)" }} className="text-xs">(optional)</span></Label>
-                  <div className="relative">
-                    <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
-                    <Input id="phone" placeholder="+91 9876543210" className="auth-input pl-9" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+                  <Label htmlFor="phone" className="text-sm">WhatsApp Number <span className="text-destructive">*</span></Label>
+                  <div className="flex gap-2">
+                    <span className="inline-flex items-center px-3 rounded-md bg-muted text-sm font-medium border border-input">+91</span>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="9876543210"
+                      className="auth-input"
+                      maxLength={10}
+                      required
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                    />
                   </div>
+                  <p className="text-[11px]" style={{ color: "var(--color-hero-muted)" }}>You'll verify this on the next step via WhatsApp OTP.</p>
                 </div>
+
                 <PasswordField form={form} setForm={setForm} showPassword={showPassword} setShowPassword={setShowPassword} />
                 <Button variant="hero" className="w-full" size="lg" disabled={submitting} style={{ borderRadius: "12px" }}>
                   {submitting ? (<span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Creating account…</span>) : "Create Account"}
@@ -351,13 +398,46 @@ export default function AuthPage() {
 
           {stage === "login" && (
             <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-sm">Email</Label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
-                  <Input className="auth-input pl-9" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-                </div>
+              <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-muted">
+                <button
+                  type="button"
+                  onClick={() => setLoginMode("email")}
+                  className={`text-xs font-medium py-1.5 rounded-md transition-colors ${loginMode === "email" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
+                >Login with Email</button>
+                <button
+                  type="button"
+                  onClick={() => setLoginMode("phone")}
+                  className={`text-xs font-medium py-1.5 rounded-md transition-colors ${loginMode === "phone" ? "bg-background shadow-sm" : "text-muted-foreground"}`}
+                >Login with Phone</button>
               </div>
+
+              {loginMode === "email" ? (
+                <div className="space-y-2">
+                  <Label className="text-sm">Email</Label>
+                  <div className="relative">
+                    <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--color-hero-muted)" }} />
+                    <Input className="auth-input pl-9" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label className="text-sm">WhatsApp Number</Label>
+                  <div className="flex gap-2">
+                    <span className="inline-flex items-center px-3 rounded-md bg-muted text-sm font-medium border border-input">+91</span>
+                    <Input
+                      type="tel"
+                      inputMode="numeric"
+                      placeholder="9876543210"
+                      maxLength={10}
+                      className="auth-input"
+                      value={form.phone}
+                      onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })}
+                      required
+                    />
+                  </div>
+                </div>
+              )}
+
               <PasswordField form={form} setForm={setForm} showPassword={showPassword} setShowPassword={setShowPassword} showForgot />
               <Button variant="hero" className="w-full" size="lg" disabled={submitting} style={{ borderRadius: "12px" }}>
                 {submitting ? (<span className="flex items-center gap-2"><Loader2 size={16} className="animate-spin" /> Signing in…</span>) : "Sign In"}
@@ -369,6 +449,7 @@ export default function AuthPage() {
               </div>
             </form>
           )}
+
 
           {stage === "set-password" && (
             <div className="space-y-4">

@@ -22,6 +22,8 @@ interface Profile {
   city: string | null;
   instagram_url: string | null;
   whatsapp_number: string | null;
+  whatsapp_verified: boolean | null;
+
   onboarding_completed: boolean | null;
   onboarding_data: any;
   kyc_status: string | null;

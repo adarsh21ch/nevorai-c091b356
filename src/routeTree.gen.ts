@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsappTestRouteImport } from './routes/whatsapp-test'
 import { Route as VideosRouteImport } from './routes/videos'
+import { Route as VerifyWhatsappRouteImport } from './routes/verify-whatsapp'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TermsRouteImport } from './routes/terms'
@@ -95,6 +96,13 @@ const VideosRoute = VideosRouteImport.update({
   path: '/videos',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/videos.lazy').then((d) => d.Route))
+const VerifyWhatsappRoute = VerifyWhatsappRouteImport.update({
+  id: '/verify-whatsapp',
+  path: '/verify-whatsapp',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/verify-whatsapp.lazy').then((d) => d.Route),
+)
 const UpgradeRoute = UpgradeRouteImport.update({
   id: '/upgrade',
   path: '/upgrade',
@@ -530,6 +538,7 @@ export interface FileRoutesByFullPath {
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
+  '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -607,6 +616,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
+  '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -683,6 +693,7 @@ export interface FileRoutesById {
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
+  '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -762,6 +773,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tools'
     | '/upgrade'
+    | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
     | '/admin/kyc'
@@ -839,6 +851,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tools'
     | '/upgrade'
+    | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
     | '/admin/kyc'
@@ -914,6 +927,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/tools'
     | '/upgrade'
+    | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
     | '/admin/kyc'
@@ -992,6 +1006,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   ToolsRoute: typeof ToolsRoute
   UpgradeRoute: typeof UpgradeRoute
+  VerifyWhatsappRoute: typeof VerifyWhatsappRoute
   VideosRoute: typeof VideosRouteWithChildren
   WhatsappTestRoute: typeof WhatsappTestRoute
   AdminKycRoute: typeof AdminKycRoute
@@ -1041,6 +1056,13 @@ declare module '@tanstack/react-router' {
       path: '/videos'
       fullPath: '/videos'
       preLoaderRoute: typeof VideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify-whatsapp': {
+      id: '/verify-whatsapp'
+      path: '/verify-whatsapp'
+      fullPath: '/verify-whatsapp'
+      preLoaderRoute: typeof VerifyWhatsappRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/upgrade': {
@@ -1667,6 +1689,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   ToolsRoute: ToolsRoute,
   UpgradeRoute: UpgradeRoute,
+  VerifyWhatsappRoute: VerifyWhatsappRoute,
   VideosRoute: VideosRouteWithChildren,
   WhatsappTestRoute: WhatsappTestRoute,
   AdminKycRoute: AdminKycRoute,
