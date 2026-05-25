@@ -193,17 +193,77 @@ Deno.serve(async (req) => {
     let subject = String(page.email_subject || 'Registration Confirmed')
       .replace(/\{\{name\}\}/g, safeName)
 
+    // Build optional enrichment blocks
+    const bannerUrl: string | null = (page as any).email_banner_url || null
+    const sessionLink: string | null = (page as any).session_link || null
+    const resourceLink: string | null = (page as any).resource_link || null
+    const sessionDatetime: string | null = (page as any).session_datetime || null
+    const attachmentPdfUrl: string | null = (page as any).attachment_pdf_url || null
+
+    let calendarUrl: string | null = null
+    let sessionDateHuman: string | null = null
+    if (sessionDatetime) {
+      try {
+        const start = new Date(sessionDatetime)
+        const end = new Date(start.getTime() + 60 * 60 * 1000) // +1h default
+        const fmt = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+        const dates = `${fmt(start)}/${fmt(end)}`
+        const calParams = new URLSearchParams({
+          action: 'TEMPLATE',
+          text: page.title || 'Session',
+          dates,
+          details: page.description || '',
+        })
+        calendarUrl = `https://calendar.google.com/calendar/render?${calParams.toString()}`
+        sessionDateHuman = start.toLocaleString('en-IN', {
+          weekday: 'short', day: 'numeric', month: 'long',
+          hour: 'numeric', minute: '2-digit', hour12: true,
+          timeZone: 'Asia/Kolkata',
+        })
+      } catch (e) {
+        console.warn('Failed to build calendar url:', (e as Error).message)
+      }
+    }
+
+    const bannerBlock = bannerUrl
+      ? `<div style="margin: -32px -32px 24px; overflow: hidden; border-radius: 12px 12px 0 0;">
+           <img src="${bannerUrl}" alt="" style="width: 100%; height: auto; display: block;" />
+         </div>`
+      : ''
+
+    const sessionButtonBlock = sessionLink
+      ? `<div style="margin: 24px 0; text-align: center;">
+           <a href="${sessionLink}" style="display: inline-block; padding: 14px 32px; background: #22c55e; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px;">Join the Session &rarr;</a>
+         </div>`
+      : ''
+
+    const resourceRowBlock = resourceLink
+      ? `<div style="margin: 16px 0; padding: 12px 16px; background: #f5f5f5; border-radius: 8px;">
+           <a href="${resourceLink}" style="color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500;">📺 Watch / View Resource</a>
+         </div>`
+      : ''
+
+    const calendarBlock = calendarUrl
+      ? `<div style="margin: 12px 0; text-align: center;">
+           <a href="${calendarUrl}" style="color: #22c55e; text-decoration: none; font-size: 14px; font-weight: 500;">📅 Add to Google Calendar${sessionDateHuman ? ` &middot; ${sessionDateHuman} IST` : ''}</a>
+         </div>`
+      : ''
+
     const html = `
 <!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #ffffff; color: #1a1a1a; padding: 40px 20px;">
   <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 32px; border: 1px solid #e5e5e5;">
+    ${bannerBlock}
     <div style="text-align: center; margin-bottom: 24px;">
       <h1 style="color: #22c55e; font-size: 20px; margin: 0;">Nevorai</h1>
     </div>
     <h2 style="font-size: 22px; margin: 0 0 16px; color: #1a1a1a;">${emailHeading}</h2>
     <div style="font-size: 15px; line-height: 1.7; color: #555555; white-space: pre-line;">${emailBody}</div>
+    ${sessionButtonBlock}
+    ${calendarBlock}
+    ${resourceRowBlock}
     ${emailFooter ? `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; font-size: 13px; color: #999999; white-space: pre-line;">${emailFooter}</div>` : ''}
     <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #f0f0f0; text-align: center;">
       <span style="display: inline-block; font-size: 11px; color: #b0b0b0; letter-spacing: 0.5px; font-weight: 500;">
@@ -214,6 +274,26 @@ Deno.serve(async (req) => {
   </div>
 </body>
 </html>`
+
+    // If PDF attachment is configured, fetch + base64 encode (best-effort).
+    let attachments: Array<{ filename: string; content: string; mimeType: string }> | undefined
+    if (attachmentPdfUrl) {
+      try {
+        const pdfRes = await fetch(attachmentPdfUrl)
+        if (pdfRes.ok) {
+          const buf = new Uint8Array(await pdfRes.arrayBuffer())
+          let binary = ''
+          for (const b of buf) binary += String.fromCharCode(b)
+          const b64 = btoa(binary)
+          const filename = attachmentPdfUrl.split('/').pop()?.split('?')[0] || 'attachment.pdf'
+          attachments = [{ filename, content: b64, mimeType: 'application/pdf' }]
+        } else {
+          console.warn('PDF fetch failed:', pdfRes.status)
+        }
+      } catch (e) {
+        console.warn('PDF fetch error:', (e as Error).message)
+      }
+    }
 
     // Send via Gmail edge function. Authenticate as backend with the service
     // key in the apikey header so the gateway treats it as a service API key.
