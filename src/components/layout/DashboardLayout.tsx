@@ -44,7 +44,16 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
   const location = useLocation();
   const navigate = useNavigate();
   const router = useRouter();
-  const { signOut, user } = useAuth();
+  const { signOut, user, profile, loading: authLoading } = useAuth();
+
+  // WhatsApp verification gate — every dashboard surface enforces this.
+  // Free-account abuse closes here: no verified number → no dashboard.
+  const needsWhatsApp = !authLoading && !!user && profile && !(profile as any).whatsapp_verified;
+  if (needsWhatsApp) {
+    // navigate via effect to avoid SSR / render-time navigation issues
+    setTimeout(() => navigate("/verify-whatsapp"), 0);
+  }
+
   const { isAdmin } = useAdmin();
   const [collapsed, setCollapsed] = useState(false);
   const { theme, toggleTheme } = useTheme();
