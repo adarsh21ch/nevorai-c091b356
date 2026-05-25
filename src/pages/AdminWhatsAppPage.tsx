@@ -15,6 +15,9 @@ import { WhatsAppConversationsTab } from "@/components/admin/WhatsAppConversatio
 import { WhatsAppLeadsTab } from "@/components/admin/WhatsAppLeadsTab";
 import { WhatsAppMediaTab } from "@/components/admin/WhatsAppMediaTab";
 import { WhatsAppHelpArticlesTab } from "@/components/admin/WhatsAppHelpArticlesTab";
+import { WhatsAppTemplatesTab } from "@/components/admin/WhatsAppTemplatesTab";
+import { WhatsAppAutomationsTab } from "@/components/admin/WhatsAppAutomationsTab";
+import { WhatsAppCampaignsTab } from "@/components/admin/WhatsAppCampaignsTab";
 
 const AUTOMATIONS: { id: string; label: string; description: string }[] = [
   { id: "welcome_signup", label: "Welcome on signup", description: "Sent right after a user signs up." },
@@ -158,16 +161,19 @@ const AdminWhatsAppPage = () => {
         </div>
 
         <Tabs defaultValue="conversations" className="w-full">
-          <TabsList>
-            <TabsTrigger value="conversations">Conversations</TabsTrigger>
-            <TabsTrigger value="leads">Leads</TabsTrigger>
-            <TabsTrigger value="help">Help Articles</TabsTrigger>
-            <TabsTrigger value="media">Media</TabsTrigger>
-            <TabsTrigger value="credentials">Credentials</TabsTrigger>
-            <TabsTrigger value="templates">Templates</TabsTrigger>
-            <TabsTrigger value="automations">Automations</TabsTrigger>
-            <TabsTrigger value="logs">Logs</TabsTrigger>
-          </TabsList>
+          <div className="overflow-x-auto">
+            <TabsList>
+              <TabsTrigger value="conversations">Conversations</TabsTrigger>
+              <TabsTrigger value="leads">Leads</TabsTrigger>
+              <TabsTrigger value="automations">Automations</TabsTrigger>
+              <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+              <TabsTrigger value="templates">Templates</TabsTrigger>
+              <TabsTrigger value="media">Media</TabsTrigger>
+              <TabsTrigger value="help">Help Articles</TabsTrigger>
+              <TabsTrigger value="credentials">Credentials</TabsTrigger>
+              <TabsTrigger value="logs">Logs</TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="conversations" className="space-y-4 mt-4">
             <WhatsAppConversationsTab />
@@ -177,12 +183,24 @@ const AdminWhatsAppPage = () => {
             <WhatsAppLeadsTab />
           </TabsContent>
 
-          <TabsContent value="help" className="space-y-4 mt-4">
-            <WhatsAppHelpArticlesTab />
+          <TabsContent value="automations" className="space-y-4 mt-4">
+            <WhatsAppAutomationsTab />
+          </TabsContent>
+
+          <TabsContent value="campaigns" className="space-y-4 mt-4">
+            <WhatsAppCampaignsTab />
+          </TabsContent>
+
+          <TabsContent value="templates" className="space-y-4 mt-4">
+            <WhatsAppTemplatesTab />
           </TabsContent>
 
           <TabsContent value="media" className="space-y-4 mt-4">
             <WhatsAppMediaTab />
+          </TabsContent>
+
+          <TabsContent value="help" className="space-y-4 mt-4">
+            <WhatsAppHelpArticlesTab />
           </TabsContent>
 
           <TabsContent value="credentials" className="space-y-4 mt-4">
@@ -250,62 +268,6 @@ const AdminWhatsAppPage = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="templates" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Template mapping</CardTitle>
-                <CardDescription>
-                  Enter the WhatsApp template name (as approved in Meta Business Manager) for each automation.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {AUTOMATIONS.map((a) => (
-                  <div key={a.id} className="grid sm:grid-cols-[1fr_2fr] gap-3 items-start">
-                    <div>
-                      <p className="text-sm font-medium">{a.label}</p>
-                      <p className="text-xs text-muted-foreground">{a.description}</p>
-                    </div>
-                    <Input
-                      value={templateFor(a.id)}
-                      onChange={(e) => setTemplate(a.id, e.target.value)}
-                      placeholder="approved_template_name"
-                    />
-                  </div>
-                ))}
-                <Button onClick={() => save({})} disabled={saving}>
-                  {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                  Save templates
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="automations" className="space-y-4 mt-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Automation triggers</CardTitle>
-                <CardDescription>Toggle each trigger on or off.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {AUTOMATIONS.map((a) => {
-                  const enabled = settings.automations_enabled?.[a.id] ?? false;
-                  return (
-                    <div key={a.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
-                      <div className="pr-3">
-                        <p className="text-sm font-medium">{a.label}</p>
-                        <p className="text-xs text-muted-foreground">{a.description}</p>
-                      </div>
-                      <Switch
-                        checked={enabled}
-                        onCheckedChange={(v) => toggleAutomation(a.id, v)}
-                        disabled={saving}
-                      />
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           <TabsContent value="logs" className="space-y-4 mt-4">
             <Card>
