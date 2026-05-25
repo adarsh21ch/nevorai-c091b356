@@ -55,7 +55,8 @@ const buildFreeFeatures = (config: any): { text: string; included: boolean; tool
   items.push({ text: "Browse marketplace", included: true });
 
   // Negative feature flags — show as crossed out so users see what's gated
-  items.push({ text: "Lead capture", included: !!config?.feature_lead_capture });
+  // Lead capture temporarily hidden from pricing UI
+  // items.push({ text: "Lead capture", included: !!config?.feature_lead_capture });
   items.push({ text: "Live broadcast", included: !!config?.feature_go_live });
 
   return items;
@@ -110,8 +111,9 @@ const buildFeatures = (config: any) => {
   features.push({ text: "YouTube video import", included: !!config.feature_youtube_import });
   features.push({ text: "Video sharing", included: !!config.feature_video_sharing });
   features.push({ text: "Custom branding", included: !!config.feature_custom_branding });
-  features.push({ text: "Lead capture", included: !!config.feature_lead_capture });
-  features.push({ text: "WhatsApp auto-message", included: !!config.feature_whatsapp_automation });
+  // Lead capture & WhatsApp auto-message temporarily hidden from pricing UI
+  // features.push({ text: "Lead capture", included: !!config.feature_lead_capture });
+  // features.push({ text: "WhatsApp auto-message", included: !!config.feature_whatsapp_automation });
   features.push({ text: "Smart follow-up reminders", included: !!config.feature_smart_reminders });
   features.push({ text: "Live broadcast", included: !!config.feature_go_live });
   features.push({ text: "Analytics dashboard", included: !!config.feature_analytics });
