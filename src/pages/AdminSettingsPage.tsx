@@ -19,19 +19,20 @@ import { FormDiagnosticsTab } from "@/components/admin/settings/FormDiagnosticsT
 import { Link } from "@/lib/router-compat";
 import { cn } from "@/lib/utils";
 
-type TabKey = "gmail" | "announcement" | "maintenance" | "verification" | "creator" | "landing" | "academy" | "whatsapp" | "payments" | "metapixel";
+type TabKey = "gmail" | "announcement" | "maintenance" | "verification" | "creator" | "landing" | "academy" | "whatsapp" | "payments" | "metapixel" | "form_diagnostics";
 
 const TABS: { key: TabKey; label: string; icon: typeof Mail }[] = [
-  { key: "gmail",        label: "Gmail",            icon: Mail },
-  { key: "academy",      label: "Nevorai Academy",  icon: GraduationCap },
-  { key: "announcement", label: "Announcement",     icon: Megaphone },
-  { key: "maintenance",  label: "Maintenance",      icon: Wrench },
-  { key: "verification", label: "Verification",     icon: BadgeCheck },
-  { key: "creator",      label: "Creator",          icon: Star },
-  { key: "landing",      label: "Landing pages",    icon: ImageIcon },
-  { key: "whatsapp",     label: "WhatsApp",         icon: MessageCircle },
-  { key: "payments",     label: "Payments",         icon: CreditCard },
-  { key: "metapixel",    label: "Meta Pixel",       icon: Activity },
+  { key: "gmail",            label: "Gmail",             icon: Mail },
+  { key: "academy",          label: "Nevorai Academy",   icon: GraduationCap },
+  { key: "announcement",     label: "Announcement",      icon: Megaphone },
+  { key: "maintenance",      label: "Maintenance",       icon: Wrench },
+  { key: "verification",     label: "Verification",      icon: BadgeCheck },
+  { key: "creator",          label: "Creator",           icon: Star },
+  { key: "landing",          label: "Landing pages",     icon: ImageIcon },
+  { key: "form_diagnostics", label: "Form Diagnostics",  icon: Stethoscope },
+  { key: "whatsapp",         label: "WhatsApp",          icon: MessageCircle },
+  { key: "payments",         label: "Payments",          icon: CreditCard },
+  { key: "metapixel",        label: "Meta Pixel",        icon: Activity },
 ];
 
 const AdminSettingsPage = () => {
