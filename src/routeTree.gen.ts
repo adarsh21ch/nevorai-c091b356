@@ -83,6 +83,7 @@ import { Route as InsightsLandingPagesIdRouteImport } from './routes/insights.la
 import { Route as InsightsFunnelsIdRouteImport } from './routes/insights.funnels.$id'
 import { Route as FunnelsIdEditRouteImport } from './routes/funnels.$id.edit'
 import { Route as FSlugMemberRouteImport } from './routes/f.$slug.member'
+import { Route as ApiAdminWhatsappSendRouteImport } from './routes/api/admin/whatsapp-send'
 import { Route as ApiAdminWhatsappLeadsRouteImport } from './routes/api/admin/whatsapp-leads'
 import { Route as ApiAdminWhatsappBroadcastsRouteImport } from './routes/api/admin/whatsapp-broadcasts'
 import { Route as ApiAdminWhatsappAutomationsRouteImport } from './routes/api/admin/whatsapp-automations'
@@ -500,6 +501,11 @@ const FSlugMemberRoute = FSlugMemberRouteImport.update({
 } as any).lazy(() =>
   import('./routes/f.$slug.member.lazy').then((d) => d.Route),
 )
+const ApiAdminWhatsappSendRoute = ApiAdminWhatsappSendRouteImport.update({
+  id: '/api/admin/whatsapp-send',
+  path: '/api/admin/whatsapp-send',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminWhatsappLeadsRoute = ApiAdminWhatsappLeadsRouteImport.update({
   id: '/api/admin/whatsapp-leads',
   path: '/api/admin/whatsapp-leads',
@@ -602,6 +608,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/whatsapp-automations': typeof ApiAdminWhatsappAutomationsRoute
   '/api/admin/whatsapp-broadcasts': typeof ApiAdminWhatsappBroadcastsRoute
   '/api/admin/whatsapp-leads': typeof ApiAdminWhatsappLeadsRoute
+  '/api/admin/whatsapp-send': typeof ApiAdminWhatsappSendRoute
   '/f/$slug/member': typeof FSlugMemberRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/insights/funnels/$id': typeof InsightsFunnelsIdRoute
@@ -682,6 +689,7 @@ export interface FileRoutesByTo {
   '/api/admin/whatsapp-automations': typeof ApiAdminWhatsappAutomationsRoute
   '/api/admin/whatsapp-broadcasts': typeof ApiAdminWhatsappBroadcastsRoute
   '/api/admin/whatsapp-leads': typeof ApiAdminWhatsappLeadsRoute
+  '/api/admin/whatsapp-send': typeof ApiAdminWhatsappSendRoute
   '/f/$slug/member': typeof FSlugMemberRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/insights/funnels/$id': typeof InsightsFunnelsIdRoute
@@ -765,6 +773,7 @@ export interface FileRoutesById {
   '/api/admin/whatsapp-automations': typeof ApiAdminWhatsappAutomationsRoute
   '/api/admin/whatsapp-broadcasts': typeof ApiAdminWhatsappBroadcastsRoute
   '/api/admin/whatsapp-leads': typeof ApiAdminWhatsappLeadsRoute
+  '/api/admin/whatsapp-send': typeof ApiAdminWhatsappSendRoute
   '/f/$slug/member': typeof FSlugMemberRoute
   '/funnels/$id/edit': typeof FunnelsIdEditRoute
   '/insights/funnels/$id': typeof InsightsFunnelsIdRoute
@@ -849,6 +858,7 @@ export interface FileRouteTypes {
     | '/api/admin/whatsapp-automations'
     | '/api/admin/whatsapp-broadcasts'
     | '/api/admin/whatsapp-leads'
+    | '/api/admin/whatsapp-send'
     | '/f/$slug/member'
     | '/funnels/$id/edit'
     | '/insights/funnels/$id'
@@ -929,6 +939,7 @@ export interface FileRouteTypes {
     | '/api/admin/whatsapp-automations'
     | '/api/admin/whatsapp-broadcasts'
     | '/api/admin/whatsapp-leads'
+    | '/api/admin/whatsapp-send'
     | '/f/$slug/member'
     | '/funnels/$id/edit'
     | '/insights/funnels/$id'
@@ -1011,6 +1022,7 @@ export interface FileRouteTypes {
     | '/api/admin/whatsapp-automations'
     | '/api/admin/whatsapp-broadcasts'
     | '/api/admin/whatsapp-leads'
+    | '/api/admin/whatsapp-send'
     | '/f/$slug/member'
     | '/funnels/$id/edit'
     | '/insights/funnels/$id'
@@ -1090,6 +1102,7 @@ export interface RootRouteChildren {
   ApiAdminWhatsappAutomationsRoute: typeof ApiAdminWhatsappAutomationsRoute
   ApiAdminWhatsappBroadcastsRoute: typeof ApiAdminWhatsappBroadcastsRoute
   ApiAdminWhatsappLeadsRoute: typeof ApiAdminWhatsappLeadsRoute
+  ApiAdminWhatsappSendRoute: typeof ApiAdminWhatsappSendRoute
   FSlugMemberRoute: typeof FSlugMemberRoute
   FSlugIndexRoute: typeof FSlugIndexRoute
   ApiAdminWhatsappMessagesLeadIdRoute: typeof ApiAdminWhatsappMessagesLeadIdRoute
@@ -1617,6 +1630,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FSlugMemberRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/whatsapp-send': {
+      id: '/api/admin/whatsapp-send'
+      path: '/api/admin/whatsapp-send'
+      fullPath: '/api/admin/whatsapp-send'
+      preLoaderRoute: typeof ApiAdminWhatsappSendRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/whatsapp-leads': {
       id: '/api/admin/whatsapp-leads'
       path: '/api/admin/whatsapp-leads'
@@ -1805,6 +1825,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminWhatsappAutomationsRoute: ApiAdminWhatsappAutomationsRoute,
   ApiAdminWhatsappBroadcastsRoute: ApiAdminWhatsappBroadcastsRoute,
   ApiAdminWhatsappLeadsRoute: ApiAdminWhatsappLeadsRoute,
+  ApiAdminWhatsappSendRoute: ApiAdminWhatsappSendRoute,
   FSlugMemberRoute: FSlugMemberRoute,
   FSlugIndexRoute: FSlugIndexRoute,
   ApiAdminWhatsappMessagesLeadIdRoute: ApiAdminWhatsappMessagesLeadIdRoute,
