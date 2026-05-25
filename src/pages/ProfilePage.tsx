@@ -317,6 +317,9 @@ const ProfilePage = () => {
         {/* Storage Usage */}
         <StorageUsageCard />
 
+        {/* WhatsApp Notifications */}
+        <WhatsAppVerification />
+
         {/* PREFERENCES */}
         <div className="premium-card p-2 space-y-0.5">
           <SectionLabel>Preferences</SectionLabel>
