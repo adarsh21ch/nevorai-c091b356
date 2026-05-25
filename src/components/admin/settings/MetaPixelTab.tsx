@@ -90,13 +90,18 @@ export function MetaPixelTab() {
           custom_data: { source: "admin-ui" },
         }),
       });
-      if (res.status === 403) {
-        throw new Error("Test events must be triggered server-side. Use 'Test Events' tab in Meta Events Manager with your test_event_code instead.");
+      const json = await res.json().catch(() => ({} as any));
+      if (!res.ok || json?.ok === false) {
+        const msg =
+          json?.response?.error?.message ||
+          json?.error ||
+          `Test failed (HTTP ${res.status})`;
+        throw new Error(msg);
       }
-      return res.json();
+      return json;
     },
-    onSuccess: () => { toast.success("Test event queued"); qc.invalidateQueries({ queryKey: ["meta-pixel-logs"] }); },
-    onError: (e: any) => toast.message(e?.message ?? "Test failed", { description: "Pixel fires are service-role only by design." }),
+    onSuccess: () => { toast.success("Test event sent"); qc.invalidateQueries({ queryKey: ["meta-pixel-logs"] }); },
+    onError: (e: any) => toast.error(e?.message ?? "Test failed"),
   });
 
   const lastUpdated = (settings as any)?.updated_at ? new Date((settings as any).updated_at).toLocaleString() : null;
