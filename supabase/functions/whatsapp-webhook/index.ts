@@ -526,9 +526,8 @@ Visit: ${NEVORAI_CALL_LINK}`,
   // ── Nevorai App / Video funnel ────────────────────────────────
   {
     match: (t) => includesAny(t, [
-      "nevorai app", "neverai app", "video funnel", "funnel",
-      "landing page", "forms", "lead capture", "video platform",
-      "recorded live", "live session", "youtube", "prospect",
+      "nevorai app", "neverai app", "video funnel", "video platform",
+      "recorded live", "live session", "youtube", "what is nevorai app",
     ]),
     reply: () => `${BRAND_NAME} helps creators, entrepreneurs, and business owners share focused video presentations with prospects.
 
