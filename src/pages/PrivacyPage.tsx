@@ -25,9 +25,9 @@ const PrivacyPage = () => {
             <section>
               <h2 className="text-lg font-heading font-semibold text-foreground mb-3">1. Who We Are</h2>
               <p className="mb-3">
-                Nevorai is a product of Nevorai. We build a distraction-free video funnel platform for creators,
+                Nevorai is a product of <strong className="text-foreground">Nevorai Technologies</strong>. We build a distraction-free video funnel platform for creators,
                 coaches, and educators. When we say "Nevorai", "we", "us", or "our" in this policy, we mean
-                Nevorai and the Nevorai application.
+                Nevorai Technologies and the Nevorai application.
               </p>
               <p>
                 For any privacy-related concerns, contact us at{" "}
