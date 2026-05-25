@@ -24,6 +24,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { sanitizeFields, normalizePhone } from "@/lib/sanitize";
 import { StorageUsageCard } from "@/components/StorageUsageCard";
 import { ProfilePhotoCropModal } from "@/components/ProfilePhotoCropModal";
+import { WhatsAppVerification } from "@/components/profile/WhatsAppVerification";
 
 const ProfilePage = () => {
   useDocumentTitle("Profile");
