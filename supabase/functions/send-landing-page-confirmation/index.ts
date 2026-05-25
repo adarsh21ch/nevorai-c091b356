@@ -310,6 +310,7 @@ Deno.serve(async (req) => {
         subject,
         html,
         sender_name: senderDisplayName,
+        attachments,
       }),
     })
 
