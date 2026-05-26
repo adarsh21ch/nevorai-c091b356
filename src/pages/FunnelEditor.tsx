@@ -1217,10 +1217,11 @@ const FunnelEditor = () => {
                 <Switch checked={funnel.contact_whatsapp_enabled} onCheckedChange={(v) => update("contact_whatsapp_enabled", v)} />
               </div>
               {funnel.contact_whatsapp_enabled && (
-                <div className="flex gap-2">
-                  <div className="flex items-center px-3 bg-muted border border-border rounded-md text-sm text-muted-foreground shrink-0">+91</div>
-                  <Input placeholder="9876543210" value={funnel.contact_whatsapp?.replace(/^\+91/, "")} onChange={(e) => update("contact_whatsapp", "+91" + e.target.value.replace(/\D/g, ""))} className="bg-muted border-border" />
-                </div>
+                <NPhoneInput
+                  value={funnel.contact_whatsapp || ""}
+                  onChange={(v: string | undefined) => update("contact_whatsapp", v || "")}
+                  placeholder="WhatsApp number"
+                />
               )}
             </div>
 
