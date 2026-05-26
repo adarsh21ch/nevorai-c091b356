@@ -1,63 +1,61 @@
-# Fix: WhatsApp OTP not delivering (template button mismatch)
+## Add international phone number support
 
-## Root cause (confirmed)
+### Approach
+Introduce a reusable `NPhoneInput` component wrapping `react-phone-number-input`, styled to match the dark theme via Tailwind/CSS overrides. Replace every hard-coded `+91 [10 digit]` phone input across signup, OTP verify, profile, landing-page lead capture, funnel member registration, admin lead/conversation tools, and live/funnel public forms. Output stays in E.164 (`+919876543210`). Existing 10-digit DB values keep working — display falls back to raw value, and validation uses `isValidPhoneNumber`.
 
-Direct test of `whatsapp-send-otp` returns HTTP 200 + `wamid` from Meta, but users never receive the OTP. The `nevorai_otp` template is configured in Meta with a **Copy Code** button, but our code sends the button as a URL button:
+### Steps
 
-```ts
-// supabase/functions/whatsapp-send-otp/index.ts  (current — WRONG)
-{ type: "button", sub_type: "url", index: "0",
-  parameters: [{ type: "text", text: code }] }
-```
+1. **Install dependency**
+   - `bun add react-phone-number-input`
 
-Meta's Cloud API accepts the request (returns a wamid) but silently fails to render/deliver the message because the button payload shape doesn't match the approved template. No webhook `delivered` event ever fires, so the user sees nothing.
+2. **Create reusable component** `src/components/ui/PhoneInput.tsx`
+   - Wraps the library, `international` + `defaultCountry="IN"` + `countryCallingCodeEditable={false}`
+   - Exports `NPhoneInput` and re-exports `isValidPhoneNumber` for convenience
+   - Imports library stylesheet once
 
-This is why:
-- Backend logs look healthy (no Meta error code).
-- Resend button shows "could not send" — actually our 60s cooldown kicking in after the silently-failed first send.
-- It affects every signup user, not just one.
+3. **Theme overrides** in `src/styles.css`
+   - Style `.PhoneInput`, `.PhoneInputInput`, `.PhoneInputCountry`, `.PhoneInputCountrySelect`, `.PhoneInputCountryIcon`, dropdown menu — match existing `Input` (bg-muted, border-border, rounded-md, focus ring, dark-mode aware)
 
-## The fix (one file)
+4. **Update `src/lib/leadInputs.ts`**
+   - Add `validateInternationalPhone(v)` using `isValidPhoneNumber`; keep existing `validatePhone` for legacy 10-digit IN forms still in use (so nothing breaks)
+   - Add `normalizeE164(v)` passthrough helper
 
-Change the button block in `supabase/functions/whatsapp-send-otp/index.ts` to Meta's required shape for **Copy Code** buttons in Authentication templates:
+5. **Replace inputs in user-facing forms** (use `NPhoneInput`, store/submit E.164):
+   - `src/pages/VerifyWhatsAppPage.tsx` — phone step + cooldown logic; send full E.164 to `whatsapp-send-otp`
+   - `src/components/profile/WhatsAppVerification.tsx` — settings inline verify
+   - `src/components/auth/AuthPage.tsx` — signup phone field (if present)
+   - `src/pages/Onboarding.tsx` — if it collects phone
+   - Funnel/landing lead capture forms (search & swap):
+     - `src/components/funnel/**` member registration / lead form
+     - `src/components/landing/**` lead capture form
+     - `src/pages/PublicLandingPage.tsx`, `PublicFunnel.tsx`, `PublicLivePage.tsx` forms
+   - Admin tools:
+     - `src/components/admin/WhatsAppLeadsTab.tsx` (Add Lead)
+     - `src/components/admin/whatsapp/ConversationsTab.tsx` phone search/add
+   - `src/pages/WhatsAppTestPage.tsx`
 
-```ts
-{
-  type: "button",
-  sub_type: "copy_code",
-  index: "0",
-  parameters: [{ type: "coupon_code", coupon_code: code }],
-}
-```
+6. **Submit-time normalization**
+   - For each form, strip the `+` only if the backend specifically requires raw digits; otherwise pass E.164 through. Default: send E.164.
+   - For OTP flows that previously sent 10-digit local: send E.164 — backend already accepts arbitrary digit strings; `whatsapp-send-otp` is the main consumer and treats `phone_number` as a string.
 
-The body block stays as-is (one text param with the code) — Authentication templates with copy-code buttons still require the code in the body parameter.
+7. **Display fallback**
+   - When a stored value lacks `+` (legacy 10-digit IN), prefix `+91` for display in `NPhoneInput`'s `value`.
 
-Full template send block after fix:
+8. **Validation**
+   - Use `isValidPhoneNumber` to gate submit buttons + show inline "Please enter a valid phone number" error.
 
-```ts
-template: {
-  name: templateName,                         // "nevorai_otp"
-  language: { code: templateLang },           // "en"
-  components: [
-    { type: "body", parameters: [{ type: "text", text: code }] },
-    { type: "button", sub_type: "copy_code", index: "0",
-      parameters: [{ type: "coupon_code", coupon_code: code }] },
-  ],
-},
-```
+### What stays the same
+- DB schema / column types
+- All backend edge functions
+- Existing 60s OTP cooldown, attempt lockout, RLS, etc.
+- Non-phone form behaviour
 
-No other code changes. The fallback-to-text branch, error mapping, rate-limit reordering, client toasts, and 60s cooldown all stay exactly as they are.
+### Out of scope
+- Data migration of historical rows
+- Changing how the OTP template renders the number
+- Any UI rework beyond the phone field itself
 
-## Verification (after deploy)
-
-1. Call `whatsapp-send-otp` with a real test phone via `invoke-server-function`.
-2. Confirm the phone actually receives the WhatsApp message with the 6-digit code and a "Copy code" button.
-3. If it still doesn't arrive, the next thing to check is the webhook `statuses` payload — but with the button payload corrected, Meta should deliver normally.
-
-## Files touched
-
-- `supabase/functions/whatsapp-send-otp/index.ts` — change button `sub_type` from `"url"` to `"copy_code"` and parameter from `{ type: "text", text: code }` to `{ type: "coupon_code", coupon_code: code }`.
-
-## What I do NOT need from you
-
-No Meta dashboard changes, no template re-approval, no migration. The template is already correct; only our API call to Meta is wrong.
+### Risk notes
+- Library ships its own CSS — overrides scoped via class selectors in `styles.css` so it inherits theme tokens
+- A few forms may have custom masks (e.g., `maxLength={10}`) that we replace entirely with the component
+- Will grep for `type="tel"`, `+91`, `whatsapp_number`, `phone_number` to ensure full coverage before finishing
