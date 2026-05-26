@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "@/lib/router-compat";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
