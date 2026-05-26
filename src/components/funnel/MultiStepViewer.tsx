@@ -766,10 +766,14 @@ export const MultiStepViewer = ({
                   )}
                   {formConfig?.show_phone && (
                     <div>
-                      <div className="flex gap-2">
-                        <div className="flex items-center px-3 rounded-xl text-sm shrink-0 h-12" style={{ background: sc.inputBg, border: `1px solid ${sc.cardBorder}`, color: sc.textMuted }}>+91</div>
-                        <Input ref={(el) => { leadRefs.current.phone = el; }} {...phoneInputProps} placeholder="9876543210" value={leadForm.phone} onChange={(e) => setLeadField("phone", normalizePhone(e.target.value))} aria-invalid={!!leadErrors.phone} style={{ background: sc.inputBg, borderColor: leadErrors.phone ? "#ef4444" : sc.cardBorder, color: sc.text }} className="h-12 rounded-xl" />
-                      </div>
+                      <NPhoneInput
+                        ref={(el: any) => { leadRefs.current.phone = el; }}
+                        value={leadForm.phone}
+                        onChange={(v: string | undefined) => setLeadField("phone", v || "")}
+                        placeholder="Phone number"
+                        aria-invalid={!!leadErrors.phone}
+                        className="h-12 rounded-xl"
+                      />
                       {leadErrors.phone && <p className="text-xs mt-1" style={{ color: "#ef4444" }}>{leadErrors.phone}</p>}
                     </div>
                   )}
@@ -793,7 +797,14 @@ export const MultiStepViewer = ({
                   )}
                   {(formConfig as any)?.show_whatsapp && (
                     <div>
-                      <Input ref={(el) => { leadRefs.current.whatsapp = el; }} {...phoneInputProps} placeholder="WhatsApp Number" value={leadForm.whatsapp} onChange={(e) => setLeadField("whatsapp", normalizePhone(e.target.value))} aria-invalid={!!leadErrors.whatsapp} style={{ background: sc.inputBg, borderColor: leadErrors.whatsapp ? "#ef4444" : sc.cardBorder, color: sc.text }} className="h-12 rounded-xl" />
+                      <NPhoneInput
+                        ref={(el: any) => { leadRefs.current.whatsapp = el; }}
+                        value={leadForm.whatsapp}
+                        onChange={(v: string | undefined) => setLeadField("whatsapp", v || "")}
+                        placeholder="WhatsApp Number"
+                        aria-invalid={!!leadErrors.whatsapp}
+                        className="h-12 rounded-xl"
+                      />
                       {leadErrors.whatsapp && <p className="text-xs mt-1" style={{ color: "#ef4444" }}>{leadErrors.whatsapp}</p>}
                     </div>
                   )}
@@ -946,10 +957,14 @@ export const MultiStepViewer = ({
                             )}
                             {formConfig?.show_phone && (
                               <div>
-                                <div className="flex gap-2">
-                                  <div className="flex items-center px-3 rounded-xl text-sm shrink-0 h-12" style={{ background: sc.inputBg, border: `1px solid ${sc.cardBorder}`, color: sc.textMuted }}>+91</div>
-                                  <Input ref={(el) => { leadRefs.current.phone = el; }} {...phoneInputProps} placeholder="9876543210" value={leadForm.phone} onChange={(e) => setLeadField("phone", normalizePhone(e.target.value))} aria-invalid={!!leadErrors.phone} style={{ background: sc.inputBg, borderColor: leadErrors.phone ? "#ef4444" : sc.cardBorder, color: sc.text }} className="h-12 rounded-xl" />
-                                </div>
+                                <NPhoneInput
+                                  ref={(el: any) => { leadRefs.current.phone = el; }}
+                                  value={leadForm.phone}
+                                  onChange={(v: string | undefined) => setLeadField("phone", v || "")}
+                                  placeholder="Phone number"
+                                  aria-invalid={!!leadErrors.phone}
+                                  className="h-12 rounded-xl"
+                                />
                                 {leadErrors.phone && <p className="text-xs mt-1" style={{ color: "#ef4444" }}>{leadErrors.phone}</p>}
                               </div>
                             )}
@@ -973,7 +988,14 @@ export const MultiStepViewer = ({
                             )}
                             {(formConfig as any)?.show_whatsapp && (
                               <div>
-                                <Input ref={(el) => { leadRefs.current.whatsapp = el; }} {...phoneInputProps} placeholder="WhatsApp Number" value={leadForm.whatsapp} onChange={(e) => setLeadField("whatsapp", normalizePhone(e.target.value))} aria-invalid={!!leadErrors.whatsapp} style={{ background: sc.inputBg, borderColor: leadErrors.whatsapp ? "#ef4444" : sc.cardBorder, color: sc.text }} className="h-12 rounded-xl" />
+                                <NPhoneInput
+                                  ref={(el: any) => { leadRefs.current.whatsapp = el; }}
+                                  value={leadForm.whatsapp}
+                                  onChange={(v: string | undefined) => setLeadField("whatsapp", v || "")}
+                                  placeholder="WhatsApp Number"
+                                  aria-invalid={!!leadErrors.whatsapp}
+                                  className="h-12 rounded-xl"
+                                />
                                 {leadErrors.whatsapp && <p className="text-xs mt-1" style={{ color: "#ef4444" }}>{leadErrors.whatsapp}</p>}
                               </div>
                             )}
