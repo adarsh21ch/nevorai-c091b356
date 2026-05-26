@@ -40,6 +40,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 
@@ -1177,10 +1178,14 @@ const PublicFunnel = () => {
         )}
         {formConfig?.show_phone && (
           <div>
-            <div className="flex gap-2">
-              <div className="flex items-center px-3 rounded-xl text-sm shrink-0 h-12" style={{ background: tc.inputBg, border: `1px solid ${tc.inputBorder}`, color: tc.textDim }}>+91</div>
-              <Input ref={(el) => { leadRefs.current.phone = el; }} {...phoneInputProps} placeholder="9876543210" value={leadForm.phone} onChange={(e) => setLeadField("phone", normalizePhone(e.target.value))} aria-invalid={!!leadErrors.phone} style={{ background: tc.inputBg, borderColor: errBorder("phone"), color: tc.inputText }} className="h-12 rounded-xl" />
-            </div>
+            <NPhoneInput
+              ref={(el: any) => { leadRefs.current.phone = el; }}
+              value={leadForm.phone}
+              onChange={(v) => setLeadField("phone", v || "")}
+              placeholder="Phone number"
+              aria-invalid={!!leadErrors.phone}
+              className="h-12 rounded-xl"
+            />
             {fieldErrEl("phone")}
           </div>
         )}
@@ -1204,7 +1209,14 @@ const PublicFunnel = () => {
         )}
         {(formConfig as any)?.show_whatsapp && (
           <div>
-            <Input ref={(el) => { leadRefs.current.whatsapp = el; }} {...phoneInputProps} placeholder="WhatsApp Number" value={leadForm.whatsapp} onChange={(e) => setLeadField("whatsapp", e.target.value)} aria-invalid={!!leadErrors.whatsapp} style={{ background: tc.inputBg, borderColor: errBorder("whatsapp"), color: tc.inputText }} className="h-12 rounded-xl" />
+            <NPhoneInput
+              ref={(el: any) => { leadRefs.current.whatsapp = el; }}
+              value={leadForm.whatsapp}
+              onChange={(v) => setLeadField("whatsapp", v || "")}
+              placeholder="WhatsApp Number"
+              aria-invalid={!!leadErrors.whatsapp}
+              className="h-12 rounded-xl"
+            />
             {fieldErrEl("whatsapp")}
           </div>
         )}

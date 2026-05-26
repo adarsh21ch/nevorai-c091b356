@@ -20,6 +20,7 @@ import {
   cityInputProps,
   scrollToFirstError,
 } from "@/lib/leadInputs";
+import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 interface PrivateLeadFormProps {
@@ -244,17 +245,14 @@ export const PrivateLeadForm = ({
 
             <div>
               <Label className="text-xs font-medium" style={{ color: textMuted }}>Phone Number *</Label>
-              <div className="flex gap-2 mt-1">
-                <div className="flex items-center px-3 rounded-md text-sm shrink-0 h-11" style={{ background: inputBg, border: `1px solid ${border}`, color: textMuted }}>+91</div>
-                <Input
-                  ref={refs.phone}
-                  {...phoneInputProps}
+              <div className="mt-1">
+                <NPhoneInput
+                  ref={refs.phone as any}
                   value={form.phone}
-                  onChange={(e) => setField("phone", normalizePhone(e.target.value))}
-                  placeholder="9876543210"
-                  className="h-11"
-                  style={{ background: inputBg, borderColor: errors.phone ? errColor : border, color: text }}
+                  onChange={(v: string | undefined) => setField("phone", v || "")}
+                  placeholder="Phone number"
                   aria-invalid={!!errors.phone}
+                  className="h-11"
                 />
               </div>
               {fieldErr("phone")}
@@ -318,17 +316,17 @@ export const PrivateLeadForm = ({
             {requiredFields.whatsapp && (
               <div>
                 <Label className="text-xs font-medium" style={{ color: textMuted }}>WhatsApp Number</Label>
-                <Input
-                  ref={refs.whatsapp}
-                  {...phoneInputProps}
-                  value={waSameAsPhone ? form.phone : form.whatsapp}
-                  onChange={(e) => setField("whatsapp", normalizePhone(e.target.value))}
-                  placeholder="WhatsApp number"
-                  disabled={waSameAsPhone}
-                  className="mt-1 h-11"
-                  style={{ background: inputBg, borderColor: errors.whatsapp ? errColor : border, color: text, opacity: waSameAsPhone ? 0.7 : 1 }}
-                  aria-invalid={!!errors.whatsapp}
-                />
+                <div className="mt-1" style={{ opacity: waSameAsPhone ? 0.7 : 1 }}>
+                  <NPhoneInput
+                    ref={refs.whatsapp as any}
+                    value={waSameAsPhone ? form.phone : form.whatsapp}
+                    onChange={(v: string | undefined) => setField("whatsapp", v || "")}
+                    placeholder="WhatsApp number"
+                    disabled={waSameAsPhone}
+                    aria-invalid={!!errors.whatsapp}
+                    className="h-11"
+                  />
+                </div>
                 <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                   <input
                     type="checkbox"

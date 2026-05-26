@@ -6,11 +6,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { Check, MessageCircle } from "lucide-react";
+import { NPhoneInput, isValidPhoneNumber, toDisplayE164 } from "@/components/ui/PhoneInput";
 
 export const WhatsAppVerification = () => {
   const { user, profile, refreshProfile } = useAuth();
   const p = profile as any;
-  const [phone, setPhone] = useState("");
+  const [phone, setPhone] = useState<string>("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"input" | "otp" | "verified">("input");
   const [loading, setLoading] = useState(false);
@@ -23,23 +24,22 @@ export const WhatsAppVerification = () => {
   }, [cooldown]);
 
   useEffect(() => {
-    if (p?.whatsapp_verified && p.whatsapp_number) {
-      setPhone(p.whatsapp_number);
+    const display = toDisplayE164(p?.whatsapp_number) || "";
+    if (p?.whatsapp_verified && display) {
+      setPhone(display);
       setStep("verified");
-    } else if (p?.whatsapp_number) {
-      setPhone(p.whatsapp_number);
+    } else if (display) {
+      setPhone(display);
     }
   }, [p?.whatsapp_verified, p?.whatsapp_number]);
 
   const sendOtp = async () => {
-    const clean = phone.replace(/\D/g, "");
-    if (clean.length < 10) { toast.error("Enter a valid phone"); return; }
+    if (!isValidPhoneNumber(phone)) { toast.error("Enter a valid phone number"); return; }
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("whatsapp-send-otp", {
-      body: { phone_number: clean, user_id: user?.id },
+      body: { phone_number: phone, user_id: user?.id },
     });
     setLoading(false);
-    // Read JSON from error.context when non-2xx so we get the real message
     let payload: any = data;
     if (!payload && error && (error as any).context?.json) {
       try { payload = await (error as any).context.json(); } catch { /* noop */ }
@@ -53,12 +53,10 @@ export const WhatsAppVerification = () => {
     setStep("otp");
   };
 
-
   const verifyOtp = async () => {
-    const clean = phone.replace(/\D/g, "");
     setLoading(true);
     const { data, error } = await supabase.functions.invoke("whatsapp-verify-otp", {
-      body: { phone_number: clean, code: otp.trim() },
+      body: { phone_number: phone, code: otp.trim() },
     });
     if (error || !data?.verified) {
       setLoading(false);
@@ -66,7 +64,7 @@ export const WhatsAppVerification = () => {
       return;
     }
     await supabase.from("profiles" as any)
-      .update({ whatsapp_number: clean, whatsapp_verified: true })
+      .update({ whatsapp_number: phone, whatsapp_verified: true })
       .eq("id", user!.id);
     await refreshProfile();
     setLoading(false);
@@ -89,7 +87,7 @@ export const WhatsAppVerification = () => {
       {step === "verified" ? (
         <div className="flex items-center justify-between">
           <div className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-3 py-1 text-xs font-medium text-success">
-            <Check size={12} /> WhatsApp Verified — +91 {phone.replace(/\D/g, "").slice(-10)}
+            <Check size={12} /> WhatsApp Verified — {phone}
           </div>
           <Button variant="outline" size="sm" onClick={changeNumber}>Change</Button>
         </div>
@@ -114,10 +112,9 @@ export const WhatsAppVerification = () => {
       ) : (
         <div className="space-y-2">
           <Label className="text-xs">WhatsApp Number</Label>
-          <div className="flex gap-2">
-            <span className="inline-flex items-center px-2 rounded-md bg-muted text-xs">+91</span>
-            <Input value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))} placeholder="9876543210" maxLength={10} className="bg-muted border-border" />
-            <Button onClick={sendOtp} disabled={loading || phone.replace(/\D/g, "").length < 10}>Send OTP</Button>
+          <NPhoneInput value={phone} onChange={(v) => setPhone(v || "")} placeholder="Enter your WhatsApp number" />
+          <div className="flex justify-end">
+            <Button onClick={sendOtp} disabled={loading || !isValidPhoneNumber(phone)}>Send OTP</Button>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "@/lib/router-compat";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
@@ -1217,10 +1218,11 @@ const FunnelEditor = () => {
                 <Switch checked={funnel.contact_whatsapp_enabled} onCheckedChange={(v) => update("contact_whatsapp_enabled", v)} />
               </div>
               {funnel.contact_whatsapp_enabled && (
-                <div className="flex gap-2">
-                  <div className="flex items-center px-3 bg-muted border border-border rounded-md text-sm text-muted-foreground shrink-0">+91</div>
-                  <Input placeholder="9876543210" value={funnel.contact_whatsapp?.replace(/^\+91/, "")} onChange={(e) => update("contact_whatsapp", "+91" + e.target.value.replace(/\D/g, ""))} className="bg-muted border-border" />
-                </div>
+                <NPhoneInput
+                  value={funnel.contact_whatsapp || ""}
+                  onChange={(v: string | undefined) => update("contact_whatsapp", v || "")}
+                  placeholder="WhatsApp number"
+                />
               )}
             </div>
 
@@ -1231,7 +1233,11 @@ const FunnelEditor = () => {
                 <Switch checked={funnel.contact_phone_enabled} onCheckedChange={(v) => update("contact_phone_enabled", v)} />
               </div>
               {funnel.contact_phone_enabled && (
-                <Input placeholder="e.g. +91 9876543210" value={funnel.contact_phone} onChange={(e) => update("contact_phone", e.target.value)} className="bg-muted border-border" />
+                <NPhoneInput
+                  value={funnel.contact_phone || ""}
+                  onChange={(v: string | undefined) => update("contact_phone", v || "")}
+                  placeholder="Phone number"
+                />
               )}
             </div>
 
