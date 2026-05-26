@@ -38,13 +38,6 @@ export function validatePhone(v: string): string | null {
   if (!/^[6-9]/.test(d)) return "Enter a valid Indian mobile number";
   return null;
 }
-  // Legacy Indian 10-digit
-  const d = normalizePhone(raw);
-  if (!d) return "Phone number is required";
-  if (d.length !== 10) return "Enter a valid 10-digit phone number";
-  if (!/^[6-9]/.test(d)) return "Enter a valid Indian mobile number";
-  return null;
-}
 
 export function validateEmail(v: string): string | null {
   const t = (v || "").trim();
