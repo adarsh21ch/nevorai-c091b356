@@ -100,7 +100,16 @@ export const WhatsAppVerification = () => {
             <Input value={otp} onChange={(e) => setOtp(e.target.value)} placeholder="123456" maxLength={6} className="bg-muted border-border" />
             <Button onClick={verifyOtp} disabled={loading || otp.length < 4}>Verify</Button>
           </div>
-          <button onClick={() => setStep("input")} className="text-xs text-muted-foreground hover:text-foreground underline">Change number</button>
+          <div className="flex items-center justify-between pt-1">
+            <button onClick={() => setStep("input")} className="text-xs text-muted-foreground hover:text-foreground underline">Change number</button>
+            <button
+              onClick={sendOtp}
+              disabled={loading || cooldown > 0}
+              className={`text-xs underline transition-opacity ${cooldown > 0 ? "opacity-50 cursor-not-allowed" : "text-primary hover:text-primary/80"}`}
+            >
+              {cooldown > 0 ? `Resend OTP in 0:${cooldown.toString().padStart(2, "0")}` : "Resend OTP"}
+            </button>
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
