@@ -1048,9 +1048,15 @@ const RegistrationForm = ({
         {session.show_phone !== false && (
           <div>
             <Label className="text-xs">Phone {star(req("phone"))}</Label>
-            <div className="flex gap-2 mt-1">
-              <div className="flex items-center px-3 rounded-md text-sm shrink-0 bg-muted border border-border text-muted-foreground">+91</div>
-              <Input ref={(el) => { fieldRefs.current.phone = el; }} {...phoneInputProps} value={form.phone} onChange={(e) => setField("phone", normalizePhone(e.target.value))} aria-invalid={!!errors.phone} className={`bg-muted border-border ${errCls("phone")}`} placeholder="9876543210" />
+            <div className="mt-1">
+              <NPhoneInput
+                ref={(el: any) => { fieldRefs.current.phone = el; }}
+                value={form.phone}
+                onChange={(v: string | undefined) => setField("phone", v || "")}
+                placeholder="Phone number"
+                aria-invalid={!!errors.phone}
+                className={errCls("phone")}
+              />
             </div>
             {errEl("phone")}
           </div>
