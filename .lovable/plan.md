@@ -1,82 +1,63 @@
-# Fix: WhatsApp OTP not delivering
+# Fix: WhatsApp OTP not delivering (template button mismatch)
 
-## Root cause (most likely)
+## Root cause (confirmed)
 
-`whatsapp-send-otp/index.ts` sends OTP as a free-form **text** message:
-
-```ts
-type: "text",
-text: { body: message }
-```
-
-Meta's WhatsApp Cloud API **only allows free-form text inside an open 24-hour customer-service window** (i.e. the user has messaged your business in the last 24 hours). For a new signup, that window is closed, so Meta rejects the send with error code `131047` ("Re-engagement message" / outside 24h window) or `131026` ("Message undeliverable"). Our function returns `502 send_failed`, the client shows the generic "Could not send, try again", and **no WhatsApp ever reaches the user**.
-
-Additionally:
-- The OTP row is **inserted before** the Meta call. When Meta fails, the row stays. The next attempt within 60 seconds then hits our own `rate_limit` (429) and again shows "Could not send" — so the resend button also looks broken.
-- The client toast (`VerifyWhatsAppPage` / `WhatsAppVerification`) collapses every backend error into a generic message, hiding the real Meta error from the user and from us.
-- `lookup-email-by-phone` is not registered in `supabase/config.toml`, so "Login with phone" would also fail once OTP works again.
-
-## Fix plan
-
-### 1. Send OTP via an approved Authentication template (the real fix)
-
-Change `supabase/functions/whatsapp-send-otp/index.ts` to send a **template** message in the `authentication` category. Templates are allowed to initiate conversations and are the only Meta-approved way to deliver OTPs.
+Direct test of `whatsapp-send-otp` returns HTTP 200 + `wamid` from Meta, but users never receive the OTP. The `nevorai_otp` template is configured in Meta with a **Copy Code** button, but our code sends the button as a URL button:
 
 ```ts
-body: JSON.stringify({
-  messaging_product: "whatsapp",
-  to: phone,
-  type: "template",
-  template: {
-    name: settings.otp_template_name,        // e.g. "nevorai_otp"
-    language: { code: settings.otp_template_lang || "en" },
-    components: [
-      { type: "body", parameters: [{ type: "text", text: code }] },
-      { type: "button", sub_type: "url", index: "0",
-        parameters: [{ type: "text", text: code }] },
-    ],
-  },
-}),
+// supabase/functions/whatsapp-send-otp/index.ts  (current — WRONG)
+{ type: "button", sub_type: "url", index: "0",
+  parameters: [{ type: "text", text: code }] }
 ```
 
-Add two columns to `whatsapp_settings` (migration):
-- `otp_template_name TEXT` (default `'nevorai_otp'`)
-- `otp_template_lang TEXT` (default `'en'`)
+Meta's Cloud API accepts the request (returns a wamid) but silently fails to render/deliver the message because the button payload shape doesn't match the approved template. No webhook `delivered` event ever fires, so the user sees nothing.
 
-**User action required (cannot be automated):** an authentication template named `nevorai_otp` must exist and be **Approved** in Meta Business Manager → WhatsApp Manager → Message Templates. Body: `Your verification code is {{1}}. For your security, do not share this code.` with a copy-code button using `{{1}}`. I'll surface a clear error in admin if Meta returns "template not found".
+This is why:
+- Backend logs look healthy (no Meta error code).
+- Resend button shows "could not send" — actually our 60s cooldown kicking in after the silently-failed first send.
+- It affects every signup user, not just one.
 
-### 2. Don't poison the rate-limit window on failure
+## The fix (one file)
 
-Reorder the function so the OTP row is **inserted only after** Meta confirms `messages[0].id`. If Meta fails, no row is written, so the user can retry immediately instead of getting blocked for 60 s by our own rate limiter.
+Change the button block in `supabase/functions/whatsapp-send-otp/index.ts` to Meta's required shape for **Copy Code** buttons in Authentication templates:
 
-### 3. Surface real errors to the user and to logs
-
-- `console.error(...)` the Meta error code + message + `phone` (masked).
-- Return structured `{ error, message, meta_code }` and have `VerifyWhatsAppPage` show `data.message` instead of the generic toast.
-- Specifically map: `131047 / 131026 / template_not_found / token_expired / phone_id_invalid` → user-friendly messages.
-
-### 4. Register missing function
-
-Add to `supabase/config.toml`:
-```toml
-[functions.lookup-email-by-phone]
-verify_jwt = false
+```ts
+{
+  type: "button",
+  sub_type: "copy_code",
+  index: "0",
+  parameters: [{ type: "coupon_code", coupon_code: code }],
+}
 ```
-so the existing "Login with phone" path works once OTP delivery is fixed.
 
-### 5. Quick verification path
+The body block stays as-is (one text param with the code) — Authentication templates with copy-code buttons still require the code in the body parameter.
 
-After deploy, I'll call `whatsapp-send-otp` directly with a test phone via `invoke-server-function`-style curl, then read `server-function-logs` for the Meta response code to confirm template send succeeds. If Meta still rejects, the log will tell us exactly which of (token / phone_number_id / template approval) is wrong — we'll know within one round-trip instead of guessing.
+Full template send block after fix:
+
+```ts
+template: {
+  name: templateName,                         // "nevorai_otp"
+  language: { code: templateLang },           // "en"
+  components: [
+    { type: "body", parameters: [{ type: "text", text: code }] },
+    { type: "button", sub_type: "copy_code", index: "0",
+      parameters: [{ type: "coupon_code", coupon_code: code }] },
+  ],
+},
+```
+
+No other code changes. The fallback-to-text branch, error mapping, rate-limit reordering, client toasts, and 60s cooldown all stay exactly as they are.
+
+## Verification (after deploy)
+
+1. Call `whatsapp-send-otp` with a real test phone via `invoke-server-function`.
+2. Confirm the phone actually receives the WhatsApp message with the 6-digit code and a "Copy code" button.
+3. If it still doesn't arrive, the next thing to check is the webhook `statuses` payload — but with the button payload corrected, Meta should deliver normally.
 
 ## Files touched
 
-- `supabase/functions/whatsapp-send-otp/index.ts` — template send, reordered insert, real error surfacing
-- `supabase/config.toml` — register `lookup-email-by-phone`
-- `whatsapp_otp_template_migration.sql` (new) — adds `otp_template_name`, `otp_template_lang` to `whatsapp_settings`
-- `src/pages/VerifyWhatsAppPage.tsx` — show server-provided `message` in toast
-- `src/components/profile/WhatsAppVerification.tsx` — same toast fix
+- `supabase/functions/whatsapp-send-otp/index.ts` — change button `sub_type` from `"url"` to `"copy_code"` and parameter from `{ type: "text", text: code }` to `{ type: "coupon_code", coupon_code: code }`.
 
-## What I need from you
+## What I do NOT need from you
 
-1. Confirm you (or I, via guidance) will create/approve the **`nevorai_otp` authentication template** in Meta WhatsApp Manager — this is a Meta-side approval and usually takes a few minutes. Without it, no fix on our side will make OTPs deliver.
-2. Confirm the WhatsApp access token in `whatsapp_settings` is a **System User permanent token**, not a temporary 24-hour debug token (temporary tokens silently expire and cause the same symptom). If unsure, I'll add a one-shot diagnostic call to `/v20.0/me` that prints token validity in logs.
+No Meta dashboard changes, no template re-approval, no migration. The template is already correct; only our API call to Meta is wrong.
