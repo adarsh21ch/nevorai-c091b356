@@ -18,7 +18,24 @@ export function trimSmart(v: string): string {
 }
 
 export function validatePhone(v: string): string | null {
-  const d = normalizePhone(v);
+  const raw = (v || "").trim();
+  if (!raw) return "Phone number is required";
+  // International (E.164) — validate with libphonenumber
+  if (raw.startsWith("+")) {
+    try {
+      // Lazy require to avoid SSR/Bundling issues in shared modules.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const mod = require("react-phone-number-input");
+      if (mod && typeof mod.isValidPhoneNumber === "function") {
+        return mod.isValidPhoneNumber(raw) ? null : "Enter a valid phone number";
+      }
+    } catch { /* fall through */ }
+    // Fallback: digit-length sanity check
+    const d = raw.replace(/\D/g, "");
+    return d.length >= 8 && d.length <= 15 ? null : "Enter a valid phone number";
+  }
+  // Legacy Indian 10-digit
+  const d = normalizePhone(raw);
   if (!d) return "Phone number is required";
   if (d.length !== 10) return "Enter a valid 10-digit phone number";
   if (!/^[6-9]/.test(d)) return "Enter a valid Indian mobile number";
