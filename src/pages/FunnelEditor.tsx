@@ -1233,7 +1233,11 @@ const FunnelEditor = () => {
                 <Switch checked={funnel.contact_phone_enabled} onCheckedChange={(v) => update("contact_phone_enabled", v)} />
               </div>
               {funnel.contact_phone_enabled && (
-                <Input placeholder="e.g. +91 9876543210" value={funnel.contact_phone} onChange={(e) => update("contact_phone", e.target.value)} className="bg-muted border-border" />
+                <NPhoneInput
+                  value={funnel.contact_phone || ""}
+                  onChange={(v: string | undefined) => update("contact_phone", v || "")}
+                  placeholder="Phone number"
+                />
               )}
             </div>
 
