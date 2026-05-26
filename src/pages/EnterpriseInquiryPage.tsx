@@ -56,7 +56,7 @@ const EnterpriseInquiryPage = () => {
   const validate = (): boolean => {
     const e: typeof errors = {};
     if (!form.full_name.trim()) e.full_name = "Required";
-    if (!form.whatsapp_phone.trim()) e.whatsapp_phone = "Required";
+    if (!isValidPhoneNumber(form.whatsapp_phone)) e.whatsapp_phone = "Enter a valid phone number";
     if (!form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
       e.email = "Valid email required";
     if (!form.network_name.trim()) e.network_name = "Required";
@@ -75,7 +75,7 @@ const EnterpriseInquiryPage = () => {
       // Sanitize all text fields client-side; server mirror will re-sanitize.
       const cleanForm = {
         full_name: sanitizeText(form.full_name),
-        whatsapp_phone: normalizePhone(form.whatsapp_phone),
+        whatsapp_phone: form.whatsapp_phone, // E.164 from NPhoneInput
         email: sanitizeText(form.email),
         network_name: sanitizeText(form.network_name),
         team_size: form.team_size,
