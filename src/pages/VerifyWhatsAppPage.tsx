@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/landing/Logo";
+import { NPhoneInput, isValidPhoneNumber, toDisplayE164 } from "@/components/ui/PhoneInput";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,10 +15,10 @@ export default function VerifyWhatsAppPage() {
   const { user, profile, loading, refreshProfile, signOut } = useAuth();
   const p = profile as any;
 
-  const initialPhone = (p?.whatsapp_number || profile?.phone || "").replace(/\D/g, "").slice(-10);
-  const [phone, setPhone] = useState(initialPhone);
+  const initialPhone = toDisplayE164(p?.whatsapp_number || profile?.phone || "") || "";
+  const [phone, setPhone] = useState<string>(initialPhone);
   const [otp, setOtp] = useState("");
-  const [step, setStep] = useState<"phone" | "otp">(initialPhone.length === 10 ? "otp" : "phone");
+  const [step, setStep] = useState<"phone" | "otp">(isValidPhoneNumber(initialPhone) ? "otp" : "phone");
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -26,7 +27,6 @@ export default function VerifyWhatsAppPage() {
   const otpRef = useRef<HTMLInputElement>(null);
   const autoSentRef = useRef(false);
 
-  // Redirect away if already verified
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/auth", replace: true });
   }, [loading, user, navigate]);
@@ -41,16 +41,12 @@ export default function VerifyWhatsAppPage() {
     return () => clearTimeout(t);
   }, [cooldown]);
 
-  const sendOtp = useCallback(async (clean: string) => {
-    if (clean.length !== 10) { toast.error("Enter a valid 10-digit number"); return; }
+  const sendOtp = useCallback(async (e164: string) => {
+    if (!isValidPhoneNumber(e164)) { toast.error("Enter a valid phone number"); return; }
     setSending(true);
     const { data, error } = await supabase.functions.invoke("whatsapp-send-otp", {
-      body: { phone_number: clean, user_id: user?.id },
+      body: { phone_number: e164, user_id: user?.id },
     });
-    // supabase.functions.invoke puts non-2xx responses into `error` and
-    // wipes `data`. Try to read the JSON body from the error response so we
-    // can surface the real backend message ("template not approved", "rate
-    // limit", "already registered", etc.) instead of a generic toast.
     let payload: any = data;
     if (!payload && error && (error as any).context?.json) {
       try { payload = await (error as any).context.json(); } catch { /* noop */ }
@@ -80,12 +76,10 @@ export default function VerifyWhatsAppPage() {
     setTimeout(() => otpRef.current?.focus(), 100);
   }, [user?.id]);
 
-
-  // Auto-send when arriving with a phone already on file
   useEffect(() => {
     if (autoSentRef.current) return;
     if (loading || !user) return;
-    if (step === "otp" && phone.length === 10 && !p?.whatsapp_verified) {
+    if (step === "otp" && isValidPhoneNumber(phone) && !p?.whatsapp_verified) {
       autoSentRef.current = true;
       void sendOtp(phone);
     }
@@ -115,7 +109,6 @@ export default function VerifyWhatsAppPage() {
       setVerifying(false);
       return;
     }
-    // Mark profile
     const { error: upErr } = await (supabase as any)
       .from("profiles")
       .update({ whatsapp_number: phone, whatsapp_verified: true })
@@ -134,7 +127,6 @@ export default function VerifyWhatsAppPage() {
     navigate({ to: "/dashboard", replace: true });
   };
 
-  // Auto-submit OTP at 6 digits
   useEffect(() => {
     if (step === "otp" && otp.length === 6 && !verifying) void verify();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -157,7 +149,7 @@ export default function VerifyWhatsAppPage() {
         <div className="flex flex-col items-center text-center mb-6">
           <Logo size="lg" />
           <div className="mt-4 inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            <MessageCircle size={12} /> WhatsApp verification required
+            <MessageCircle size={12} /> WhatsApp verification
           </div>
           <h1 className="font-heading font-bold text-2xl mt-3">Verify your WhatsApp</h1>
           <p className="text-sm mt-2" style={{ color: "var(--color-hero-muted)" }}>
@@ -172,27 +164,21 @@ export default function VerifyWhatsAppPage() {
             <>
               <div className="space-y-2">
                 <Label className="text-sm">WhatsApp Number <span className="text-destructive">*</span></Label>
-                <div className="flex gap-2">
-                  <span className="inline-flex items-center px-3 rounded-md bg-muted text-sm font-medium">+91</span>
-                  <Input
-                    type="tel"
-                    inputMode="numeric"
-                    placeholder="9876543210"
-                    maxLength={10}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                    autoFocus
-                  />
-                </div>
+                <NPhoneInput
+                  value={phone}
+                  onChange={(v) => setPhone(v || "")}
+                  placeholder="Enter your WhatsApp number"
+                  autoFocus
+                />
               </div>
-              <Button variant="hero" size="lg" className="w-full" disabled={sending || phone.length !== 10} onClick={() => sendOtp(phone)}>
+              <Button variant="hero" size="lg" className="w-full" disabled={sending || !isValidPhoneNumber(phone)} onClick={() => sendOtp(phone)}>
                 {sending ? <Loader2 size={16} className="animate-spin" /> : "Send OTP"}
               </Button>
             </>
           ) : (
             <>
               <div className="text-xs text-center" style={{ color: "var(--color-hero-muted)" }}>
-                Sent to <span className="text-foreground font-medium">+91 {phone}</span>
+                Sent to <span className="text-foreground font-medium">{phone}</span>
                 {" · "}
                 <button onClick={() => { setStep("phone"); autoSentRef.current = false; }} className="text-primary hover:underline">change</button>
               </div>
