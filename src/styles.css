@@ -966,3 +966,93 @@ section[id] {
    Final safety: any section descendant still asking for legacy hero colors. */
 .landing-page section { background-color: transparent; }
 .landing-page section[class*="bg-hero"] { background-color: var(--bg-base) !important; }
+
+/* =====================================================================
+   International phone input (react-phone-number-input) — themed to match
+   shadcn Input. Applies to all NPhoneInput instances.
+   ===================================================================== */
+.n-phone-input-root {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: 100%;
+}
+.n-phone-input-root .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 0.625rem;
+  border-radius: calc(var(--radius) - 2px);
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--input));
+  height: 2.5rem;
+  position: relative;
+}
+.n-phone-input-root .PhoneInputCountryIcon {
+  width: 1.25rem;
+  height: 0.875rem;
+  box-shadow: none;
+  background: transparent;
+}
+.n-phone-input-root .PhoneInputCountryIcon--border { box-shadow: none; }
+.n-phone-input-root .PhoneInputCountryIcon img,
+.n-phone-input-root .PhoneInputCountryIconImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 2px;
+}
+.n-phone-input-root .PhoneInputCountrySelect {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+  color: hsl(var(--foreground));
+  background: transparent;
+}
+.n-phone-input-root .PhoneInputCountrySelect option {
+  background-color: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+}
+.n-phone-input-root .PhoneInputCountrySelectArrow {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-left: 0.25rem;
+  border-style: solid;
+  border-color: hsl(var(--muted-foreground));
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+  opacity: 0.7;
+}
+.n-phone-input-root .PhoneInputInput,
+.n-phone-input-root .n-phone-number-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--input));
+  border-radius: calc(var(--radius) - 2px);
+  color: hsl(var(--foreground));
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.n-phone-input-root .PhoneInputInput::placeholder {
+  color: hsl(var(--muted-foreground));
+}
+.n-phone-input-root .PhoneInputInput:focus,
+.n-phone-input-root .PhoneInputInput:focus-visible {
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.25);
+}
+.n-phone-input-root .PhoneInputInput[aria-invalid="true"] {
+  border-color: hsl(var(--destructive));
+}
+.n-phone-input-root .PhoneInputInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
