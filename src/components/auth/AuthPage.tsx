@@ -112,7 +112,7 @@ export default function AuthPage() {
       if (error) throw error;
       if (data?.otpSent) {
         setOtpSendStatus("sent");
-        setResendCooldown(30);
+        setResendCooldown(60);
         setResendCount((c) => c + 1);
         setOtp("");
         toast.success(`Code sent to ${form.email}.`);
