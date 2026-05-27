@@ -41,6 +41,7 @@ import {
   scrollToFirstError,
 } from "@/lib/leadInputs";
 import { NPhoneInput } from "@/components/ui/PhoneInput";
+import { StateSelect } from "@/components/ui/StateSelect";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 
 
@@ -1203,7 +1204,7 @@ const PublicFunnel = () => {
         )}
         {(formConfig as any)?.show_state && (
           <div>
-            <StateSelect ref={(el) => { leadRefs.current.state = el as any; }} value={leadForm.state} onChange={(v) => setLeadField("state", v)} aria-invalid={!!leadErrors.state} style={{ background: tc.inputBg, borderColor: errBorder("state"), color: tc.inputText }} />
+            <StateSelect ref={(el: HTMLSelectElement | null) => { leadRefs.current.state = el as any; }} value={leadForm.state} onChange={(v: string) => setLeadField("state", v)} aria-invalid={!!leadErrors.state} style={{ background: tc.inputBg, borderColor: errBorder("state"), color: tc.inputText }} />
             {fieldErrEl("state")}
           </div>
         )}
