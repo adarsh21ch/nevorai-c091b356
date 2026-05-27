@@ -3,14 +3,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
-import { Save, Target, BarChart3, MessageSquare, Video, FileText, Users, TrendingUp, Shield, Zap, Upload, Eye, Layers, Bell, Sparkles } from "lucide-react";
+import { useState, useRef, useEffect, useCallback, lazy, Suspense, useMemo } from "react";
+import { Save, Target, BarChart3, MessageSquare, Video, FileText, Users, TrendingUp, Shield, Zap, Upload, Eye, Layers, Bell, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { TrialSettingsStrip } from "@/components/admin/TrialSettingsStrip";
 import { adminWrite } from "@/lib/adminWrite";
+import { CreatePlanDialog } from "@/components/admin/CreatePlanDialog";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { useAllPlans, planLabel, type PlanConfigRow } from "@/hooks/usePlans";
 
 const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
 const fallback = <div className="glass-card p-4 text-sm text-muted-foreground">Loading…</div>;
@@ -152,23 +155,20 @@ const FEATURE_GROUPS = [
   ]},
 ];
 
-const PLAN_META: Record<string, { label: string; badge: string; desc: string }> = {
-  free: { label: "Free", badge: "bg-muted text-muted-foreground", desc: "Forever free · entry tier" },
-  basic: { label: "Basic", badge: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400", desc: "For Individuals" },
-  pro: { label: "Pro", badge: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400", desc: "For Team Leaders" },
+const PLAN_BADGE_CLASS: Record<string, string> = {
+  free: "bg-muted text-muted-foreground",
+  basic: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400",
+  growth: "bg-violet-500/15 text-violet-600 dark:text-violet-300 border border-violet-400/30",
+  pro: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400",
 };
+const defaultBadge = "bg-muted text-muted-foreground";
 
 const AdminPlansPage = () => {
   const queryClient = useQueryClient();
-  const [planFilter, setPlanFilter] = useState<"all" | "free" | "basic" | "pro">("all");
+  const confirm = useConfirm();
+  const [planFilter, setPlanFilter] = useState<string>("all");
 
-  const { data: planConfigs = [] } = useQuery({
-    queryKey: ["admin-plan-configs"],
-    queryFn: async () => {
-      const { data } = await supabase.from("plan_config").select("*");
-      return (data || []) as any[];
-    },
-  });
+  const { data: planConfigs = [] } = useAllPlans();
 
   const saveField = useCallback(async (planName: string, field: string, value: any) => {
     const derivedMonthlyViews =
