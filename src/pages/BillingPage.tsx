@@ -311,8 +311,9 @@ const BillingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {renderTierCard(basicPlan, "Basic", false)}
+            {renderTierCard(growthPlan, "Growth", false)}
             {renderTierCard(proPlan, "Pro", true)}
           </div>
 
