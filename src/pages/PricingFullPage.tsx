@@ -313,7 +313,7 @@ const PricingFullPage = () => {
     const planParam = searchParams.get("plan");
     if (!planParam || !user || planConfigs.length === 0) return;
     const target = planParam.toLowerCase();
-    if (target !== "basic" && target !== "pro") return;
+    if (target !== "basic" && target !== "growth" && target !== "pro") return;
     const config = planConfigs.find((c: any) => c.plan_name === target);
     if (!config || config.is_enabled === false) return;
     autoTriggeredRef.current = true;
