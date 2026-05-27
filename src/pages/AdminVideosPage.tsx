@@ -266,7 +266,7 @@ const AdminVideosPage = () => {
                   ))
                 ) : videos.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="p-10 text-center">
+                    <td colSpan={8} className="p-10 text-center">
                       <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                         <Video size={18} className="text-primary" />
                       </div>
