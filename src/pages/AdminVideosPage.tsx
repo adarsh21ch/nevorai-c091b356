@@ -37,14 +37,37 @@ const AdminVideosPage = () => {
   const [title, setTitle] = useState("");
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
   const [renameVideo, setRenameVideo] = useState<{ id: string; title: string } | null>(null);
+  const [usageFilter, setUsageFilter] = useState<UsageFilter>("all");
 
-  const { data: videos = [], isLoading } = useQuery({
+  const { data: videosRaw = [], isLoading } = useQuery({
     queryKey: ["admin-all-videos"],
     queryFn: async () => {
       const { data } = await supabase.from("video_assets").select("*").order("created_at", { ascending: false });
       return data || [];
     },
   });
+
+  const { data: statsMap = {} } = useQuery<Record<string, VideoStatsRow>>({
+    queryKey: ["admin-all-video-stats"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("video_stats").select("*");
+      const m: Record<string, VideoStatsRow> = {};
+      for (const r of (data || []) as VideoStatsRow[]) m[r.video_id] = r;
+      return m;
+    },
+    staleTime: 60_000,
+  });
+
+  const videos = useMemo(() => {
+    const merged = (videosRaw as any[]).map((v) => {
+      const s = statsMap[v.id];
+      const totalUses = (s?.funnel_uses || 0) + (s?.landing_page_uses || 0) + (s?.live_session_uses || 0);
+      return { ...v, _stats: s, _totalUses: totalUses };
+    });
+    if (usageFilter === "used") return merged.filter((v) => v._totalUses > 0);
+    if (usageFilter === "unused") return merged.filter((v) => v._totalUses === 0);
+    return merged;
+  }, [videosRaw, statsMap, usageFilter]);
 
   const handleUpload = async (file: File) => {
     if (!user) return;
