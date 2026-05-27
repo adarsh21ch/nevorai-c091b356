@@ -6,7 +6,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
+
+type VideoStatsRow = {
+  video_id: string;
+  total_views: number | null;
+  unique_views: number | null;
+  unique_prospects: number | null;
+  last_viewed_at: string | null;
+  funnel_uses: number | null;
+  landing_page_uses: number | null;
+  live_session_uses: number | null;
+};
+type UsageFilter = "all" | "used" | "unused";
 import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { VideoShareModal } from "@/components/VideoShareModal";
