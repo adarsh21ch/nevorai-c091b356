@@ -298,7 +298,10 @@ const AdminVideosPage = () => {
                         </span>
                       </td>
                       <td className="p-4 text-xs text-muted-foreground">{formatSize(v.file_size_bytes)}</td>
-                      <td className="p-4 text-xs text-muted-foreground">{v.view_count || 0}</td>
+                      <td className="p-4"><UsageBadges v={v} /></td>
+                      <td className="p-4 text-xs text-muted-foreground">{v._stats?.total_views ?? v.view_count ?? 0}</td>
+                      <td className="p-4 text-xs text-muted-foreground">{v._stats?.unique_views ?? 0}</td>
+                      <td className="p-4 text-xs text-muted-foreground">{formatLastViewed(v._stats?.last_viewed_at)}</td>
                       <td className="p-4">
                         <div className="flex gap-1">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setRenameVideo({ id: v.id, title: v.title })}><Pencil size={14} /></Button>
