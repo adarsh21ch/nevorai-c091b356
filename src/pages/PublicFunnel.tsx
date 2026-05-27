@@ -1203,7 +1203,7 @@ const PublicFunnel = () => {
         )}
         {(formConfig as any)?.show_state && (
           <div>
-            <Input ref={(el) => { leadRefs.current.state = el; }} {...cityInputProps} placeholder="State" value={leadForm.state} onChange={(e) => setLeadField("state", e.target.value)} onBlur={(e) => setLeadField("state", trimSmart(e.target.value))} aria-invalid={!!leadErrors.state} style={{ background: tc.inputBg, borderColor: errBorder("state"), color: tc.inputText }} className="h-12 rounded-xl" />
+            <StateSelect ref={(el) => { leadRefs.current.state = el as any; }} value={leadForm.state} onChange={(v) => setLeadField("state", v)} aria-invalid={!!leadErrors.state} style={{ background: tc.inputBg, borderColor: errBorder("state"), color: tc.inputText }} />
             {fieldErrEl("state")}
           </div>
         )}
