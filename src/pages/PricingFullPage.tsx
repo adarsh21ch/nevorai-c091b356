@@ -364,6 +364,7 @@ const PricingFullPage = () => {
   };
 
   const basicFeatures = basicConfig ? buildFeatureList(basicConfig) : [];
+  const growthFeatures = growthConfig ? buildFeatureList(growthConfig) : [];
   const proFeatures = proConfig ? buildFeatureList(proConfig) : [];
 
   // ---- Card builders (rendered into both desktop grid + mobile carousel) ----
