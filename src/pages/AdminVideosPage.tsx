@@ -220,7 +220,39 @@ const AdminVideosPage = () => {
           )}
         </div>
 
+        {/* Usage filter */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Filter:</span>
+          {(["all", "used", "unused"] as UsageFilter[]).map((f) => (
+            <Button
+              key={f}
+              size="sm"
+              variant={usageFilter === f ? "default" : "outline"}
+              className="h-7 px-3 text-xs capitalize"
+              onClick={() => setUsageFilter(f)}
+            >
+              {f}
+            </Button>
+          ))}
+          <span className="ml-auto text-xs text-muted-foreground">{videos.length} videos</span>
+        </div>
+
         {/* Desktop table */}
+        <div className="hidden glass-card overflow-hidden sm:block">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-border text-left">
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Video</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Status</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Size</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Usage</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Views</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Unique</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Last viewed</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Actions</th>
+                </tr>
+              </thead>
         <div className="hidden glass-card overflow-hidden sm:block">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
