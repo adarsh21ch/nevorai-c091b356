@@ -253,18 +253,6 @@ const AdminVideosPage = () => {
                   <th className="p-4 text-xs font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
-        <div className="hidden glass-card overflow-hidden sm:block">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Video</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Status</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Size</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Views</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Actions</th>
-                </tr>
-              </thead>
               <tbody>
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
