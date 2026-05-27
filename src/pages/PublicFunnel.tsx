@@ -1381,6 +1381,11 @@ const PublicFunnel = () => {
                   allowSeek={funnel.allow_seek !== false && (videoAsset as any)?.allow_seek !== false}
                   allowSpeed={funnel.allow_speed_change !== false && (videoAsset as any)?.allow_playback_speed !== false}
                   autoplay={true}
+                  tracking={
+                    videoAsset?.id
+                      ? { videoId: videoAsset.id, sourceType: "funnel", sourceId: funnel.id }
+                      : undefined
+                  }
                   onTimeUpdate={(ct, dur) => {
                     setWatchSeconds(Math.floor(ct));
                     setVideoDuration(dur);
