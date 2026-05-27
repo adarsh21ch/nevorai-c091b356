@@ -77,7 +77,7 @@ export function PlatformReachAnalytics() {
         .select("day, total_reach, new_reach")
         .gte("day", from)
         .order("day", { ascending: true });
-      return (data as Array<{ day: string; total_reach: number; new_reach: number }>) || [];
+      return ((data as unknown) as Array<{ day: string; total_reach: number; new_reach: number }>) || [];
     },
   });
 
@@ -90,7 +90,7 @@ export function PlatformReachAnalytics() {
         .order("views_30d", { ascending: false })
         .limit(10);
       return (
-        (data as Array<{
+        ((data as unknown) as Array<{
           video_id: string;
           title: string | null;
           views_30d: number | null;
