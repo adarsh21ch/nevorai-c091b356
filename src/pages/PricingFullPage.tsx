@@ -330,6 +330,7 @@ const PricingFullPage = () => {
   // (their actual plan record is managed by the gateway; they shouldn't pay
   // for Basic again).
   const effectiveBasic = isCurrentTier("basic") || (!plan.isPaid && isNevoraiMember);
+  const effectiveGrowth = isCurrentTier("growth");
   const effectivePro = isCurrentTier("pro");
 
   // Dynamic comparison table — Free column is now driven by `freeConfig`
