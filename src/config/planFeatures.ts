@@ -8,7 +8,7 @@
  * `transform` so the admin sees friendly units (e.g. GB) while we store MB.
  */
 
-export type PlanKey = "free" | "basic" | "pro";
+export type PlanKey = "free" | "basic" | "growth" | "pro";
 
 export type PlanFeatureCategory = "Limits" | "Features" | "Pricing";
 
