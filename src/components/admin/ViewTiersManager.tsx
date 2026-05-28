@@ -192,9 +192,9 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
               {tiers.map(t => (
                 <tr key={t.id} className="border-b border-border/30">
                   <td className="py-1.5">
-                    <EditableNumberCell value={t.daily_views} onSave={(v) => updateTier(t.id, { daily_views: v })} />
+                    <EditableNumberCell value={t.daily_views} allowNegative onSave={(v) => updateTier(t.id, { daily_views: v, monthly_views: v === -1 ? -1 : v * 30 })} />
                   </td>
-                  <td className="py-1.5 text-muted-foreground">{compact(t.daily_views * 30)}</td>
+                  <td className="py-1.5 text-muted-foreground">{t.daily_views === -1 ? "∞" : compact(t.daily_views * 30)}</td>
                   <td className="py-1.5">
                     <EditableNumberCell value={t.monthly_price} prefix="₹" onSave={(v) => updateTier(t.id, { monthly_price: v })} />
                   </td>
