@@ -301,6 +301,7 @@ const AdminPlansPage = () => {
     if (error) toast.error(error.message || "Failed to update");
     else {
       toast.success(`${planName} plan ${enabled ? "enabled" : "disabled"}`);
+      queryClient.invalidateQueries({ queryKey: ["plans"] });
       queryClient.invalidateQueries({ queryKey: ["admin-plan-configs"] });
       queryClient.invalidateQueries({ queryKey: ["plan-configs"] });
     }
