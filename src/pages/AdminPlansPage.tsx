@@ -287,7 +287,7 @@ const AdminPlansPage = () => {
     if (error) toast.error(error.message || "Failed to save");
     else {
       toast.success(cascadeTargets.length ? `Updated! Cascaded to ${cascadeTargets.join(", ")}` : "Updated!");
-      ["admin-plan-configs","plan-configs","plan-pricing","plan-configs-landing","billing-tier-plans","admin-monthly-views","plan-view-tiers","plan-view-tiers-public","user-plan","plan-config"]
+      ["plans","admin-plan-configs","plan-configs","plan-pricing","plan-configs-landing","billing-tier-plans","admin-monthly-views","plan-view-tiers","plan-view-tiers-public","user-plan","plan-config"]
         .forEach(k => queryClient.invalidateQueries({ queryKey: [k] }));
     }
   }, [queryClient, planConfigs]);
