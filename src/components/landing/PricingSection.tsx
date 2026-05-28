@@ -24,7 +24,7 @@ const FREE_CTA = "Start Free";
 const FREE_VARIANT = "outline" as const;
 
 /**
- * Build the Free-plan feature list entirely from the admin `plan_config` row.
+ * Build the Free-plan feature list entirely from the admin `subscription_plans` row.
  * Always shows: marketplace + public content + Nevorai video link (constant
  * platform capabilities). Everything else is driven by DB so admin edits to
  * max_funnels / daily_view_limit / feature_* immediately reflect
@@ -139,7 +139,7 @@ export const PricingSection = () => {
   const { data: planConfigs = [] } = useQuery({
     queryKey: ["plan-configs-landing"],
     queryFn: async () => {
-      const { data } = await supabase.from("plan_config").select("*");
+      const { data } = await supabase.from("subscription_plans").select("*");
       return (data || []) as any[];
     },
     staleTime: 0,
@@ -152,7 +152,7 @@ export const PricingSection = () => {
     queryKey: ["plan-view-tiers-public"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("plan_view_tiers" as any)
+        .from("plan_tiers" as any)
         .select("*")
         .eq("is_active", true)
         .order("display_order", { ascending: true });
@@ -304,8 +304,8 @@ export const PricingSection = () => {
     highlight: boolean;
   }[] = [];
 
-  // Free card — fully driven by admin plan_config row. Always shown first
-  // when its plan_config row is enabled.
+  // Free card — fully driven by admin subscription_plans row. Always shown first
+  // when its subscription_plans row is enabled.
   if (freeConfig && freeConfig.is_enabled !== false) {
     cards.push({
       name: "Free",

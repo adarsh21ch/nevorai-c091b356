@@ -67,7 +67,7 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
     queryKey: ["plan-view-tiers", planName],
     queryFn: async () => {
       const { data } = await supabase
-        .from("plan_view_tiers" as any)
+        .from("plan_tiers" as any)
         .select("*")
         .eq("plan_name", planName)
         .order("display_order");
@@ -79,7 +79,7 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
 
   const updateTier = async (id: string, patch: Partial<Tier>) => {
     const { error } = await adminWrite(() =>
-      (supabase.from("plan_view_tiers" as any) as any).update(patch as any).eq("id", id).select(),
+      (supabase.from("plan_tiers" as any) as any).update(patch as any).eq("id", id).select(),
     );
     if (error) toast.error(error.message);
     else { toast.success("Updated"); refresh(); qc.invalidateQueries({ queryKey: ["plan-pricing"] }); }
@@ -88,7 +88,7 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
   const setPopular = async (id: string, val: boolean) => {
     if (val) {
       await adminWrite(() =>
-        (supabase.from("plan_view_tiers" as any) as any)
+        (supabase.from("plan_tiers" as any) as any)
           .update({ is_popular: false } as any).eq("plan_name", planName).select(),
         { expectRows: false },
       );
@@ -99,7 +99,7 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
   const setBase = async (id: string, val: boolean) => {
     if (val) {
       await adminWrite(() =>
-        (supabase.from("plan_view_tiers" as any) as any)
+        (supabase.from("plan_tiers" as any) as any)
           .update({ is_base: false } as any).eq("plan_name", planName).select(),
         { expectRows: false },
       );
@@ -110,7 +110,7 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
   const deleteTier = async (id: string) => {
     if (!(await confirm({ title: "Delete this tier?", description: "Users on this tier will fall back to the popular tier.", confirmLabel: "Delete", destructive: true }))) return;
     const { error } = await adminWrite(() =>
-      (supabase.from("plan_view_tiers" as any) as any).delete().eq("id", id).select(),
+      (supabase.from("plan_tiers" as any) as any).delete().eq("id", id).select(),
     );
     if (error) toast.error(error.message);
     else { toast.success("Deleted"); refresh(); qc.invalidateQueries({ queryKey: ["plan-pricing"] }); }
@@ -125,7 +125,7 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
       return;
     }
     const { error } = await adminWrite(() =>
-      (supabase.from("plan_view_tiers" as any) as any).insert({
+      (supabase.from("plan_tiers" as any) as any).insert({
         plan_name: planName,
         daily_views: dv,
         monthly_price: mp,
@@ -138,7 +138,7 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
     toast.success("Tier added");
     if (newTier.is_popular) {
       await adminWrite(() =>
-        (supabase.from("plan_view_tiers" as any) as any)
+        (supabase.from("plan_tiers" as any) as any)
           .update({ is_popular: false } as any)
           .eq("plan_name", planName)
           .neq("display_order", tiers.length + 1)

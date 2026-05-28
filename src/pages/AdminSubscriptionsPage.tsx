@@ -217,7 +217,7 @@ const AdminSubscriptionsPage = () => {
   const { data: planConfigs = [] } = useQuery({
     queryKey: ["admin-plan-configs"],
     queryFn: async () => {
-      const { data } = await supabase.from("plan_config").select("*");
+      const { data } = await supabase.from("subscription_plans").select("*");
       return (data || []) as any[];
     },
   });
@@ -290,14 +290,14 @@ const AdminSubscriptionsPage = () => {
     }
 
     const { error } = await adminWrite(() =>
-      (supabase.from("plan_config") as any)
+      (supabase.from("subscription_plans") as any)
         .update(updateObj)
         .eq("plan_name", planName)
         .select(),
     );
 
     if (!error && field === "daily_view_limit" && (planName === "basic" || planName === "pro") && typeof value === "number") {
-      const { data: baseTier } = await (supabase.from("plan_view_tiers" as any) as any)
+      const { data: baseTier } = await (supabase.from("plan_tiers" as any) as any)
         .select("id")
         .eq("plan_name", planName)
         .eq("is_base", true)
@@ -307,7 +307,7 @@ const AdminSubscriptionsPage = () => {
 
       if (baseTier?.id) {
         const { error: tierError } = await adminWrite(() =>
-          (supabase.from("plan_view_tiers" as any) as any)
+          (supabase.from("plan_tiers" as any) as any)
             .update({ daily_views: value, monthly_views: derivedMonthlyViews, updated_at: new Date().toISOString() } as any)
             .eq("id", baseTier.id)
             .select(),
@@ -337,7 +337,7 @@ const AdminSubscriptionsPage = () => {
 
   const handleTogglePlan = async (planName: string, enabled: boolean) => {
     const { error } = await adminWrite(() =>
-      (supabase.from("plan_config") as any)
+      (supabase.from("subscription_plans") as any)
         .update({ is_enabled: enabled, updated_at: new Date().toISOString() })
         .eq("plan_name", planName)
         .select(),

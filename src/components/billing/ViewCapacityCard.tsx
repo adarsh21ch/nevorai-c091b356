@@ -56,7 +56,7 @@ export function ViewCapacityCard() {
     if (!planBase) return;
     (async () => {
       const { data } = await supabase
-        .from("plan_view_tiers")
+        .from("plan_tiers")
         .select("id, plan_name, daily_views, monthly_price, is_popular, is_base, display_order")
         .eq("plan_name", planBase)
         .eq("is_active", true)

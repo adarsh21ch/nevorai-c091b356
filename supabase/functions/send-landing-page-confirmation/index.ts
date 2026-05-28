@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
     })
 
     const { data: planCfg, error: planErr } = await supabase
-      .from('plan_config')
+      .from('subscription_plans')
       .select('plan_name, feature_landing_page_email')
       .eq('plan_name', planName)
       .maybeSingle()

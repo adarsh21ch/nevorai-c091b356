@@ -209,13 +209,13 @@ const AdminPlansPage = () => {
     }
 
     const { error } = await adminWrite(() =>
-      (supabase.from("plan_config") as any).update(updateObj).eq("plan_name", planName).select(),
+      (supabase.from("subscription_plans") as any).update(updateObj).eq("plan_name", planName).select(),
     );
 
     if (!error && cascadeTargets.length) {
       await Promise.all(cascadeTargets.map((p) =>
         adminWrite(() =>
-          (supabase.from("plan_config") as any)
+          (supabase.from("subscription_plans") as any)
             .update({ [field]: value, updated_at: new Date().toISOString() })
             .eq("plan_name", p).select(),
         ),
@@ -223,12 +223,12 @@ const AdminPlansPage = () => {
     }
 
     if (!error && field === "daily_view_limit" && (planName === "basic" || planName === "pro") && typeof value === "number") {
-      const { data: baseTier } = await (supabase.from("plan_view_tiers" as any) as any)
+      const { data: baseTier } = await (supabase.from("plan_tiers" as any) as any)
         .select("id").eq("plan_name", planName).eq("is_base", true)
         .order("display_order", { ascending: true }).limit(1).maybeSingle();
       if (baseTier?.id) {
         await adminWrite(() =>
-          (supabase.from("plan_view_tiers" as any) as any)
+          (supabase.from("plan_tiers" as any) as any)
             .update({ daily_views: value, monthly_views: derivedMonthlyViews, updated_at: new Date().toISOString() } as any)
             .eq("id", baseTier.id).select(),
         );
@@ -245,7 +245,7 @@ const AdminPlansPage = () => {
 
   const handleTogglePlan = async (planName: string, enabled: boolean) => {
     const { error } = await adminWrite(() =>
-      (supabase.from("plan_config") as any)
+      (supabase.from("subscription_plans") as any)
         .update({ is_enabled: enabled, updated_at: new Date().toISOString() })
         .eq("plan_name", planName).select(),
     );
@@ -294,8 +294,8 @@ const AdminPlansPage = () => {
     };
 
     try {
-      await wipe("plan_view_tiers", "plan_name");
-      await wipe("plan_config", "plan_name");
+      await wipe("plan_tiers", "plan_name");
+      await wipe("subscription_plans", "plan_name");
       toast.success(`Plan "${planName}" deleted.`);
       ["plans", "admin-plan-configs", "plan-configs", "plan-pricing", "plan-view-tiers", "plan-view-tiers-public"]
         .forEach(k => queryClient.invalidateQueries({ queryKey: [k] }));

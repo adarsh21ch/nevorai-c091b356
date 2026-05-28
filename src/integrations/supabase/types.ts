@@ -2192,7 +2192,7 @@ export type Database = {
           },
         ]
       }
-      plan_config: {
+      subscription_plans: {
         Row: {
           daily_view_limit: number
           extra_views_price_per_unit: number
@@ -2315,7 +2315,7 @@ export type Database = {
         }
         Relationships: []
       }
-      plan_view_tiers: {
+      plan_tiers: {
         Row: {
           created_at: string
           daily_views: number
@@ -2519,7 +2519,7 @@ export type Database = {
             foreignKeyName: "profiles_selected_tier_id_fkey"
             columns: ["selected_tier_id"]
             isOneToOne: false
-            referencedRelation: "plan_view_tiers"
+            referencedRelation: "plan_tiers"
             referencedColumns: ["id"]
           },
           {

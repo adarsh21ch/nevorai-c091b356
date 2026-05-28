@@ -40,7 +40,7 @@ const FREE_LIMITS_FALLBACK: PlanLimits = {
 
 // Premium-feature mapping deleted — use `usePlanLimits().features.<key>`
 // (admin-driven). canAccess() below is retained as a thin shim that delegates
-// to plan_config booleans so any caller passing a feature name still works.
+// to subscription_plans booleans so any caller passing a feature name still works.
 
 export const usePlan = () => {
   const { user } = useAuth();
@@ -83,13 +83,13 @@ export const usePlan = () => {
     gcTime: 15 * 60 * 1000,
   });
 
-  // All plan_config rows — single source of truth for admin-managed feature
+  // All subscription_plans rows — single source of truth for admin-managed feature
   // toggles like `multilevel_funnel_enabled`. Used to gate features per tier.
   const { data: allPlanCfgs = [] } = useQuery({
     queryKey: ["plan-config-all"],
     queryFn: async () => {
       const { data } = await (supabase as any)
-        .from("plan_config")
+        .from("subscription_plans")
         .select("plan_name, max_funnels, max_storage_mb, max_landing_pages, max_live_sessions, multilevel_funnel_enabled");
       return (data || []) as any[];
     },
@@ -117,7 +117,7 @@ export const usePlan = () => {
   const isPaid = isActive && subscription?.tier && subscription.tier !== "free";
   const tier = trialActive ? "trial" : (isActive ? (subscription?.tier || "free") : "free");
 
-  // SINGLE SOURCE OF TRUTH: plan_config is what the admin "Plans & Features"
+  // SINGLE SOURCE OF TRUTH: subscription_plans is what the admin "Plans & Features"
   // editor writes to. Read multi_step from there for ALL tiers (free + paid)
   // so admin toggles take effect immediately for every user without needing
   // a duplicate column on admin_subscription_plans.

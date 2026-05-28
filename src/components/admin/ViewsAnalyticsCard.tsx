@@ -30,7 +30,7 @@ export const ViewsAnalyticsCard = () => {
       const [{ data: profiles }, { data: subs }, { data: plans }] = await Promise.all([
         supabase.from("profiles").select("id, full_name, email, custom_monthly_views_limit").in("id", userIds),
         supabase.from("user_subscriptions").select("user_id, tier, plan_key, status").in("user_id", userIds).eq("status", "active"),
-        supabase.from("plan_config").select("plan_name, monthly_views"),
+        supabase.from("subscription_plans").select("plan_name, monthly_views"),
       ]);
 
       const subMap = new Map<string, any>();
