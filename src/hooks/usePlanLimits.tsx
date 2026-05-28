@@ -63,7 +63,7 @@ export const usePlanLimits = () => {
   const { data: planConfigs = [] } = useQuery({
     queryKey: ["plan-configs"],
     queryFn: async () => {
-      const { data } = await (supabase as any).from("plan_config").select("*");
+      const { data } = await (supabase as any).from("subscription_plans").select("*");
       return (data || []) as PlanConfig[];
     },
     staleTime: 10 * 60 * 1000,

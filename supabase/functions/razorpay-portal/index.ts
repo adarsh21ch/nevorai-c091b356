@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
 
       // SECURITY: Always look up authoritative price server-side. Never trust client amount.
       // admin_subscription_plans is metadata only (active flag, billing interval, cycle days).
-      // PRICING source of truth = plan_view_tiers (the table the admin panel edits and the UI displays).
+      // PRICING source of truth = plan_tiers (the table the admin panel edits and the UI displays).
       const { data: planData } = await serviceClient
         .from("admin_subscription_plans")
         .select("plan_key, price_inr, is_active, billing_type, duration_days")
@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
       // If a tier_id was provided, validate it belongs to this plan and use its price.
       if (tier_id && typeof tier_id === "string") {
         const { data: tierRow } = await serviceClient
-          .from("plan_view_tiers")
+          .from("plan_tiers")
           .select("id, plan_name, daily_views, monthly_price, yearly_price, is_active")
           .eq("id", tier_id)
           .eq("is_active", true)
@@ -201,7 +201,7 @@ Deno.serve(async (req) => {
       } else if (baseTier === "basic" || baseTier === "pro") {
         // Auto-resolve the base tier for the plan when no tier_id was supplied.
         const { data: baseRow } = await serviceClient
-          .from("plan_view_tiers")
+          .from("plan_tiers")
           .select("id, daily_views, monthly_price, yearly_price")
           .eq("plan_name", baseTier)
           .eq("is_active", true)
@@ -264,7 +264,7 @@ Deno.serve(async (req) => {
       ) {
         // Resolve current plan's base monthly price
         const { data: currentBaseRow } = await serviceClient
-          .from("plan_view_tiers")
+          .from("plan_tiers")
           .select("monthly_price, yearly_price")
           .eq("plan_name", currentBasePlan)
           .eq("is_base", true)
@@ -470,7 +470,7 @@ Deno.serve(async (req) => {
         : Number(planData.price_inr);
       if (orderTierId) {
         const { data: tr } = await serviceClient
-          .from("plan_view_tiers")
+          .from("plan_tiers")
           .select("id, plan_name, daily_views, monthly_price, yearly_price")
           .eq("id", orderTierId)
           .maybeSingle();
@@ -611,7 +611,7 @@ Deno.serve(async (req) => {
 
       // New tier
       const { data: newTier } = await serviceClient
-        .from("plan_view_tiers")
+        .from("plan_tiers")
         .select("id, plan_name, daily_views, monthly_price, is_active")
         .eq("id", tier_id)
         .eq("is_active", true)
@@ -626,7 +626,7 @@ Deno.serve(async (req) => {
       let currentTier: any = null;
       if (profileRow?.selected_tier_id) {
         const { data } = await serviceClient
-          .from("plan_view_tiers")
+          .from("plan_tiers")
           .select("id, daily_views, monthly_price, plan_name")
           .eq("id", profileRow.selected_tier_id)
           .maybeSingle();
@@ -634,7 +634,7 @@ Deno.serve(async (req) => {
       }
       if (!currentTier && profileRow?.selected_daily_views != null) {
         const { data } = await serviceClient
-          .from("plan_view_tiers")
+          .from("plan_tiers")
           .select("id, daily_views, monthly_price, plan_name")
           .eq("plan_name", basePlan)
           .eq("daily_views", profileRow.selected_daily_views)
@@ -643,7 +643,7 @@ Deno.serve(async (req) => {
       }
       if (!currentTier) {
         const { data } = await serviceClient
-          .from("plan_view_tiers")
+          .from("plan_tiers")
           .select("id, daily_views, monthly_price, plan_name")
           .eq("plan_name", basePlan)
           .eq("is_base", true)
@@ -788,7 +788,7 @@ Deno.serve(async (req) => {
 
       const tierId = order.notes?.tier_id;
       const { data: tier } = await serviceClient
-        .from("plan_view_tiers")
+        .from("plan_tiers")
         .select("id, daily_views, monthly_price, plan_name")
         .eq("id", tierId)
         .maybeSingle();
@@ -839,7 +839,7 @@ Deno.serve(async (req) => {
       const planKey = rawPlanKey.split("_")[0];
 
       const { data: planRow } = await serviceClient
-        .from("plan_config")
+        .from("subscription_plans")
         .select("extra_views_price_per_unit, extra_views_unit_size")
         .eq("plan_name", planKey)
         .maybeSingle();
@@ -1006,7 +1006,7 @@ Deno.serve(async (req) => {
       const planKey = rawPlanKey.split("_")[0];
 
       const { data: planRow } = await serviceClient
-        .from("plan_config")
+        .from("subscription_plans")
         .select("extra_views_price_per_unit, extra_views_unit_size")
         .eq("plan_name", planKey)
         .maybeSingle();

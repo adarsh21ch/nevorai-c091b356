@@ -38,7 +38,7 @@ export const PlanEditorTable = () => {
   const { data: plans = [] } = useQuery({
     queryKey: ["admin-plan-configs"],
     queryFn: async () => {
-      const { data } = await supabase.from("plan_config").select("*");
+      const { data } = await supabase.from("subscription_plans").select("*");
       return (data || []) as Row[];
     },
   });
@@ -102,7 +102,7 @@ export const PlanEditorTable = () => {
       update[f.dbField] = value;
     }
     const { error } = await supabase
-      .from("plan_config")
+      .from("subscription_plans")
       .update(update as any)
       .eq("plan_name", plan);
     setSavingPlan(null);

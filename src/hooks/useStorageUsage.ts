@@ -5,7 +5,7 @@ import { usePlan } from "@/hooks/usePlan";
 
 const FREE_FALLBACK_MB = 1024; // 1 GB
 
-// Map plan.tier ("free" | "basic" | "growth" | "pro" | "trial") to plan_config.plan_name.
+// Map plan.tier ("free" | "basic" | "growth" | "pro" | "trial") to subscription_plans.plan_name.
 // Trial users get pro-tier storage while their trial is active.
 const planNameForTier = (tier: string): string => {
   if (tier === "trial") return "pro";
@@ -57,12 +57,12 @@ export const useStorageUsage = (): StorageUsage => {
     queryKey: ["storage-limit", planName],
     queryFn: async () => {
       const { data } = await (supabase as any)
-        .from("plan_config")
+        .from("subscription_plans")
         .select("max_storage_mb")
         .eq("plan_name", planName)
         .maybeSingle();
       // Use `||` (not `??`) so a stored 0 also falls back to the default —
-      // a misconfigured plan_config row must not zero out user quotas.
+      // a misconfigured subscription_plans row must not zero out user quotas.
       return data?.max_storage_mb || FREE_FALLBACK_MB;
     },
     staleTime: 10 * 60 * 1000,

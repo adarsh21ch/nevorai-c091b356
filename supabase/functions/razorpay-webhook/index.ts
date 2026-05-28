@@ -207,7 +207,7 @@ async function provisionSubscriptionFromOrder(
   let tierRow: any = null;
   if (orderTierId) {
     const { data: tr } = await serviceClient
-      .from("plan_view_tiers")
+      .from("plan_tiers")
       .select("id, plan_name, daily_views, monthly_price, yearly_price")
       .eq("id", orderTierId)
       .maybeSingle();

@@ -1,7 +1,7 @@
 /**
  * Plan ordering helpers.
  *
- * Source of truth is `plan_config.display_order` in the DB (loaded via
+ * Source of truth is `subscription_plans.display_order` in the DB (loaded via
  * `useAllPlans()`). The static maps below are fallbacks for code paths that
  * cannot reach React Query state (e.g. utility modules, server fns).
  */

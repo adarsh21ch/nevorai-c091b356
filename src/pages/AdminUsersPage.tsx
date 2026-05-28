@@ -90,7 +90,7 @@ const AdminUsersPage = () => {
   const { data: planConfigs = [] } = useQuery({
     queryKey: ["admin-plan-configs"],
     queryFn: async () => {
-      const { data } = await supabase.from("plan_config").select("plan_name, monthly_views");
+      const { data } = await supabase.from("subscription_plans").select("plan_name, monthly_views");
       return (data || []) as { plan_name: string; monthly_views: number | null }[];
     },
   });

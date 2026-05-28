@@ -99,7 +99,7 @@ Deno.serve(async (req) => {
 
         // 2) Storage limit for this plan (fallback 1 GB for free).
         const { data: planRow } = await serviceClient
-          .from("plan_config")
+          .from("subscription_plans")
           .select("max_storage_mb")
           .eq("plan_name", planName)
           .maybeSingle();

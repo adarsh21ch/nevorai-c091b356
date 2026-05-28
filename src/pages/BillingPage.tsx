@@ -105,7 +105,7 @@ const BillingPage = () => {
     queryKey: ["billing-tier-plans"],
     queryFn: async () => {
       const { data } = await (supabase as any)
-        .from("plan_config")
+        .from("subscription_plans")
         .select("*")
         .in("plan_name", ["basic", "growth", "pro"]);
       return (data ?? []) as PlanRow[];

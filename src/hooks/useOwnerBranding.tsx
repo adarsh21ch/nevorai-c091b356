@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
  *
  * Logic:
  * - Look up the owner's active subscription tier via user_subscriptions.
- * - Read plan_config.feature_show_branding for that plan.
+ * - Read subscription_plans.feature_show_branding for that plan.
  * - Free / no subscription → defaults to showing branding.
  */
 export function useOwnerBranding(ownerId?: string | null) {
@@ -33,7 +33,7 @@ export function useOwnerBranding(ownerId?: string | null) {
         .replace(/_(monthly|yearly)$/, "");
 
       const { data: cfg } = await (supabase as any)
-        .from("plan_config")
+        .from("subscription_plans")
         .select("feature_show_branding")
         .eq("plan_name", planName)
         .maybeSingle();

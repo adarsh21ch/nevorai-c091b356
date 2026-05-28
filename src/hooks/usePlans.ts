@@ -22,7 +22,7 @@ export function usePlans() {
     queryKey: ["plans", "enabled"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("plan_config")
+        .from("subscription_plans")
         .select("*")
         .eq("is_enabled", true);
       if (error) throw error;
@@ -37,7 +37,7 @@ export function useAllPlans() {
   return useQuery({
     queryKey: ["plans", "all"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("plan_config").select("*");
+      const { data, error } = await supabase.from("subscription_plans").select("*");
       if (error) throw error;
       return orderRows((data || []) as unknown as PlanConfigRow[]);
     },

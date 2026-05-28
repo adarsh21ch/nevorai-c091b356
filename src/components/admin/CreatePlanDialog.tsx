@@ -67,7 +67,7 @@ export const CreatePlanDialog = ({ existingPlanNames, nextDisplayOrder, onCreate
 
     setSaving(true);
     try {
-      // 1) plan_config row with sensible defaults — admin tunes after creation.
+      // 1) subscription_plans row with sensible defaults — admin tunes after creation.
       const configRow: Record<string, any> = {
         plan_name: planName,
         display_name: form.display_name.trim(),
@@ -119,13 +119,13 @@ export const CreatePlanDialog = ({ existingPlanNames, nextDisplayOrder, onCreate
       };
 
       const { error: cfgErr } = await adminWrite(() =>
-        (supabase.from("plan_config") as any).insert(configRow).select(),
+        (supabase.from("subscription_plans") as any).insert(configRow).select(),
       );
       if (cfgErr) throw cfgErr;
 
       // 2) Base view tier
       const { error: tierErr } = await adminWrite(() =>
-        (supabase.from("plan_view_tiers" as any) as any).insert({
+        (supabase.from("plan_tiers" as any) as any).insert({
           plan_name: planName,
           daily_views: dailyViews,
           monthly_price: monthly,
@@ -161,7 +161,7 @@ export const CreatePlanDialog = ({ existingPlanNames, nextDisplayOrder, onCreate
           <DialogHeader>
             <DialogTitle>Create a new plan</DialogTitle>
             <DialogDescription>
-              Adds a row to <code>plan_config</code> + base tier in <code>plan_view_tiers</code>.
+              Adds a row to <code>subscription_plans</code> + base tier in <code>plan_tiers</code>.
               All feature toggles default to a Basic-like baseline — tune them after creation.
             </DialogDescription>
           </DialogHeader>

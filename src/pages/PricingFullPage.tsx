@@ -159,19 +159,19 @@ const PricingFullPage = () => {
   const { data: planConfigs = [] } = useQuery({
     queryKey: ["plan-configs"],
     queryFn: async () => {
-      const { data } = await supabase.from("plan_config").select("*");
+      const { data } = await supabase.from("subscription_plans").select("*");
       return (data || []) as any[];
     },
     staleTime: 0,
     refetchOnWindowFocus: true,
   });
 
-  // INR prices live in plan_view_tiers. Fetch base tier per plan and merge into config.
+  // INR prices live in plan_tiers. Fetch base tier per plan and merge into config.
   const { data: viewTiers = [] } = useQuery({
     queryKey: ["plan-view-tiers-pricingfull"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("plan_view_tiers" as any)
+        .from("plan_tiers" as any)
         .select("plan_name, daily_views, monthly_price, yearly_price, is_base, is_active")
         .eq("is_active", true);
       return (data || []) as any[];
@@ -231,7 +231,7 @@ const PricingFullPage = () => {
 
     // Razorpay (INR) is the only payment gateway in use.
 
-    // Indian users → Razorpay (INR). Server reads authoritative price from plan_view_tiers.
+    // Indian users → Razorpay (INR). Server reads authoritative price from plan_tiers.
     setLoading(planKey);
     try {
       const scriptLoaded = await loadRazorpayScript();

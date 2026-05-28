@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 
 /**
- * Admin-driven feature gate. Reads boolean flags directly from `plan_config`
+ * Admin-driven feature gate. Reads boolean flags directly from `subscription_plans`
  * via `usePlanLimits().features`. No hardcoded tier checks.
  *
  *   <FeatureGate feature="speakerProfile" requiredPlan="Basic">
