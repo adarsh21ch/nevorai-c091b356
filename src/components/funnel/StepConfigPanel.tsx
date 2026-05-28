@@ -57,6 +57,9 @@ export interface FlowStep {
   speaker_title?: string;
   speaker_bio?: string;
   speaker_photo_url_custom?: string;
+  allow_skip?: boolean;
+  lock_next_step?: boolean;
+  unlock_after_percent?: number;
 }
 
 interface StepConfigPanelProps {
