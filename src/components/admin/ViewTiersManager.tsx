@@ -120,17 +120,18 @@ export const ViewTiersManager = ({ planName }: { planName: string }) => {
   };
 
   const saveNewTier = async () => {
-    const dv = parseInt(newTier.daily_views);
-    const mp = parseInt(newTier.monthly_price);
-    const yp = parseInt(newTier.yearly_price);
-    if (!dv || !mp || !yp) {
-      toast.error("All numeric fields required");
+    const dv = parseInt(newTier.daily_views, 10);
+    const mp = parseInt(newTier.monthly_price, 10);
+    const yp = parseInt(newTier.yearly_price, 10);
+    if (isNaN(dv) || isNaN(mp) || isNaN(yp) || dv === 0 || dv < -1) {
+      toast.error("All numeric fields required (daily can be -1 for unlimited)");
       return;
     }
     const { error } = await adminWrite(() =>
       (supabase.from("plan_tiers" as any) as any).insert({
         plan_name: planName,
         daily_views: dv,
+        monthly_views: dv === -1 ? -1 : dv * 30,
         monthly_price: mp,
         yearly_price: yp,
         is_popular: newTier.is_popular,
