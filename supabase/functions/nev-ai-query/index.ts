@@ -1,4 +1,4 @@
-// Nev AI — analytics chat assistant for creators.
+// Nev AI — analytics chat assistant for creators (v1.0.1)
 // Uses Gemini via GEMINI_API_KEY. Gated to Basic/Pro/trial plans with a daily quota.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
