@@ -3,8 +3,6 @@ import { Footer } from "@/components/landing/Footer";
 import { motion } from "framer-motion";
 import {
   Video,
-  ClipboardList,
-  BarChart3,
   Route,
   MessageCircle,
   Eye,
