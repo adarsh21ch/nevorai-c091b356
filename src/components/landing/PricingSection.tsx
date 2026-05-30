@@ -631,7 +631,7 @@ export const PricingSection = () => {
 
         {/* Disclaimer */}
         <p className="text-center text-xs mt-6 max-w-lg mx-auto text-hero-muted">
-          * Conversion rates based on video funnels with lead capture and WhatsApp follow-up enabled. Results vary based on content quality and audience.
+          * Conversion rates based on video funnels with WhatsApp follow-up enabled. Results vary based on content quality and audience.
         </p>
       </div>
     </section>

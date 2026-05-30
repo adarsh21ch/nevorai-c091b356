@@ -23,7 +23,7 @@ const nflowSteps: Step[] = [
   { count: 100, label: "Prospects open your Nevorai link", sublabel: "Clean player loads instantly — no distractions anywhere", barWidth: 100 },
   { count: 96, label: "Watch in a fully distraction-free environment", sublabel: "No recommendations. No comments. No autoplay. Just your video.", barWidth: 96 },
   { count: 91, label: "Watch your full message — skip is disabled", sublabel: "They hear every word of your pitch, not just the first 30 seconds", barWidth: 91 },
-  { count: 71, label: "Enter their name + phone when prompted", sublabel: "Lead captured automatically — goes straight to your dashboard", barWidth: 71 },
+  { count: 71, label: "Enter their name + phone when prompted", sublabel: "Their details go straight to your dashboard", barWidth: 71 },
   { count: 18, label: "Convert after your automated WhatsApp follow-up", sublabel: "WhatsApp sent the moment video ends. Follow-up reminders scheduled.", barWidth: 18, isFinal: true },
 ];
 

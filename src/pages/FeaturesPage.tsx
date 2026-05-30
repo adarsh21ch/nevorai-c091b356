@@ -65,7 +65,7 @@ const FeaturesPage = () => {
               <span className="gradient-text">structured funnels.</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Built for Indian business owners who want more control, better lead capture and a cleaner viewer journey.
+              Built for Indian business owners who want more control, a cleaner viewer journey.
             </p>
           </motion.div>
 

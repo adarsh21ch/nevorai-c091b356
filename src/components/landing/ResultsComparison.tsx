@@ -45,7 +45,7 @@ export const ResultsComparison = () => {
           : [
               "Can't skip, so they watch",
               "Zero distractions, stays focused",
-              "Automatic lead capture",
+              
               "Follow-up scheduled instantly",
             ],
     },
