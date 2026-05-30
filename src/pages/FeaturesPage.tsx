@@ -3,8 +3,6 @@ import { Footer } from "@/components/landing/Footer";
 import { motion } from "framer-motion";
 import {
   Video,
-  ClipboardList,
-  BarChart3,
   Route,
   MessageCircle,
   Eye,
@@ -26,22 +24,10 @@ const features = [
       "Watch your activity feed light up the moment a prospect taps your link. See viewer name, city, watch percentage and exact drop-off point. Stop guessing who's interested — call the people who actually watched.",
   },
   {
-    icon: ClipboardList,
-    title: "Lead Capture Forms — Built Into Every Video",
-    description:
-      "Collect name, phone, email, city or any custom field before, during or after the video. Leads land in your dashboard instantly and export to CSV or your CRM. No third-party form builders, no Zapier.",
-  },
-  {
     icon: Route,
     title: "Video Funnels — Multi-Step Sequences That Convert",
     description:
-      "Turn one long video into a guided journey: intro → lead form → product walkthrough → pricing → call booking. Each step unlocks the next. Built for coaches and network marketers who already use a multi-touch sales process.",
-  },
-  {
-    icon: BarChart3,
-    title: "Scheduled Live Sessions — Like Webinars Without the Hassle",
-    description:
-      "Schedule a recorded video to play live at an announced time. Viewers join together, you get the same tracking and lead capture as any funnel, and you're not stuck managing Zoom. Perfect for product launches and weekly broadcasts.",
+      "Turn one long video into a guided journey: intro → product walkthrough → pricing → call booking. Each step unlocks the next. Built for coaches and network marketers who already use a multi-touch sales process.",
   },
   {
     icon: MessageCircle,
@@ -59,7 +45,7 @@ const features = [
     icon: Lock,
     title: "Access Code Protection — Premium Videos and Courses",
     description:
-      "Lock any video behind an access code or one-time link so only invited prospects, paying students or VIP partners can watch. Combine with lead capture for a full pay-to-view course preview.",
+      "Lock any video behind an access code or one-time link so only invited prospects, paying students or VIP partners can watch. Perfect for a pay-to-view course preview.",
   },
 ];
 
@@ -79,7 +65,7 @@ const FeaturesPage = () => {
               <span className="gradient-text">structured funnels.</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Built for Indian business owners who want more control, better lead capture and a cleaner viewer journey.
+              Built for Indian business owners who want more control, a cleaner viewer journey.
             </p>
           </motion.div>
 

@@ -19,7 +19,7 @@ const rows = [
     nf: "Turn videos into structured funnels with steps, actions, and progression",
   },
   {
-    yt: "No built-in lead capture or follow-up system",
+    yt: "No built-in follow-up system",
     nf: "Capture leads directly — collect name, phone, email, and more",
   },
   {

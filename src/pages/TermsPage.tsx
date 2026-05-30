@@ -67,7 +67,7 @@ const TermsPage = () => {
               <h2 className="text-lg font-heading font-semibold text-foreground mb-3">5. Acceptable Use</h2>
               <p className="mb-3">You agree NOT to use Nevorai to:</p>
               <ul className="list-disc pl-5 space-y-2">
-                <li>Spam, harass, or send unsolicited messages to leads or contacts.</li>
+                <li>Spam, harass, or send unsolicited messages to contacts.</li>
                 <li>Capture or store data of individuals without their consent.</li>
                 <li>Upload illegal, infringing, or harmful video content.</li>
                 <li>Violate any applicable Indian or international law.</li>
@@ -81,7 +81,7 @@ const TermsPage = () => {
             <section>
               <h2 className="text-lg font-heading font-semibold text-foreground mb-3">6. Your Content & Data</h2>
               <p>
-                You own your content — videos, funnels, landing pages, leads, and any media you upload to Nevorai.
+                You own your content — videos, funnels, landing pages, and any media you upload to Nevorai.
                 By using Nevorai, you grant Nevorai a limited licence to store, process, transcode, and stream
                 this content solely to provide the service to you and your viewers. We do not use your content
                 for any other purpose.
@@ -123,7 +123,7 @@ const TermsPage = () => {
               <p className="mb-3">
                 Nevorai is provided "as is". Nevorai is not liable for any indirect, incidental, or consequential
                 damages arising from your use of the service, including but not limited to lost profits, lost
-                leads, or missed business opportunities.
+                or missed business opportunities.
               </p>
               <p>
                 Our total liability to you in any circumstance is limited to the amount you paid us in the

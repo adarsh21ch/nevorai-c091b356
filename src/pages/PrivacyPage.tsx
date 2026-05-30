@@ -39,7 +39,7 @@ const PrivacyPage = () => {
               <h2 className="text-lg font-heading font-semibold text-foreground mb-3">2. What Data We Collect</h2>
               <ul className="list-disc pl-5 space-y-2">
                 <li><strong className="text-foreground">Account data:</strong> Name, email, phone number (when provided), and password (stored encrypted).</li>
-                <li><strong className="text-foreground">Lead data:</strong> Names, emails, phone numbers, and details your viewers submit through your funnels and landing pages.</li>
+                <li><strong className="text-foreground">Viewer data:</strong> Names, emails, phone numbers, and details your viewers submit through your funnels and landing pages.</li>
                 <li><strong className="text-foreground">Funnel content:</strong> Videos, thumbnails, copy, and any media you upload to Nevorai.</li>
                 <li><strong className="text-foreground">Engagement data:</strong> Video views, watch progress, session timestamps, and viewer interactions.</li>
                 <li><strong className="text-foreground">Usage data:</strong> Pages visited, features used, session duration, device type, and browser.</li>
@@ -55,13 +55,13 @@ const PrivacyPage = () => {
               <ul className="list-disc pl-5 space-y-2 mb-3">
                 <li>Provide and improve the Nevorai service.</li>
                 <li>Send you account-related emails (verification, payment receipts, plan updates).</li>
-                <li>Show you funnel analytics, lead activity, and viewer engagement inside the app.</li>
+                <li>Show you funnel analytics, viewer activity, and viewer engagement inside the app.</li>
                 <li>Enforce plan limits (monthly views, funnels, videos) and manage your subscription.</li>
                 <li>Respond to your support requests.</li>
                 <li>Prevent fraud, abuse, and unauthorized access.</li>
               </ul>
               <p>
-                We do <strong className="text-foreground">NOT</strong> sell your data. We do <strong className="text-foreground">NOT</strong> share your lead data with any third party for marketing purposes.
+                We do <strong className="text-foreground">NOT</strong> sell your data. We do <strong className="text-foreground">NOT</strong> share your viewer data with any third party for marketing purposes.
               </p>
             </section>
 
@@ -81,14 +81,14 @@ const PrivacyPage = () => {
             </section>
 
             <section>
-              <h2 className="text-lg font-heading font-semibold text-foreground mb-3">5. Your Lead Data</h2>
+              <h2 className="text-lg font-heading font-semibold text-foreground mb-3">5. Your Viewer Data</h2>
               <p className="mb-3">
-                The leads captured through your funnels and landing pages belong to you. We store them securely
-                to power the app. We do not access, use, or share your lead data for any purpose other than
+                The viewer details captured through your funnels and landing pages belong to you. We store them securely
+                to power the app. We do not access, use, or share your viewer data for any purpose other than
                 displaying it to you and the team members you invite.
               </p>
               <p>
-                If you delete your account, all your lead data is permanently deleted within 30 days.
+                If you delete your account, all your viewer data is permanently deleted within 30 days.
               </p>
             </section>
 
@@ -120,7 +120,7 @@ const PrivacyPage = () => {
                 <li>Access the data we hold about you.</li>
                 <li>Correct any incorrect data.</li>
                 <li>Request deletion of your account and all associated data.</li>
-                <li>Export your lead data as CSV at any time.</li>
+                <li>Export your viewer data as CSV at any time.</li>
               </ul>
               <p>
                 To exercise any of these rights, email us at{" "}
