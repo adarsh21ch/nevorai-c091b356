@@ -93,11 +93,8 @@ const buildFeatures = (config: any) => {
     else if (config.max_landing_pages > 0) features.push({ text: `Up to ${config.max_landing_pages} landing pages`, included: true });
   }
 
-  // Live sessions
-  if (config.feature_go_live) {
-    if (config.max_live_sessions === -1) features.push({ text: "Unlimited live sessions", included: true });
-    else if (config.max_live_sessions > 0) features.push({ text: `Up to ${config.max_live_sessions} live sessions`, included: true });
-  }
+  // Live sessions hidden
+
 
   // Storage
   const storageText = formatStorage(config.max_storage_mb);
