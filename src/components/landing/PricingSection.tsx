@@ -105,14 +105,10 @@ const buildFeatures = (config: any) => {
   if (dv) features.push({ text: dv.text, included: true, tooltip: dv.tooltip, isDailyViews: true } as any);
 
   // Feature toggles (admin source of truth)
-  features.push({ text: "YouTube video import", included: !!config.feature_youtube_import });
+  // YouTube video import, Lead capture, WhatsApp auto-message, Live broadcast hidden
   features.push({ text: "Video sharing", included: !!config.feature_video_sharing });
   features.push({ text: "Custom branding", included: !!config.feature_custom_branding });
-  // Lead capture & WhatsApp auto-message temporarily hidden from pricing UI
-  // features.push({ text: "Lead capture", included: !!config.feature_lead_capture });
-  // features.push({ text: "WhatsApp auto-message", included: !!config.feature_whatsapp_automation });
   features.push({ text: "Smart follow-up reminders", included: !!config.feature_smart_reminders });
-  features.push({ text: "Live broadcast", included: !!config.feature_go_live });
   features.push({ text: "Analytics dashboard", included: !!config.feature_analytics });
   features.push({ text: "Per-prospect watch analytics", included: !!config.feature_prospect_analytics });
   features.push({ text: "Team dashboard", included: !!config.feature_team_analytics });
