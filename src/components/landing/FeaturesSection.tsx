@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { Video, ClipboardList, MessageCircle, BarChart3, Radio, Bell, ChevronRight } from "lucide-react";
+import { Video, MessageCircle, BarChart3, Bell, ChevronRight } from "lucide-react";
 
 const features = [
   { Icon: Video, title: "Video Funnels", desc: "Share distraction-free videos. Skip disabled. CTA at the end." },
-  { Icon: ClipboardList, title: "Lead Capture", desc: "Collect name + phone at the right moment — mid-video or at end." },
   { Icon: MessageCircle, title: "WhatsApp Automation", desc: "Auto-send a WhatsApp message the moment they finish watching." },
   { Icon: BarChart3, title: "Prospect Analytics", desc: "See who watched, how far, and who's ready to convert." },
-  { Icon: Radio, title: "Live Sessions", desc: "Host live video sessions with real-time audience engagement." },
   { Icon: Bell, title: "Smart Reminders", desc: "Auto follow-up sequences for prospects who didn't respond." },
 ];
 
