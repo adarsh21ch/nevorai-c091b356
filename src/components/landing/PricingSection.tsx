@@ -55,9 +55,9 @@ const buildFreeFeatures = (config: any): { text: string; included: boolean; tool
   items.push({ text: "Browse marketplace", included: true });
 
   // Negative feature flags — show as crossed out so users see what's gated
-  // Lead capture temporarily hidden from pricing UI
-  // items.push({ text: "Lead capture", included: !!config?.feature_lead_capture });
-  items.push({ text: "Live broadcast", included: !!config?.feature_go_live });
+  // Lead capture & live broadcast temporarily hidden from pricing UI
+
+
 
   return items;
 };
