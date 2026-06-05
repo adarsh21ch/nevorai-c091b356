@@ -151,14 +151,15 @@ export const SpeakerPhotoUpload = ({ value, onChange }: SpeakerPhotoUploadProps)
       const drawY = (size - drawH) / 2 + offset.y * ratio;
       ctx.drawImage(img, drawX, drawY, drawW, drawH);
 
-      const blob = await new Promise<Blob>((resolve, reject) => {
+      const rawBlob = await new Promise<Blob>((resolve, reject) => {
         exportCanvas.toBlob((b) => b ? resolve(b) : reject(new Error("Blob error")), "image/jpeg", 0.9);
       });
+      const blob = await compressImage(rawBlob, IMAGE_PRESETS.AVATAR);
 
-      const fileName = `speakers/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
+      const fileName = `speakers/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.webp`;
       const { error } = await supabase.storage
         .from("landing-page-assets")
-        .upload(fileName, blob, { cacheControl: "3600", upsert: false, contentType: "image/jpeg" });
+        .upload(fileName, blob, { cacheControl: LONG_CACHE_CONTROL, upsert: false, contentType: "image/webp" });
       if (error) throw error;
 
       const { data: { publicUrl } } = supabase.storage
