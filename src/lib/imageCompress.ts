@@ -80,8 +80,7 @@ async function canvasToBlob(
     html.width = canvas.width;
     html.height = canvas.height;
     const ctx = html.getContext("2d")!;
-    // @ts-expect-error transferring bitmap is fine here
-    ctx.drawImage(canvas, 0, 0);
+    ctx.drawImage(canvas as unknown as CanvasImageSource, 0, 0);
     return canvasToBlob(html, type, quality);
   }
   return new Promise<Blob>((resolve, reject) => {
