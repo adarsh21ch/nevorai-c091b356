@@ -150,6 +150,27 @@ async function buildEntries(): Promise<Entry[]> {
     console.error("sitemap live_sessions exception", e);
   }
 
+  try {
+    const { data, error } = await supabase
+      .from("academy_tutorials")
+      .select("id, updated_at")
+      .eq("is_published", true)
+      .order("updated_at", { ascending: false })
+      .limit(5_000);
+    if (error) console.error("sitemap academy_tutorials error", error);
+    for (const row of data ?? []) {
+      if (!row.id) continue;
+      entries.push({
+        loc: `${BASE_URL}/academy/${escapeXml(row.id)}`,
+        lastmod: formatDate(row.updated_at),
+        changefreq: "monthly",
+        priority: "0.6",
+      });
+    }
+  } catch (e) {
+    console.error("sitemap academy_tutorials exception", e);
+  }
+
   return entries.slice(0, MAX_URLS);
 }
 
