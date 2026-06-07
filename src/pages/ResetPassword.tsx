@@ -3,7 +3,7 @@ import { Link } from "@/lib/router-compat";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/landing/Logo";
-import { supabase } from "@/integrations/supabase/client";
+import { requestPasswordReset } from "@/lib/auth.functions";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
 
