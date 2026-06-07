@@ -15,8 +15,12 @@ const ResetPassword = () => {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await requestPasswordReset({ data: { email } }).catch(() => null);
+    const result = await requestPasswordReset({ data: { email } }).catch(() => ({ ok: false }));
     setLoading(false);
+    if (!result?.ok) {
+      toast.error("We couldn't send the reset email right now. Please try again in a moment.");
+      return;
+    }
     setSent(true);
     toast.success("Password reset email sent!");
   };

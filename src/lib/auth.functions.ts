@@ -28,9 +28,11 @@ export const requestPasswordReset = createServerFn({ method: "POST" })
       if (!res.ok) {
         const text = await res.text().catch(() => "");
         console.error("[password-reset] edge function failed", res.status, text);
+        return { ok: false };
       }
     } catch (err: any) {
       console.error("[password-reset] unexpected error", err?.message || err);
+      return { ok: false };
     }
     return { ok: true };
   });
