@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo } from "@/components/landing/Logo";
-import { supabase } from "@/integrations/supabase/client";
+import { requestPasswordReset } from "@/lib/auth.functions";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
 
@@ -17,14 +17,12 @@ function ResetPassword() {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/update-password`,
-    });
+    await requestPasswordReset({ data: { email } }).catch(() => null);
     setLoading(false);
-    if (error) { toast.error(error.message); return; }
     setSent(true);
     toast.success("Password reset email sent!");
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-bg-subtle">

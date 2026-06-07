@@ -66,7 +66,14 @@ type Payload =
       name: string;
       plan: string;
       dueDate?: string;
+    }
+  | {
+      type: "password_reset";
+      to: string;
+      name?: string;
+      action_link: string;
     };
+
 
 interface OutgoingMail {
   to: string;
@@ -204,6 +211,32 @@ async function buildAndSend(payload: Payload) {
       html,
     });
   }
+
+  // ───── Password reset → Admin Gmail first, Resend fallback ─────
+  if (payload.type === "password_reset") {
+    const greeting = payload.name ? `Hi ${esc(payload.name)},` : "Hi there,";
+    const html = wrap(`
+      <div style="font-size:11px;font-weight:700;letter-spacing:0.18em;color:#2563eb;margin-bottom:10px;">PASSWORD RESET</div>
+      <h1 style="font-size:24px;font-weight:700;margin:0 0 14px;line-height:1.3;">Reset your Nevorai password</h1>
+      <p style="font-size:15px;line-height:1.6;color:#475569;margin:0 0 8px;">${greeting}</p>
+      <p style="font-size:15px;line-height:1.6;color:#475569;margin:0 0 22px;">We received a request to reset your Nevorai password. Click the button below to choose a new one. This link expires in 1 hour.</p>
+      ${button(payload.action_link, "Reset Password")}
+      <p style="font-size:13px;color:#94a3b8;line-height:1.6;margin:10px 0 0;">If the button doesn't work, copy and paste this link into your browser:<br/><span style="word-break:break-all;color:#475569;">${esc(payload.action_link)}</span></p>
+      <p style="font-size:13px;color:#94a3b8;line-height:1.6;margin:18px 0 0;">If you didn't request this, you can safely ignore this email — your password won't change.</p>
+    `);
+    const mail: OutgoingMail = {
+      to: payload.to,
+      subject: "Reset your Nevorai password",
+      html,
+      sender_name: "Nevorai",
+    };
+    const gmail = await sendViaGmail(mail);
+    if (gmail.ok) return gmail;
+    console.warn("[email] gmail failed for password_reset, falling back to resend:", gmail.reason);
+    return sendViaResend(mail);
+  }
+
+
 
   // ───── Lead emails → Admin Gmail (with Resend fallback) ─────
   if (payload.type === "lead") {
