@@ -17,10 +17,12 @@ function ForgotPassword() {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    await requestPasswordReset({ data: { email } }).catch(() => null);
     setLoading(false);
+    setSent(true);
+    toast.success("Check your email (and spam folder) for the reset link");
+  };
+
     if (error) { toast.error(error.message); return; }
     setSent(true);
     toast.success("Check your email (and spam folder) for the reset link");
