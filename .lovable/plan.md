@@ -1,114 +1,55 @@
+# Fix: Password reset emails never arrive
 
-# Stop Supabase egress hits — caching + image optimization
+## Why this is happening
 
-No storage migration. Files stay on Supabase. We add 1-year cache headers, compress images client-side to WebP, lazy-load below-the-fold images, and backfill metadata on existing files.
+Every password-reset entry point in the app (`/forgot-password`, `/auth/reset-password`, and the old `src/pages/ResetPassword.tsx`) calls `supabase.auth.resetPasswordForEmail(...)`. That uses **Supabase's built-in email provider**, which on this project is hard-capped at ~2 emails per hour and is widely flagged as spam. Once that cap is hit, every subsequent request silently fails — the user sees "email sent", but Supabase never actually delivers it. This matches exactly what your prospect reported (no mail, not in spam either).
 
-## Audit (already done — call sites that upload to Supabase Storage)
+The signup/login flow itself is fine. The bug is only the reset email transport.
 
-| File | Bucket | Currently |
-|---|---|---|
-| `src/components/ProfilePhotoCropModal.tsx` | `avatars` | no cacheControl, JPEG 512×512 q0.9 |
-| `src/components/funnel/TestimonialPhotoUpload.tsx` | `landing-page-assets` | no cacheControl, JPEG 400×400 q0.9 |
-| `src/components/funnel/TestimonialVideoUpload.tsx` | `landing-page-assets` | no cacheControl (video + thumbnail) |
-| `src/components/funnel/AudioNoteRecorder.tsx` | (param) | no cacheControl |
-| `src/components/funnel/SpeakerPhotoUpload.tsx` | (likely landing-page-assets) | `cacheControl: "3600"` |
-| `src/components/ui/image-upload-field.tsx` | `landing-page-assets` (configurable) | `cacheControl: "3600"` |
-| `src/pages/LandingPageEditor.tsx` | `landing-page-attachments` | no cacheControl |
-| `src/components/admin/settings/LandingContentTab.tsx` | `landing-images` | no cacheControl |
-| `src/components/admin/WhatsAppMediaTab.tsx` | `whatsapp-media` | no cacheControl |
-| `src/pages/AdminKYCPage.tsx` | `kyc-documents` | signed URLs, leave as-is |
+## The fix (uses what's already working)
 
-R2 uploads (`VideoUploadModal`, `AdminVideosPage`, `AcademyTab`) already serve from R2 — out of scope.
+We already have two working email transports in `src/routes/api/public/email/send.ts`:
+- **Admin Gmail** (via `send-gmail-email` edge function) — already connected, OAuth working.
+- **Resend** — used today for welcome, receipt, and reminder emails.
 
-## Step 1 — Shared image-compression helper
+We will generate the Supabase recovery link **ourselves** on the server and send it through these transports instead of letting Supabase send it. The existing `/reset-password` page already knows how to consume the recovery token in the URL hash, so the click-through experience does not change.
 
-Create `src/lib/imageCompress.ts`:
-- `compressImage(file, { maxDim, quality, type })` using `createImageBitmap` + `OffscreenCanvas` → WebP blob.
-- Fallback to `HTMLCanvasElement` when `OffscreenCanvas` / `convertToBlob` unavailable (Safari quirks).
-- Skip compression if file already WebP and within size budget.
-- Preset constants: AVATAR (256, 0.85), TESTIMONIAL_PHOTO (400, 0.85), LANDING_IMAGE (1200, 0.85).
+## What changes
 
-## Step 2 — Add `cacheControl: "31536000"` + WebP compression to every upload
+### 1. New server function: `requestPasswordReset` (`src/lib/auth.functions.ts`)
+- Input: `{ email }`.
+- Uses `supabaseAdmin.auth.admin.generateLink({ type: 'recovery', email, options: { redirectTo: '<site>/reset-password' } })` to mint a real Supabase recovery link.
+- Calls the existing `/api/public/email/send` route with a new `password_reset` payload type.
+- Always returns `{ ok: true }` — never reveals whether the email exists (prevents account enumeration). Errors are logged server-side only.
 
-Touch each call site to:
-1. Compress with the appropriate preset (skip for video, audio, KYC).
-2. Pass `cacheControl: "31536000"` and `contentType: "image/webp"` (or original for non-image).
-3. Use `.webp` extension in the storage path so the filename matches the bytes.
+### 2. Extend `src/routes/api/public/email/send.ts`
+- Add a new payload variant: `{ type: "password_reset"; to: string; name?: string; action_link: string }`.
+- Build a clean branded "Reset your Nevorai password" HTML (same wrap/button style as the other system emails, 15-minute expiry note, "ignore if you didn't request this" line).
+- Transport order: **Gmail first** (since the user explicitly wants to use the connected Gmail), **Resend fallback** if Gmail is not connected or fails. This mirrors how lead emails already work.
 
-Per file:
-- `ProfilePhotoCropModal.tsx` — replace JPEG canvas export with `compressImage(blob, AVATAR)`; path `${userId}/avatar-${ts}.webp`.
-- `TestimonialPhotoUpload.tsx` — compress cropped canvas blob with TESTIMONIAL_PHOTO preset; `.webp` path.
-- `TestimonialVideoUpload.tsx` — keep video as-is (just add cacheControl); compress the auto-thumbnail with TESTIMONIAL_PHOTO preset.
-- `SpeakerPhotoUpload.tsx` — AVATAR-ish preset (or TESTIMONIAL_PHOTO); update cacheControl `3600` → `31536000`.
-- `image-upload-field.tsx` — LANDING_IMAGE preset; cacheControl `3600` → `31536000`.
-- `LandingPageEditor.tsx` (attachments uploader at L731) — LANDING_IMAGE preset if image, else passthrough; add cacheControl.
-- `LandingContentTab.tsx` — LANDING_IMAGE preset; add cacheControl.
-- `WhatsAppMediaTab.tsx` — add cacheControl only (mixed media types — don't transform).
-- `AudioNoteRecorder.tsx` — add cacheControl only (audio).
-- `AdminKYCPage.tsx` — **leave alone** (private, signed URLs, must remain original).
+### 3. Rewire the three reset entry points
+- `src/routes/forgot-password.tsx` — replace `supabase.auth.resetPasswordForEmail(...)` with `requestPasswordReset({ data: { email } })`.
+- `src/routes/auth.reset-password.tsx` — same swap.
+- `src/pages/ResetPassword.tsx` — same swap (kept for any stale links).
 
-## Step 3 — Backfill cache metadata on existing files
+UI behaviour stays identical: enter email → loading → "Check your email" success state. No new screens, no flow change for users.
 
-Add a SQL migration `backfill_storage_cache_headers.sql` that updates `storage.objects.metadata.cacheControl` to `max-age=31536000` for buckets: `avatars`, `landing-images`, `landing-page-assets`, `landing-page-attachments`, `whatsapp-media`. Excludes `kyc-documents`. User runs once.
+### 4. No changes needed to
+- `/reset-password` route — already correctly reads `access_token` + `refresh_token` from the URL hash and calls `supabase.auth.updateUser({ password })`. The link we email has exactly that shape.
+- Sign-up, login, profile, or any other auth flow.
+- Database schema, RLS, or migrations.
+- The Gmail OAuth setup — we use it exactly as it is.
 
-(Skip the edge function approach — SQL update is sufficient and atomic.)
+## Safety / "nothing should break" checklist
 
-## Step 4 — Lazy-load + dimension hints on `<img>` usage
+- The `supabase.auth.admin.generateLink` API produces the same token format Supabase would have sent itself, so the existing reset page consumes it without changes.
+- If Gmail token is revoked or rate-limited, we automatically fall back to Resend — the user still gets the mail.
+- If both transports fail, the server function still returns `{ ok: true }` to the client (no enumeration), and the failure is logged for you in worker logs.
+- No edits to login, signup, `useAuth`, session handling, or the protected route layout.
+- No DB migrations, no env var changes (Gmail OAuth and `RESEND_API_KEY` are already configured).
 
-Pass over the rendering sites that show user-uploaded images and add `loading="lazy"` + `decoding="async"` + explicit `width`/`height` where the slot is known:
-- `TestimonialsViewer.tsx`, `LandingPagePreview.tsx`, `FunnelLivePreview.tsx`, `MultiStepViewer.tsx`, `CodeGateScreen.tsx`, `LandingPageCodeGate.tsx`, `PublicLandingPage.tsx`, `PublicFunnel.tsx`, `PublicLivePage.tsx` — testimonial photos, speaker photos, hero images.
-- `EntityCard.tsx`, `LatestVideoShareCard.tsx`, `ProfilePage.tsx` (avatar lists) — dashboard avatars.
-- Above-the-fold hero in `landing/AnimatedImage.tsx` stays eager.
-- `VideoThumbnail.tsx` already uses `loading="lazy"` on `<img>`.
+## Manual verification after build
 
-Skip touching: `AdminKYCPage.tsx`, `InstallApp.tsx` (static), `HelpCenterPage.tsx` (static).
-
-## Step 5 — Verification (manual, after deploy)
-
-Document in commit message + chat reply:
-1. Upload a new avatar → confirm file is .webp, ~10 kB, response header `cache-control: max-age=31536000`.
-2. Run the SQL backfill in Supabase SQL editor.
-3. `curl -I` one existing avatar URL → should now report `cache-control: max-age=31536000`.
-4. DevTools → reload dashboard → avatars show "from disk cache".
-
-## Out of scope (explicit)
-
-- Admin "Storage Health" dashboard panel (Step 8 in the brief) — skipped this round to keep scope tight; can add later if you want a UI for the backfill.
-- Re-compressing legacy uploads to WebP — leaving them as JPEG, just adding cache headers. The bandwidth win comes from caching; per-file size matters less once they're cached.
-- R2 migration — not needed at current scale.
-
-## Files changed
-
-New:
-- `src/lib/imageCompress.ts`
-- `backfill_storage_cache_headers.sql`
-
-Edited (upload call sites):
-- `src/components/ProfilePhotoCropModal.tsx`
-- `src/components/funnel/TestimonialPhotoUpload.tsx`
-- `src/components/funnel/TestimonialVideoUpload.tsx`
-- `src/components/funnel/SpeakerPhotoUpload.tsx`
-- `src/components/funnel/AudioNoteRecorder.tsx`
-- `src/components/ui/image-upload-field.tsx`
-- `src/pages/LandingPageEditor.tsx`
-- `src/components/admin/settings/LandingContentTab.tsx`
-- `src/components/admin/WhatsAppMediaTab.tsx`
-
-Edited (lazy-load + dimensions on `<img>`):
-- `src/components/funnel/TestimonialsViewer.tsx`
-- `src/components/funnel/LandingPagePreview.tsx`
-- `src/components/funnel/FunnelLivePreview.tsx`
-- `src/components/funnel/MultiStepViewer.tsx`
-- `src/components/funnel/CodeGateScreen.tsx`
-- `src/components/funnel/LandingPageCodeGate.tsx`
-- `src/components/funnel/PrivateLeadForm.tsx`
-- `src/components/funnel/PerStepSpeakerAssignment.tsx`
-- `src/components/insights/EntityCard.tsx`
-- `src/components/dashboard/LatestVideoShareCard.tsx`
-- `src/pages/PublicLandingPage.tsx`
-- `src/pages/PublicFunnel.tsx`
-- `src/pages/PublicLivePage.tsx`
-- `src/pages/ProfilePage.tsx`
-- `src/pages/Onboarding.tsx`
-- `src/pages/LivePage.tsx`
-- `src/pages/FunnelEditor.tsx`
+1. Open `/forgot-password`, submit your own email → check inbox (should arrive from your connected Gmail within seconds).
+2. Click the link → land on `/reset-password` → set new password → redirected to `/auth` → log in with the new password.
+3. Submit a non-existent email → UI still says "sent" (correct — no enumeration), worker logs show `user_not_found`.
