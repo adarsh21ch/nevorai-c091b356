@@ -15,14 +15,12 @@ const ResetPassword = () => {
   const handleReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/update-password`,
-    });
+    await requestPasswordReset({ data: { email } }).catch(() => null);
     setLoading(false);
-    if (error) { toast.error(error.message); return; }
     setSent(true);
     toast.success("Password reset email sent!");
   };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-bg-subtle">
