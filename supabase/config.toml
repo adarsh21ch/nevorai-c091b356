@@ -12,6 +12,9 @@ verify_jwt = false
 [functions.send-gmail-email]
 verify_jwt = false
 
+[functions.request-password-reset]
+verify_jwt = false
+
 [functions.send-landing-page-confirmation]
 verify_jwt = false
 
