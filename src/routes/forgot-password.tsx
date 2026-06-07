@@ -23,10 +23,7 @@ function ForgotPassword() {
     toast.success("Check your email (and spam folder) for the reset link");
   };
 
-    if (error) { toast.error(error.message); return; }
-    setSent(true);
-    toast.success("Check your email (and spam folder) for the reset link");
-  };
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-bg-subtle">
