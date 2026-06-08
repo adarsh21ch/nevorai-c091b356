@@ -166,7 +166,6 @@ export default function PublicAcademyTutorialPage() {
         current={tutorial}
         feed={shortsFeed.length > 0 ? shortsFeed : [tutorial]}
         user={user}
-        isCompleted={isCompleted}
         onToggleComplete={(tid, done) => toggleComplete.mutate({ tutorialId: tid, done })}
       />
     );
