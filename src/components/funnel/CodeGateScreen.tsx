@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, Loader2, Shield } from "lucide-react";
-import logoImg from "@/assets/nevorai-flow-logo.png";
+import logoImg from "@/assets/nevorai-logo-mark.png";
 
 interface CodeGateScreenProps {
   funnelId: string;
@@ -103,7 +103,7 @@ export const CodeGateScreen = ({ funnelId, funnelTitle, creatorName, onSuccess, 
     <div className="min-h-screen flex items-center justify-center p-4" style={{ background: bg }}>
       <div className="w-full max-w-sm text-center">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <img src={logoImg} alt="Nevorai" className="h-7 w-7" />
+          <img src={logoImg} alt="Nevorai" draggable={false} className="logo-mark-img h-7 w-7" />
           <div className="flex items-baseline text-[16px]" style={{ lineHeight: 1 }}>
             <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 600, color: text, letterSpacing: "-0.02em" }}>Nevorai</span>
             <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 800, color: text, letterSpacing: "-0.03em", marginLeft: "4px" }}>Flow</span>
