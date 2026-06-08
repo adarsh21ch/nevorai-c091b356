@@ -67,9 +67,9 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.6 }}
             style={{ color: "var(--text-secondary)" }}
           >
-            The video platform built for{" "}
-            <span className="accent-saffron" style={{ fontWeight: 600 }}>creators who sell</span>.
-            Skip-protection, viewer tracking, and conversion insights — on every video you share.
+            Create guided video journeys, track viewer behavior, and know exactly{" "}
+            <span className="accent-saffron" style={{ fontWeight: 600 }}>who's engaged</span>{" "}
+            before you follow up.
           </motion.p>
 
           <motion.div
