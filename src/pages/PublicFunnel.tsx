@@ -1314,11 +1314,10 @@ const PublicFunnel = () => {
             <img
               src={logoImg}
               alt="Nevorai"
-              className="h-6 w-6 object-contain"
-              style={{ filter: isDark ? "invert(1)" : "none" }}
+              className="logo-mark-img h-9 w-9 object-contain"
               draggable={false}
             />
-            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 700, color: tc.text, letterSpacing: "-0.02em", fontSize: 16, lineHeight: 1 }}>Nevorai</span>
+            <span style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", fontWeight: 700, color: tc.text, letterSpacing: "-0.02em", fontSize: 18, lineHeight: 1 }}>Nevorai</span>
           </a>
         </div>
         <div className="flex items-center gap-1">
