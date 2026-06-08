@@ -594,8 +594,8 @@ export const AcademyTab = () => {
                     </div>
                     <div className="border-t border-border px-3 py-2 text-[11px] text-muted-foreground">
                       {form.format === "short"
-                        ? "Vertical thumbnail (9:16) — matches Shorts player."
-                        : "Wide thumbnail (16:9) — matches Full Videos player."}
+                        ? "Vertical thumbnail (9:16) — matches the Mobile view player."
+                        : "Wide thumbnail (16:9) — matches the Desktop view player."}
                     </div>
                   </div>
                 ) : (
