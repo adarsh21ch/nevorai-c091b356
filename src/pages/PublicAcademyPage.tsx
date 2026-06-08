@@ -38,8 +38,22 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export default function PublicAcademyPage() {
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<TutorialFormat>("short");
+
+  const { data: completedSet = new Set<string>() } = useQuery({
+    queryKey: ["academy-completions", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("academy_completions")
+        .select("tutorial_id")
+        .eq("user_id", user!.id);
+      return new Set<string>((data || []).map((r: any) => r.tutorial_id));
+    },
+  });
+
 
   const { data: tutorials = [], isLoading } = useQuery({
     queryKey: ["academy-tutorials-public"],
