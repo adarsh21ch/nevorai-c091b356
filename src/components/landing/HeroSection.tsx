@@ -28,7 +28,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="mb-6 badge-pill badge-pill-accent"
           >
-            Built for Creators Who Sell
+            BUILT FOR PEOPLE WHO SELL
           </motion.div>
 
           <div className="relative mb-6">
