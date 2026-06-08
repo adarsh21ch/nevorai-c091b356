@@ -283,18 +283,31 @@ function ShortsPlayer({
   current,
   feed,
   user,
-  isCompleted,
   onToggleComplete,
 }: {
   current: Tutorial;
   feed: Tutorial[];
   user: any;
-  isCompleted: boolean;
   onToggleComplete: (tutorialId: string, done: boolean) => void;
 }) {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+
+  const { data: completedSet = new Set<string>() } = useQuery({
+    queryKey: ["academy-completions", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("academy_completions")
+        .select("tutorial_id")
+        .eq("user_id", user!.id);
+      return new Set<string>((data || []).map((r: any) => r.tutorial_id));
+    },
+  });
+  // keep qc referenced (invalidation happens via parent mutation)
+  void qc;
 
   const startIndex = useMemo(() => {
     const i = feed.findIndex((t) => t.id === current.id);
