@@ -26,6 +26,8 @@ import {
   X,
 } from "lucide-react";
 
+type TutorialFormat = "short" | "full";
+
 type Tutorial = {
   id: string;
   title: string;
@@ -35,6 +37,7 @@ type Tutorial = {
   category: string;
   order_index: number;
   is_published: boolean;
+  format: TutorialFormat;
 };
 
 type UploadState = {
@@ -62,7 +65,9 @@ const emptyForm = {
   thumbnail_url: "",
   category: "getting-started",
   is_published: true,
+  format: "short" as TutorialFormat,
 };
+
 
 const emptyUploadState: UploadState = {
   error: null,
