@@ -16,7 +16,7 @@ import {
   AlertTriangle, BadgeCheck, Volume2, VolumeX,
   Maximize, Minimize, Share2, Loader2, Gauge, Sun, Moon
 } from "lucide-react";
-import logoImg from "@/assets/nevorai-flow-logo.png";
+import logoImg from "@/assets/nevorai-logo-mark.png";
 import { MultiStepViewer } from "@/components/funnel/MultiStepViewer";
 import { CodeGateScreen } from "@/components/funnel/CodeGateScreen";
 import { PrivateLeadForm } from "@/components/funnel/PrivateLeadForm";

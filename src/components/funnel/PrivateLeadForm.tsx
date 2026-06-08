@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Check, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import logoImg from "@/assets/nevorai-flow-logo.png";
+import logoImg from "@/assets/nevorai-logo-mark.png";
 import { sanitizeText } from "@/lib/sanitize";
 import { captureAttribution } from "@/lib/tracking";
 import {

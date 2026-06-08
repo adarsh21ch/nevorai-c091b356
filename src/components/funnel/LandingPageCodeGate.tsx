@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Lock, Loader2, Eye, EyeOff, Shield } from "lucide-react";
-import logoImg from "@/assets/nevorai-flow-logo.png";
+import logoImg from "@/assets/nevorai-logo-mark.png";
 
 interface LandingPageCodeGateProps {
   pageId: string;

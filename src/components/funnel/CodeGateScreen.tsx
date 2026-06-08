@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, Loader2, Shield } from "lucide-react";
-import logoImg from "@/assets/nevorai-flow-logo.png";
+import logoImg from "@/assets/nevorai-logo-mark.png";
 
 interface CodeGateScreenProps {
   funnelId: string;
