@@ -45,10 +45,17 @@ export const HeroSection = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
-                Same effort.{" "}
-                <span className="italic" style={{ fontWeight: 700 }}>
-                  Twice the <span className="accent-saffron-underline">conversion</span>.
-                </span>
+                Videos They{" "}
+                <span className="accent-saffron-underline">Can't Skip</span>.
+              </motion.span>
+              <motion.span
+                className="block text-4xl sm:text-5xl md:text-7xl mt-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.35 }}
+              >
+                Insights You{" "}
+                <span className="accent-saffron-underline">Can't Miss</span>.
               </motion.span>
             </h1>
           </div>
