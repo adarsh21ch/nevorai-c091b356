@@ -385,7 +385,7 @@ function ShortsPlayer({
       {/* Top bar */}
       <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between gap-2 bg-gradient-to-b from-black/70 to-transparent px-3 py-3 sm:px-5">
         <button
-          onClick={() => navigate({ to: "/academy" })}
+          onClick={() => navigate("/academy")}
           className="inline-flex items-center gap-1 rounded-full bg-black/40 px-3 py-1.5 text-sm backdrop-blur-sm hover:bg-black/60"
         >
           <ChevronLeft size={16} /> Academy
