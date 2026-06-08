@@ -416,10 +416,10 @@ export const AcademyTab = () => {
                         }`}
                       >
                         <div className="text-sm font-semibold">
-                          {f === "short" ? "Shorts" : "Full Videos"}
+                          {f === "short" ? "📱 Mobile view (Shorts)" : "🖥️ Desktop view (Full)"}
                         </div>
                         <div className="text-[11px] text-muted-foreground">
-                          {f === "short" ? "Vertical 9:16 — reels-style" : "Horizontal 16:9 — landscape"}
+                          {f === "short" ? "Vertical 9:16 — reels-style swipe" : "Horizontal 16:9 — landscape player"}
                         </div>
                       </button>
                     );
