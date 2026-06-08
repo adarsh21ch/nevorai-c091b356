@@ -109,7 +109,7 @@ export default function PublicAcademyPage() {
           </h1>
           <p className="mt-3 max-w-2xl text-sm sm:text-base text-muted-foreground">
             Short, no-fluff tutorials for coaches, network marketers and entrepreneurs.
-            Swipe through Shorts or watch Full Videos. No signup required.
+            Pick <strong>Mobile view</strong> for swipeable reels, or <strong>Desktop view</strong> for full landscape lessons. No signup required.
           </p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link to="/auth?tab=signup">
@@ -124,13 +124,13 @@ export default function PublicAcademyPage() {
         <Tabs value={tab} onValueChange={(v) => setTab(v as TutorialFormat)}>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <TabsList>
-              <TabsTrigger value="short">Shorts ({shortsCount})</TabsTrigger>
-              <TabsTrigger value="full">Full Videos ({fullCount})</TabsTrigger>
+              <TabsTrigger value="short">📱 Mobile view ({shortsCount})</TabsTrigger>
+              <TabsTrigger value="full">🖥️ Desktop view ({fullCount})</TabsTrigger>
             </TabsList>
             <div className="relative w-full max-w-xs">
               <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
               <Input
-                placeholder={`Search ${tab === "short" ? "shorts" : "full videos"}...`}
+                placeholder={`Search ${tab === "short" ? "mobile tutorials" : "desktop tutorials"}...`}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-9"
@@ -147,7 +147,7 @@ export default function PublicAcademyPage() {
               <Card className="p-10 text-center">
                 <Sparkles className="mx-auto mb-3 text-primary" />
                 <h3 className="text-base font-semibold">
-                  {tab === "short" ? "No Shorts yet" : "No Full Videos yet"}
+                  {tab === "short" ? "No mobile tutorials yet" : "No desktop tutorials yet"}
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
                   {query ? `Nothing matches "${query}".` : "Check back soon."}
