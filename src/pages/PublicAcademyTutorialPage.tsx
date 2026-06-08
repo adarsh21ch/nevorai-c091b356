@@ -444,7 +444,7 @@ function ShortsPlayer({
               else videoRefs.current.delete(t.id);
             }}
             user={user}
-            isCompleted={i === activeIndex ? isCompleted : false}
+            isCompleted={completedSet.has(t.id)}
             onComplete={(done) => onToggleComplete(t.id, done)}
           />
         ))}
@@ -462,11 +462,11 @@ function ShortsPlayer({
           <div className="pointer-events-auto flex flex-wrap items-center gap-2">
             {user ? (
               <Button
-                variant={isCompleted && activeTutorial.id === current.id ? "outline" : "hero"}
+                variant={completedSet.has(activeTutorial.id) ? "outline" : "hero"}
                 size="sm"
-                onClick={() => onToggleComplete(activeTutorial.id, !(isCompleted && activeTutorial.id === current.id))}
+                onClick={() => onToggleComplete(activeTutorial.id, !completedSet.has(activeTutorial.id))}
               >
-                {isCompleted && activeTutorial.id === current.id ? (
+                {completedSet.has(activeTutorial.id) ? (
                   <><CheckCircle2 size={14} className="text-green-500" /> Completed</>
                 ) : (
                   <><Circle size={14} /> Mark complete</>
