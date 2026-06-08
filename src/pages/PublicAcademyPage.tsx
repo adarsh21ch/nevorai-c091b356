@@ -206,6 +206,11 @@ export default function PublicAcademyPage() {
                           <div className="absolute left-2 top-2 rounded-md bg-black/60 px-1.5 py-0.5 font-mono text-[10px] text-white">
                             #{i + 1}
                           </div>
+                          {completedSet.has(t.id) && (
+                            <div className="absolute right-2 top-2 flex items-center gap-1 rounded-full bg-green-500/95 px-2 py-0.5 text-[10px] font-semibold text-white shadow">
+                              <CheckCircle2 size={12} /> Watched
+                            </div>
+                          )}
                           <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 transition-opacity group-hover:opacity-100">
                             <PlayCircle className="text-white" size={56} />
                           </div>
