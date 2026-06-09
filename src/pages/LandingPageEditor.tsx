@@ -1023,7 +1023,11 @@ const LandingPageEditor = () => {
         testimonialsSectionTitle={form.testimonials_section_title ?? "What our members say"}
         onToggleEnabled={(v) => updateField("testimonials_enabled", v)}
         onTitleChange={(v) => updateField("testimonials_section_title", v)}
+        onCreateDraft={!id && form.title ? () => saveMutation.mutate() : undefined}
+        creatingDraft={saveMutation.isPending}
+        canCreateDraft={Boolean(form.title)}
       />
+
 
       {form.testimonials_enabled && (
         <div className="p-4 rounded-xl border border-border bg-muted/30 space-y-3">
