@@ -19,6 +19,11 @@ interface TestimonialsBuilderStepProps {
   testimonialsSectionTitle: string;
   onToggleEnabled: (v: boolean) => void;
   onTitleChange: (v: string) => void;
+  /** Called when the user clicks "Create draft to add testimonials" in the
+   *  empty/no-id state. Only relevant in the create flow. */
+  onCreateDraft?: () => void;
+  creatingDraft?: boolean;
+  canCreateDraft?: boolean;
 }
 
 const DebouncedInput = memo(({ value: externalValue, onSave, placeholder, className }: {
