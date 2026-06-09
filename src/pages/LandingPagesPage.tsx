@@ -138,7 +138,11 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
           </Card>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((page: any) => (
+            {filtered.map((page: any) => {
+              const sections: any[] = Array.isArray(page.sections) ? page.sections : [];
+              const sectionImage = sections.find((s: any) => (s?.type === "hero" || s?.type === "image") && s?.image_url)?.image_url;
+              const coverImage = sectionImage || page.og_image_url || page.speaker_photo_url || null;
+              return (
               <Card
                 key={page.id}
                 role="button"
@@ -147,9 +151,9 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
                 onKeyDown={(e) => { if (e.key === "Enter") navigate({ to: "/landing-pages/$id", params: { id: page.id } }); }}
                 className="p-0 overflow-hidden premium-card cursor-pointer transition hover:shadow-md hover:border-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                {page.og_image_url ? (
+                {coverImage ? (
                   <div className="aspect-[16/9] w-full bg-muted overflow-hidden border-b">
-                    <img src={page.og_image_url} alt={page.title} loading="lazy" className="w-full h-full object-cover" />
+                    <img src={coverImage} alt={page.title} loading="lazy" className="w-full h-full object-cover" />
                   </div>
                 ) : (
                   <div className="aspect-[16/9] w-full bg-gradient-to-br from-primary/10 via-muted to-muted/50 flex items-center justify-center border-b">
@@ -188,7 +192,8 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
                   </div>
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
