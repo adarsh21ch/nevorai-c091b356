@@ -192,7 +192,8 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
                   </div>
                 </div>
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
