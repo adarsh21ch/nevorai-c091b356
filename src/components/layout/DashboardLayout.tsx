@@ -85,8 +85,10 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
   });
 
   const handleLogout = async () => {
-    await signOut();
-    navigate("/");
+    // Navigate first so the UI swaps instantly,
+    // then clear the session in the background (now fully local & fast).
+    navigate("/auth");
+    void signOut();
   };
 
   const preloadRoute = (path: string) => {
