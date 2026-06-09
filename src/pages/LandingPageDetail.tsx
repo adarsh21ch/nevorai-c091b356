@@ -191,6 +191,12 @@ const LandingPageDetail = () => {
           </div>
         </Card>
       </div>
+      <ShareWithTeamModal
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        landingPageId={(page as any).id}
+        landingPageTitle={(page as any).title}
+      />
     </DashboardLayout>
   );
 };
