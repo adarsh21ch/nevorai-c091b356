@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
-import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
+
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { ShareWithTeamModal } from "@/components/landing-pages/ShareWithTeamModal";
 
