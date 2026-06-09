@@ -96,7 +96,7 @@ const defaultFormState = {
   speaker_photo_url: "",
   testimonials_enabled: false,
   testimonials_section_title: "What our members say",
-  testimonials_display_position: "after_registration" as string,
+  testimonials_display_position: "both" as string,
   min_age_enabled: false,
   min_age: 18,
   access_code_message: "",
@@ -248,20 +248,25 @@ const LandingPageEditor = () => {
       if (isEdit) {
         const { error } = await supabase.from("landing_pages").update(payload).eq("id", id!);
         if (error) throw error;
+        return { id: id!, created: false };
       } else {
         // Append a 4-char random base62 suffix so URLs cannot be enumerated.
         // Existing landing pages keep their slug — we only suffix on first insert.
         const baseSlug = generateSlug(payload.slug || payload.title || "page") || "page";
         payload.slug = await generateUniqueSuffixedSlug(baseSlug, "landing_pages");
-        const { error } = await supabase.from("landing_pages").insert(payload);
+        const { data: inserted, error } = await supabase
+          .from("landing_pages").insert(payload).select("id").single();
         if (error) throw error;
+        return { id: inserted!.id as string, created: true };
       }
     },
-    onSuccess: async () => {
+    onSuccess: async (result) => {
       toast.success(isEdit ? "Landing page updated" : "Landing page created");
       await queryClient.invalidateQueries({ queryKey: ["landing-pages"] });
       await queryClient.refetchQueries({ queryKey: ["landing-pages"] });
-      if (!isEdit) navigate("/tools?tab=landing-pages");
+      // After first save, jump into the edit view so the user can immediately
+      // add testimonials / video / etc. that require a landing_page_id.
+      if (result?.created && result.id) navigate(`/landing-pages/${result.id}/edit`);
     },
     onError: (e: any) => toast.error(e.message || "Failed to save"),
   });
@@ -1018,7 +1023,11 @@ const LandingPageEditor = () => {
         testimonialsSectionTitle={form.testimonials_section_title ?? "What our members say"}
         onToggleEnabled={(v) => updateField("testimonials_enabled", v)}
         onTitleChange={(v) => updateField("testimonials_section_title", v)}
+        onCreateDraft={!id && form.title ? () => saveMutation.mutate() : undefined}
+        creatingDraft={saveMutation.isPending}
+        canCreateDraft={Boolean(form.title)}
       />
+
 
       {form.testimonials_enabled && (
         <div className="p-4 rounded-xl border border-border bg-muted/30 space-y-3">
@@ -1029,7 +1038,7 @@ const LandingPageEditor = () => {
               { v: "after_registration", label: "After form", desc: "Reassure post-submit" },
               { v: "both", label: "Both", desc: "Maximum exposure" },
             ].map((opt) => {
-              const active = (form.testimonials_display_position || "after_registration") === opt.v;
+              const active = (form.testimonials_display_position || "both") === opt.v;
               return (
                 <button key={opt.v} type="button" onClick={() => updateField("testimonials_display_position", opt.v)}
                   className={`text-left p-3 rounded-lg border transition ${active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/40"}`}>
