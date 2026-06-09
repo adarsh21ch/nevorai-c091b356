@@ -126,7 +126,7 @@ const LandingPageDetail = () => {
 
         <Card className="p-5 space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-            <h2 className="font-semibold">Registrations ({(registrations as any[]).length})</h2>
+            <h2 className="font-semibold">Insights ({(registrations as any[]).length})</h2>
             <div className="flex gap-2">
               <div className="relative">
                 <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
