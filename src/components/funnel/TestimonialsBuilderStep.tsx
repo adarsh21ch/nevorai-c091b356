@@ -81,6 +81,7 @@ type TestimonialContentType = "text" | "video" | "both";
 
 export const TestimonialsBuilderStep = ({
   landingPageId, userId, testimonialsEnabled, testimonialsSectionTitle, onToggleEnabled, onTitleChange,
+  onCreateDraft, creatingDraft, canCreateDraft,
 }: TestimonialsBuilderStepProps) => {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
