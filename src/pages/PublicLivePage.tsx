@@ -27,6 +27,8 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 import { trackEntityView } from "@/lib/tracking";
+import { PrivacyGuardMount } from "@/components/PrivacyGuard";
+import { MaterialsList } from "@/components/MaterialsList";
 
 type ViewerState = "waiting" | "live" | "ended" | "replay";
 
