@@ -563,6 +563,14 @@ const PublicLandingPage = () => {
         )}
       </main>
 
+      {page?.id && (
+        <div className="max-w-3xl mx-auto w-full px-4 mb-6">
+          <MaterialsList entityType="landing_page" entityId={page.id} />
+        </div>
+      )}
+
+
+
       <footer style={{ textAlign: "center", padding: "24px 16px", color: "#9ca3af", fontSize: 13, borderTop: "1px solid hsl(var(--border))" }}>
         © 2026 Nevorai · All Rights Reserved · India
       </footer>
