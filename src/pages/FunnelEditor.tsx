@@ -30,7 +30,8 @@ import { PerStepSpeakerAssignment } from "@/components/funnel/PerStepSpeakerAssi
 import { usePlan } from "@/hooks/usePlan";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { StepLockOverlay } from "@/components/funnel/StepLockOverlay";
-import { Crown } from "lucide-react";
+import { Crown, Paperclip } from "lucide-react";
+import { MaterialsManager } from "@/components/MaterialsManager";
 import { sanitizeText } from "@/lib/sanitize";
 import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
 import { EditorScrollLayout, EditorSectionBlock, type EditorSection } from "@/components/editor/EditorScrollLayout";
