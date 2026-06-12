@@ -1369,14 +1369,18 @@ const FunnelEditor = () => {
     }
   };
 
-  const editorSections: EditorSection[] = visibleSteps.map((s) => ({
-    id: labelToId(s.label),
-    label: s.label,
-    num: (s as any).num,
-    icon: s.icon,
-    locked: !!getStepLock(s.label),
-    complete: sectionCompleteByLabel(s.label),
-  }));
+  const editorSections: EditorSection[] = [
+    ...visibleSteps.map((s) => ({
+      id: labelToId(s.label),
+      label: s.label,
+      num: (s as any).num,
+      icon: s.icon,
+      locked: !!getStepLock(s.label),
+      complete: sectionCompleteByLabel(s.label),
+    })),
+    ...(id ? [{ id: "section-materials", label: "Materials", num: visibleSteps.length + 1, icon: Paperclip, complete: false }] : []),
+  ];
+
 
   if (authLoading || (isEdit && (funnelLoading || leadFormLoading || stepsLoading))) {
     return (
