@@ -983,7 +983,13 @@ const PublicLivePage = () => {
         })()}
 
       </div>
+      {(session as any)?.id && (
+        <div className="max-w-3xl mx-auto w-full px-4 mt-4">
+          <MaterialsList entityType="live_session" entityId={(session as any).id} />
+        </div>
+      )}
       <footer style={{ textAlign: "center", padding: "24px 16px", color: "#9ca3af", fontSize: 13, borderTop: "1px solid hsl(var(--border))" }}>
+
         © 2026 Nevorai · All Rights Reserved · India
       </footer>
     </div>
