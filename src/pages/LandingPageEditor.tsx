@@ -25,7 +25,8 @@ import {
 } from "lucide-react";
 import { TestimonialsBuilderStep } from "@/components/funnel/TestimonialsBuilderStep";
 import { ShareWithTeamModal } from "@/components/landing-pages/ShareWithTeamModal";
-import { Users as UsersIcon } from "lucide-react";
+import { Users as UsersIcon, Paperclip } from "lucide-react";
+import { MaterialsManager } from "@/components/MaterialsManager";
 import { toast } from "sonner";
 import { sanitizeText } from "@/lib/sanitize";
 import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
