@@ -465,7 +465,14 @@ const PublicVideoPage = () => {
         />
       )}
 
+      {video?.id && (
+        <div className="max-w-3xl mx-auto w-full px-4 mt-6">
+          <MaterialsList entityType="video" entityId={video.id} />
+        </div>
+      )}
+
       <footer
+
         style={{
           textAlign: "center",
           padding: "24px 16px",
