@@ -44,6 +44,8 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { StateSelect } from "@/components/ui/StateSelect";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
+import { PrivacyGuardMount } from "@/components/PrivacyGuard";
+import { MaterialsList } from "@/components/MaterialsList";
 
 
 /* ─── Speed Popover ─── */
