@@ -1063,13 +1063,17 @@ const LandingPageEditor = () => {
 
   const labelToId = (label: string) => `section-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
 
-  const editorSections: EditorSection[] = WIZARD_STEPS.map((s, i) => ({
-    id: labelToId(s.label),
-    label: s.label,
-    num: s.num,
-    icon: s.icon,
-    complete: i === lastStepIdx ? form.status === "published" : false,
-  }));
+  const editorSections: EditorSection[] = [
+    ...WIZARD_STEPS.map((s, i) => ({
+      id: labelToId(s.label),
+      label: s.label,
+      num: s.num,
+      icon: s.icon,
+      complete: i === lastStepIdx ? form.status === "published" : false,
+    })),
+    ...(id ? [{ id: "section-materials", label: "Materials", num: WIZARD_STEPS.length + 1, icon: Paperclip, complete: false }] : []),
+  ];
+
 
   if (isMobile && previewMode) {
     return (
