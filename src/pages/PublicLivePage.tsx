@@ -27,6 +27,8 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 import { trackEntityView } from "@/lib/tracking";
+import { PrivacyGuardMount } from "@/components/PrivacyGuard";
+import { MaterialsList } from "@/components/MaterialsList";
 
 type ViewerState = "waiting" | "live" | "ended" | "replay";
 
@@ -517,6 +519,8 @@ const PublicLivePage = () => {
 
   return (
     <div className="min-h-[100dvh] bg-background">
+      <PrivacyGuardMount watermarkText={(session as any)?.title || "Live session"} />
+
       <div className="border-b border-border px-4 py-3 flex items-center justify-between">
         <a href="https://nevorai.com" target="_blank" rel="noopener noreferrer"><Logo size="sm" /></a>
         {(stateData.state === "live" || stateData.state === "replay") && (
@@ -979,7 +983,13 @@ const PublicLivePage = () => {
         })()}
 
       </div>
+      {(session as any)?.id && (
+        <div className="max-w-3xl mx-auto w-full px-4 mt-4">
+          <MaterialsList entityType="live_session" entityId={(session as any).id} />
+        </div>
+      )}
       <footer style={{ textAlign: "center", padding: "24px 16px", color: "#9ca3af", fontSize: 13, borderTop: "1px solid hsl(var(--border))" }}>
+
         © 2026 Nevorai · All Rights Reserved · India
       </footer>
     </div>

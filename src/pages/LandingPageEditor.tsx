@@ -25,7 +25,8 @@ import {
 } from "lucide-react";
 import { TestimonialsBuilderStep } from "@/components/funnel/TestimonialsBuilderStep";
 import { ShareWithTeamModal } from "@/components/landing-pages/ShareWithTeamModal";
-import { Users as UsersIcon } from "lucide-react";
+import { Users as UsersIcon, Paperclip } from "lucide-react";
+import { MaterialsManager } from "@/components/MaterialsManager";
 import { toast } from "sonner";
 import { sanitizeText } from "@/lib/sanitize";
 import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
@@ -1063,13 +1064,17 @@ const LandingPageEditor = () => {
 
   const labelToId = (label: string) => `section-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}`;
 
-  const editorSections: EditorSection[] = WIZARD_STEPS.map((s, i) => ({
-    id: labelToId(s.label),
-    label: s.label,
-    num: s.num,
-    icon: s.icon,
-    complete: i === lastStepIdx ? form.status === "published" : false,
-  }));
+  const editorSections: EditorSection[] = [
+    ...WIZARD_STEPS.map((s, i) => ({
+      id: labelToId(s.label),
+      label: s.label,
+      num: s.num,
+      icon: s.icon,
+      complete: i === lastStepIdx ? form.status === "published" : false,
+    })),
+    ...(id ? [{ id: "section-materials", label: "Materials", num: WIZARD_STEPS.length + 1, icon: Paperclip, complete: false }] : []),
+  ];
+
 
   if (isMobile && previewMode) {
     return (
@@ -1166,6 +1171,12 @@ const LandingPageEditor = () => {
             {STEP_RENDERERS[i]()}
           </EditorSectionBlock>
         ))}
+        {id && (
+          <EditorSectionBlock id="section-materials">
+            <MaterialsManager entityType="landing_page" entityId={id} />
+          </EditorSectionBlock>
+        )}
+
       </EditorScrollLayout>
     </DashboardLayout>
   );

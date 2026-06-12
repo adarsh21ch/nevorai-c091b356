@@ -26,6 +26,8 @@ import {
   formatRelativeDate,
 } from "@/lib/format";
 import { toast } from "sonner";
+import { PrivacyGuardMount } from "@/components/PrivacyGuard";
+import { MaterialsList } from "@/components/MaterialsList";
 
 const PublicVideoPage = () => {
   const { id } = useParams();
@@ -266,7 +268,9 @@ const PublicVideoPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <PrivacyGuardMount watermarkText={video?.title || "Protected video"} />
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
+
         <div className="h-0.5 w-full bg-primary" />
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -461,7 +465,14 @@ const PublicVideoPage = () => {
         />
       )}
 
+      {video?.id && (
+        <div className="max-w-3xl mx-auto w-full px-4 mt-6">
+          <MaterialsList entityType="video" entityId={video.id} />
+        </div>
+      )}
+
       <footer
+
         style={{
           textAlign: "center",
           padding: "24px 16px",

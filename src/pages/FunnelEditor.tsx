@@ -30,7 +30,8 @@ import { PerStepSpeakerAssignment } from "@/components/funnel/PerStepSpeakerAssi
 import { usePlan } from "@/hooks/usePlan";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { StepLockOverlay } from "@/components/funnel/StepLockOverlay";
-import { Crown } from "lucide-react";
+import { Crown, Paperclip } from "lucide-react";
+import { MaterialsManager } from "@/components/MaterialsManager";
 import { sanitizeText } from "@/lib/sanitize";
 import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
 import { EditorScrollLayout, EditorSectionBlock, type EditorSection } from "@/components/editor/EditorScrollLayout";
@@ -1369,14 +1370,18 @@ const FunnelEditor = () => {
     }
   };
 
-  const editorSections: EditorSection[] = visibleSteps.map((s) => ({
-    id: labelToId(s.label),
-    label: s.label,
-    num: (s as any).num,
-    icon: s.icon,
-    locked: !!getStepLock(s.label),
-    complete: sectionCompleteByLabel(s.label),
-  }));
+  const editorSections: EditorSection[] = [
+    ...visibleSteps.map((s) => ({
+      id: labelToId(s.label),
+      label: s.label,
+      num: (s as any).num,
+      icon: s.icon,
+      locked: !!getStepLock(s.label),
+      complete: sectionCompleteByLabel(s.label),
+    })),
+    ...(id ? [{ id: "section-materials", label: "Materials", num: visibleSteps.length + 1, icon: Paperclip, complete: false }] : []),
+  ];
+
 
   if (authLoading || (isEdit && (funnelLoading || leadFormLoading || stepsLoading))) {
     return (
@@ -1487,9 +1492,15 @@ const FunnelEditor = () => {
             </EditorSectionBlock>
           );
         })}
+        {id && (
+          <EditorSectionBlock id="section-materials">
+            <MaterialsManager entityType="funnel" entityId={id} />
+          </EditorSectionBlock>
+        )}
       </EditorScrollLayout>
     </DashboardLayout>
   );
 };
+
 
 export default FunnelEditor;

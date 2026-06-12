@@ -44,6 +44,8 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { StateSelect } from "@/components/ui/StateSelect";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
+import { PrivacyGuardMount } from "@/components/PrivacyGuard";
+import { MaterialsList } from "@/components/MaterialsList";
 
 
 /* ─── Speed Popover ─── */
@@ -1299,7 +1301,15 @@ const PublicFunnel = () => {
           : undefined,
       }}
     >
+      <PrivacyGuardMount
+        watermarkText={
+          (leadForm?.name || leadForm?.phone)
+            ? `${leadForm.name || ""} ${leadForm.phone || ""}`.trim()
+            : (funnel as any)?.title || "Protected funnel"
+        }
+      />
       <div
+
         className="flex items-center justify-between sticky top-0 z-50"
         style={{
           height: "52px",
@@ -1628,6 +1638,13 @@ const PublicFunnel = () => {
         )}
 
         <div className="flex-1" />
+
+        {(funnel as any)?.id && (
+          <div className="max-w-3xl mx-auto w-full px-4 mt-6">
+            <MaterialsList entityType="funnel" entityId={(funnel as any).id} />
+          </div>
+        )}
+
 
         <footer style={{ textAlign: "center", padding: "24px 16px", color: "#9ca3af", fontSize: 13, borderTop: `1px solid ${tc.footerBorder}`, marginTop: 64 }}>
           © 2026 Nevorai · All Rights Reserved · India
