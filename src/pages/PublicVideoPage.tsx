@@ -266,7 +266,9 @@ const PublicVideoPage = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <PrivacyGuardMount watermarkText={video?.title || "Protected video"} />
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-md border-b border-border">
+
         <div className="h-0.5 w-full bg-primary" />
         <div className="max-w-3xl mx-auto px-4 h-14 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
