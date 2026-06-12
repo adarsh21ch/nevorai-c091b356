@@ -414,8 +414,14 @@ const LiveDetailPage = () => {
             </div>
           )}
         </div>
+        {id && (
+          <div className="mt-6">
+            <MaterialsManager entityType="live_session" entityId={id} />
+          </div>
+        )}
       </div>
     </DashboardLayout>
+
   );
 };
 
