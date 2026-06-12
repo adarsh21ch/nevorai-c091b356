@@ -1639,6 +1639,13 @@ const PublicFunnel = () => {
 
         <div className="flex-1" />
 
+        {(funnel as any)?.id && (
+          <div className="max-w-3xl mx-auto w-full px-4 mt-6">
+            <MaterialsList entityType="funnel" entityId={(funnel as any).id} />
+          </div>
+        )}
+
+
         <footer style={{ textAlign: "center", padding: "24px 16px", color: "#9ca3af", fontSize: 13, borderTop: `1px solid ${tc.footerBorder}`, marginTop: 64 }}>
           © 2026 Nevorai · All Rights Reserved · India
         </footer>
