@@ -315,6 +315,14 @@ const PublicLandingPage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${bgClass}`}>
+      <PrivacyGuardMount
+        watermarkText={
+          (formData?.name || formData?.phone)
+            ? `${formData.name || ""} ${formData.phone || ""}`.trim()
+            : page?.title || "Protected page"
+        }
+      />
+
       <header className="flex items-center justify-center px-4 md:px-8 py-4 border-b border-border">
         <a href="https://nevorai.com" target="_blank" rel="noopener noreferrer"><Logo size="sm" /></a>
       </header>
