@@ -12,7 +12,7 @@ import {
 import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
 import { sanitizeText } from "@/lib/sanitize";
 import { captureAttribution } from "@/lib/tracking";
-import { trackLinkEvent, getCachedShareLinkId } from "@/lib/teamTracking";
+import { trackLinkEvent, trackFunnelEvent, getCachedShareLinkId } from "@/lib/teamTracking";
 import {
   normalizePhone,
   trimSmart,
@@ -345,12 +345,13 @@ export const MultiStepViewer = ({
     return () => { if (progressSaveTimer.current) clearInterval(progressSaveTimer.current); };
   }, [activeStepIndex, progressMap, steps, funnel.id]);
 
-  // Team tracking: fire a 'view' event for the active step (deduped per session).
+  // Per-step view: always records to link_events (owner-default if no token).
   useEffect(() => {
     const step = steps[activeStepIndex];
     if (!step) return;
-    void trackLinkEvent(funnel.id, step.id, "view");
+    void trackFunnelEvent(funnel.id, step.id, "view");
   }, [activeStepIndex, steps, funnel.id]);
+
 
 
   // Realtime: re-fetch progress when creator manually unlocks a step for this session.
