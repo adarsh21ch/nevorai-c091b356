@@ -385,11 +385,51 @@ const PublicVideoPage = () => {
         </div>
       </div>
 
-      {/* Title + creator */}
-      <div className="max-w-3xl mx-auto w-full px-4 mt-4 space-y-3">
+      {/* Title + meta + creator row */}
+      <div className="max-w-3xl mx-auto w-full px-4 mt-4 space-y-2">
         <TitleBlock title={video.title || "Untitled video"} />
 
-        {/* Creator row — ALWAYS renders when we have a creator profile (with fallback name) */}
+        {/* Meta row — directly below title (YouTube-style) */}
+        <div className="flex items-center gap-x-2 gap-y-1 text-xs text-muted-foreground/80 flex-wrap">
+          {video.created_at && video.show_upload_date !== false && (
+            <span className="flex items-center gap-1">
+              <Calendar size={11} />
+              {formatRelativeDate(video.created_at)}
+            </span>
+          )}
+          {typeof video.view_count === "number" && video.view_count > 0 && (
+            <>
+              {video.created_at && video.show_upload_date !== false && <span aria-hidden>·</span>}
+              <span className="flex items-center gap-1">
+                <Eye size={11} />
+                {formatViewCount(video.view_count)} views
+              </span>
+            </>
+          )}
+          {!!video.duration_seconds && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="flex items-center gap-1">
+                <Clock size={11} />
+                {formatDuration(video.duration_seconds)}
+              </span>
+            </>
+          )}
+          {video.allow_seek === false && (
+            <>
+              <span aria-hidden>·</span>
+              <span
+                title="This video plays start-to-finish for the best experience — seeking is disabled."
+                className="inline-flex items-center gap-1"
+              >
+                <ShieldCheck size={11} />
+                Distraction-free
+              </span>
+            </>
+          )}
+        </div>
+
+        {/* Creator row — avatar + name left, actions (like/dislike + CTA) right */}
         {(() => {
           const cp = creatorProfile as any;
           const name: string = (cp?.display_name || "").toString().trim() || "Creator";
@@ -404,11 +444,10 @@ const PublicVideoPage = () => {
             "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
             "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400",
           ];
-          // Always render the creator row whenever we have an owner_id.
           if (!video?.owner_id) return null;
           return (
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex items-center gap-3 justify-between">
+              <div className="flex items-center gap-3 min-w-0">
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
                   {cp?.avatar_url ? (
                     <img
@@ -446,62 +485,23 @@ const PublicVideoPage = () => {
                   )}
                 </div>
               </div>
-              {cp?.cta_url && cp?.cta_label && (
-                <a
-                  href={cp.cta_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 px-4 h-9 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
-                >
-                  {cp.cta_label} →
-                </a>
-              )}
+
+              <div className="flex items-center gap-2 shrink-0">
+                {video?.id && <VideoReactions videoId={video.id} />}
+                {cp?.cta_url && cp?.cta_label && (
+                  <a
+                    href={cp.cta_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden sm:inline-flex items-center gap-1 px-4 h-9 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    {cp.cta_label} →
+                  </a>
+                )}
+              </div>
             </div>
           );
         })()}
-
-        {/* Like / Dislike */}
-        {video?.id && <VideoReactions videoId={video.id} />}
-
-        {/* Secondary meta row — date · views · duration · subtle distraction-free chip */}
-        <div className="flex items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-muted-foreground flex-wrap">
-          {video.created_at && video.show_upload_date !== false && (
-            <span className="flex items-center gap-1">
-              <Calendar size={12} />
-              {formatRelativeDate(video.created_at)}
-            </span>
-          )}
-          {typeof video.view_count === "number" && video.view_count > 0 && (
-            <>
-              {video.created_at && video.show_upload_date !== false && <span aria-hidden>·</span>}
-              <span className="flex items-center gap-1">
-                <Eye size={12} />
-                {formatViewCount(video.view_count)} views
-              </span>
-            </>
-          )}
-          {!!video.duration_seconds && (
-            <>
-              <span aria-hidden>·</span>
-              <span className="flex items-center gap-1">
-                <Clock size={12} />
-                {formatDuration(video.duration_seconds)}
-              </span>
-            </>
-          )}
-          {video.allow_seek === false && (
-            <>
-              <span aria-hidden>·</span>
-              <span
-                title="This video plays start-to-finish for the best experience — seeking is disabled."
-                className="inline-flex items-center gap-1"
-              >
-                <ShieldCheck size={12} />
-                Distraction-free
-              </span>
-            </>
-          )}
-        </div>
       </div>
 
 
