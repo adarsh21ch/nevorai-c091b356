@@ -21,6 +21,8 @@ import { LivePulseDot } from "@/components/insights/LivePulseDot";
 import { ActivityFeed, type ActivityItem } from "@/components/insights/ActivityFeed";
 import { EntityCard } from "@/components/insights/EntityCard";
 import { InsightsEmptyState } from "@/components/insights/EmptyState";
+import { TeamTrackingDashboard } from "@/components/insights/TeamTrackingDashboard";
+import { useHasTeam } from "@/lib/teamTracking";
 import { cn } from "@/lib/utils";
 
 const COLORS = ["hsl(var(--primary))", "#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
