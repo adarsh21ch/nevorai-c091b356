@@ -337,65 +337,81 @@ const PublicVideoPage = () => {
         </div>
       </div>
 
-      {/* Title */}
+      {/* Title + creator */}
       <div className="max-w-3xl mx-auto w-full px-4 mt-4 space-y-3">
-        <h1 className="text-xl sm:text-2xl font-heading font-semibold leading-tight tracking-tight">
-          {video.title || "Untitled video"}
-        </h1>
+        <TitleBlock title={video.title || "Untitled video"} />
 
-        {/* Creator row — YouTube-style. Only render when we have a real name. */}
-        {creatorProfile?.full_name && (
-          <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              <div className="w-10 h-10 rounded-full bg-muted overflow-hidden flex-shrink-0">
-                {creatorProfile.avatar_url ? (
-                  <img
-                    src={creatorProfile.avatar_url}
-                    alt={creatorProfile.full_name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-primary/10 text-primary text-sm font-bold">
-                    {creatorProfile.full_name[0].toUpperCase()}
-                  </div>
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="font-semibold text-foreground truncate text-sm sm:text-base">
-                    {creatorProfile.full_name}
-                  </span>
-                  {showVerifiedBadge && (
-                    <span
-                      title="Verified creator"
-                      className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-foreground flex-shrink-0"
+        {/* Creator row — ALWAYS renders when we have a creator profile (with fallback name) */}
+        {(() => {
+          const name =
+            (creatorProfile?.display_name || "").trim() || "Creator";
+          const initial = name[0]?.toUpperCase() || "C";
+          const colorIdx =
+            Array.from(name).reduce((a, c) => a + c.charCodeAt(0), 0) % 6;
+          const palette = [
+            "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+            "bg-rose-500/15 text-rose-600 dark:text-rose-400",
+            "bg-sky-500/15 text-sky-600 dark:text-sky-400",
+            "bg-violet-500/15 text-violet-600 dark:text-violet-400",
+            "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+            "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400",
+          ];
+          return creatorProfile ? (
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
+                  {creatorProfile.avatar_url ? (
+                    <img
+                      src={creatorProfile.avatar_url}
+                      alt={name}
+                      loading="lazy"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div
+                      className={`w-full h-full flex items-center justify-center text-sm font-bold ${palette[colorIdx]}`}
                     >
-                      <Check size={10} strokeWidth={3} />
-                    </span>
+                      {initial}
+                    </div>
                   )}
                 </div>
-                {creatorProfile.username && (
-                  <div className="text-xs text-muted-foreground truncate">
-                    @{creatorProfile.username}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="font-semibold text-foreground truncate text-sm sm:text-base">
+                      {name}
+                    </span>
+                    {showVerifiedBadge && (
+                      <span
+                        title="Verified creator"
+                        className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-primary text-primary-foreground flex-shrink-0"
+                      >
+                        <Check size={10} strokeWidth={3} />
+                      </span>
+                    )}
                   </div>
-                )}
+                  {creatorProfile.username && (
+                    <div className="text-xs text-muted-foreground truncate">
+                      @{creatorProfile.username}
+                    </div>
+                  )}
+                </div>
               </div>
+              {creatorProfile.cta_url && creatorProfile.cta_label && (
+                <a
+                  href={creatorProfile.cta_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 px-4 h-9 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
+                >
+                  {creatorProfile.cta_label} →
+                </a>
+              )}
             </div>
-            {creatorProfile.cta_url && creatorProfile.cta_label && (
-              <a
-                href={creatorProfile.cta_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 px-4 h-9 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
-              >
-                {creatorProfile.cta_label} →
-              </a>
-            )}
-          </div>
-        )}
+          ) : null;
+        })()}
 
-        {/* Secondary meta row */}
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground flex-wrap">
+        {/* Secondary meta row — date · views · duration · subtle distraction-free chip */}
+        <div className="flex items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-muted-foreground flex-wrap">
           {video.created_at && video.show_upload_date !== false && (
             <span className="flex items-center gap-1">
               <Calendar size={12} />
@@ -420,27 +436,21 @@ const PublicVideoPage = () => {
               </span>
             </>
           )}
+          {video.allow_seek === false && (
+            <>
+              <span aria-hidden>·</span>
+              <span
+                title="This video plays start-to-finish for the best experience — seeking is disabled."
+                className="inline-flex items-center gap-1"
+              >
+                <ShieldCheck size={12} />
+                Distraction-free
+              </span>
+            </>
+          )}
         </div>
-
-
-        {/* Skip-protection badge — premium saffron pill */}
-        {video.allow_seek === false && (
-          <div className="flex">
-            <span
-              title="This video plays start-to-finish for the best experience."
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] sm:text-xs font-semibold border"
-              style={{
-                color: "var(--accent-saffron)",
-                borderColor: "var(--accent-saffron)",
-                background: "var(--accent-saffron-soft)",
-              }}
-            >
-              <ShieldCheck size={12} strokeWidth={2.5} />
-              Distraction-free
-            </span>
-          </div>
-        )}
       </div>
+
 
 
       {/* Description */}
