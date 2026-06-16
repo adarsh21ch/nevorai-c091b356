@@ -466,6 +466,37 @@ const AdminVideosPage = () => {
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ["admin-all-videos"] })}
         />
       )}
+
+      {drillVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setDrillVideo(null)}>
+          <div className="w-full max-w-3xl rounded-xl bg-card border border-border p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="min-w-0">
+                <h3 className="text-base font-heading font-semibold truncate">{drillVideo.title}</h3>
+                <p className="text-xs text-muted-foreground">Platform-wide daily views &amp; people · last 30 days</p>
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDrillVideo(null)}><X size={16} /></Button>
+            </div>
+            {drillLoading ? (
+              <div className="h-64 flex items-center justify-center text-xs text-muted-foreground">Loading…</div>
+            ) : drillSeries.length === 0 ? (
+              <div className="h-64 flex items-center justify-center text-xs text-muted-foreground">No views in the last 30 days.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={drillSeries.map((d) => ({ ...d, date: String(d.date).slice(5) }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))", fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="Views" />
+                  <Line type="monotone" dataKey="people" stroke="#10B981" strokeWidth={2} dot={false} name="People" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };
