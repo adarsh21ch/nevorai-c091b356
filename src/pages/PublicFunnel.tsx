@@ -26,8 +26,8 @@ import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { isYouTubeUrl } from "@/lib/youtube";
 import { sanitizeText } from "@/lib/sanitize";
-import { trackEntityView, captureAttribution } from "@/lib/tracking";
-import { trackLinkEvent, getCachedShareLinkId } from "@/lib/teamTracking";
+import { captureAttribution } from "@/lib/tracking";
+import { trackLinkEvent, trackFunnelEvent, getCachedShareLinkId } from "@/lib/teamTracking";
 import { logFunnelEngagement } from "@/lib/funnelEngagement";
 import { trackLead, trackPixel } from "@/lib/pixel";
 import {
@@ -878,10 +878,11 @@ const PublicFunnel = () => {
 
   useEffect(() => {
     if (!funnel?.id) return;
-    // Team tracking: fire share-link 'view' (no-op if no token in URL).
-    void trackLinkEvent(funnel.id, null, "view");
-    return trackEntityView("funnel", funnel.id);
+    // Unified funnel view: always records to link_events, resolving the
+    // owner-default share link when there is no team token in the URL.
+    void trackFunnelEvent(funnel.id, null, "view");
   }, [funnel?.id]);
+
 
 
   useEffect(() => {
@@ -973,7 +974,7 @@ const PublicFunnel = () => {
       const { getTrackingSessionId } = await import("@/lib/tracking");
       const shareLinkId =
         getCachedShareLinkId(funnel!.id) ||
-        (await trackLinkEvent(funnel!.id, null, "lead"));
+        (await trackFunnelEvent(funnel!.id, null, "lead"));
       await (supabase.from("funnel_leads") as any).insert({
         funnel_id: funnel!.id,
         name: s(leadForm.name), phone: leadForm.phone ? normalizePhone(leadForm.phone) : null,
@@ -989,7 +990,7 @@ const PublicFunnel = () => {
         share_link_id: shareLinkId,
         ...captureAttribution("funnel", funnel!.id, funnel!.slug),
       });
-      if (!shareLinkId) void trackLinkEvent(funnel!.id, null, "lead");
+      if (!shareLinkId) void trackFunnelEvent(funnel!.id, null, "lead");
       // Lead alert (to creator) + confirmation (to prospect) via Resend.
       import("@/lib/email").then(({ sendLeadEmails }) =>
         sendLeadEmails({

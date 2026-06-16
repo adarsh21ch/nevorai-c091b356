@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Eye, Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List } from "lucide-react";
+import { Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
@@ -221,18 +221,31 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     refetchInterval: visible ? 120_000 : false,
   });
 
+  // Funnel views come from link_events (single source of truth — every funnel
+  // open writes there via track_funnel_event, owner-direct included).
   const { data: funnelViews = [] } = useQuery({
     queryKey: ["funnel-views", user?.id, period, funnelIds.length],
     queryFn: async () => {
       if (!funnelIds.length) return [] as any[];
-      let q = (supabase as any).from("funnel_view_events").select("started_at,funnel_id,session_id").in("funnel_id", funnelIds);
-      if (startIso) q = q.gte("started_at", startIso);
-      return (await q.limit(2000)).data || [];
+      let q = (supabase as any)
+        .from("link_events")
+        .select("created_at,funnel_id,visitor_fingerprint,ip_ua_hash")
+        .in("funnel_id", funnelIds)
+        .eq("event_type", "view");
+      if (startIso) q = q.gte("created_at", startIso);
+      const rows = (await q.limit(5000)).data || [];
+      // Map to the shape the rest of this page expects.
+      return rows.map((r: any) => ({
+        started_at: r.created_at,
+        funnel_id: r.funnel_id,
+        session_id: r.visitor_fingerprint || r.ip_ua_hash || null,
+      }));
     },
     enabled: !!user?.id,
     staleTime: 15_000,
     refetchInterval: visible ? 120_000 : false,
   });
+
 
   const { data: lpViews = [] } = useQuery({
     queryKey: ["lp-views", user?.id, period, lpIds.length],
@@ -255,7 +268,10 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       const out = { videos: {} as Record<string, number>, funnels: {} as Record<string, number>, lps: {} as Record<string, number>, lives: {} as Record<string, number>, total: 0 };
       const calls: Promise<any>[] = [];
       if (videoIds.length) calls.push((supabase as any).from("video_view_events").select("video_id").in("video_id", videoIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "videos", rows: r.data || [], key: "video_id" })));
-      if (funnelIds.length) calls.push((supabase as any).from("funnel_view_events").select("funnel_id").in("funnel_id", funnelIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "funnels", rows: r.data || [], key: "funnel_id" })));
+      // Funnels: live-viewer "active in last 60s" requires heartbeats, which
+      // link_events doesn't track. Skip funnel live-viewer count here; the
+      // Live Viewers KPI is now demoted off Overview.
+
       if (lpIds.length) calls.push((supabase as any).from("landing_page_view_events").select("landing_page_id").in("landing_page_id", lpIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "lps", rows: r.data || [], key: "landing_page_id" })));
       if (liveIds.length) calls.push((supabase as any).from("live_session_view_events").select("live_session_id").in("live_session_id", liveIds).gte("last_heartbeat_at", cutoff).then((r: any) => ({ kind: "lives", rows: r.data || [], key: "live_session_id" })));
       const results = await Promise.all(calls);
@@ -556,19 +572,25 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="space-y-5">
-          {/* Hero KPIs */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <KpiCard icon={Eye} label="Total Views" value={totalEventViews} spark={viewsSpark} suffix={PERIOD_LABELS[period]} previous={0} />
-            <KpiCard icon={Users} label="Unique Viewers" value={uniqueViewerEstimate} spark={viewerSpark} suffix={PERIOD_LABELS[period]} previous={0} />
+          {/* Hero KPIs — Unique Viewers + Leads lead; Total Views demoted; Live moved to Live tab. */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <KpiCard
+                icon={Users}
+                label="Unique Viewers"
+                value={uniqueViewerEstimate}
+                spark={viewerSpark}
+                suffix={PERIOD_LABELS[period]}
+                previous={0}
+              />
+              <div className="px-1 text-[10px] text-muted-foreground">
+                {formatCompact(totalEventViews)} total views (refreshes counted)
+              </div>
+            </div>
             <KpiCard icon={UserCheck} label="Total Leads" value={uniqueLeads} previous={prevLeads} spark={leadsSpark} suffix={PERIOD_LABELS[period]} />
-            <KpiCard
-              icon={Radio}
-              label="Live Viewers"
-              value={liveViewers}
-              spark={[]}
-              live={liveViewers > 0 ? <LivePulseDot label="LIVE" /> : <span className="text-[10px] text-muted-foreground">idle</span>}
-            />
           </div>
+
+
 
           {/* Activity / Team Tracking segment */}
           <div className="space-y-3">
