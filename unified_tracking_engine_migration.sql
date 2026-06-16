@@ -168,7 +168,7 @@ as $$
     union
     select v.id, fs.funnel_id
       from my_videos v
-      join public.funnel_steps fs on fs.video_id = v.id
+      join public.funnel_steps fs on fs.video_asset_id = v.id
       join public.funnels f on f.id = fs.funnel_id and f.owner_id = auth.uid()
   ),
   funnel as (
@@ -406,7 +406,7 @@ as $$
       join (
         select id as funnel_id, video_asset_id as vid from public.funnels where video_asset_id is not null
         union
-        select funnel_id, video_id from public.funnel_steps where video_id is not null
+        select funnel_id, video_asset_id as vid from public.funnel_steps where video_asset_id is not null
       ) fv on fv.vid = v.id
       join public.link_events le on le.funnel_id = fv.funnel_id and le.event_type = 'view'
        and (p_from is null or le.created_at >= p_from) and (p_to is null or le.created_at < p_to)
@@ -487,7 +487,7 @@ as $$
       join (
         select id as funnel_id from public.funnels where video_asset_id = p_video_id
         union
-        select funnel_id from public.funnel_steps where video_id = p_video_id
+        select funnel_id from public.funnel_steps where video_asset_id = p_video_id
       ) fv on fv.funnel_id = le.funnel_id
      where le.event_type = 'view' and le.created_at >= current_date - (p_days - 1)
     union all
