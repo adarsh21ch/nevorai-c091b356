@@ -570,15 +570,46 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
             />
           </div>
 
-          {/* Activity feed */}
-          <div className="premium-card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-heading font-semibold flex items-center gap-2">
-                <TrendingUp size={14} className="text-primary" /> Recent Activity
-              </h3>
-              <span className="text-[10px] text-muted-foreground">Updates every 30s</span>
+          {/* Activity / Team Tracking segment */}
+          <div className="space-y-3">
+            <div className="inline-flex rounded-lg border border-border p-0.5 bg-muted/30 text-xs">
+              {[
+                { v: "mine" as const, l: "My Activity" },
+                { v: "team" as const, l: "Team Tracking" },
+              ].map((o) => (
+                <button
+                  key={o.v}
+                  onClick={() => {
+                    setActivityView(o.v);
+                    if (typeof window !== "undefined") {
+                      const sp = new URLSearchParams(window.location.search);
+                      sp.set("view", o.v);
+                      window.history.replaceState({}, "", `${window.location.pathname}?${sp.toString()}`);
+                    }
+                  }}
+                  className={cn(
+                    "px-3 py-1 rounded-md transition-colors",
+                    activityView === o.v ? "bg-background text-foreground shadow-sm" : "text-muted-foreground",
+                  )}
+                >
+                  {o.l}
+                </button>
+              ))}
             </div>
-            <ActivityFeed items={feedItems} />
+
+            {activityView === "mine" ? (
+              <div className="premium-card p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-heading font-semibold flex items-center gap-2">
+                    <TrendingUp size={14} className="text-primary" /> Recent Activity
+                  </h3>
+                  <span className="text-[10px] text-muted-foreground">Updates every 30s</span>
+                </div>
+                <ActivityFeed items={feedItems} />
+              </div>
+            ) : (
+              <TeamTrackingDashboard />
+            )}
           </div>
 
           {/* Top entities — period-scoped so they stay consistent with KPI cards above */}
