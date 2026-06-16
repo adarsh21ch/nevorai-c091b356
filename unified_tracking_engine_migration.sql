@@ -414,7 +414,7 @@ as $$
   fp_landing as (
     select v.id, coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id), e.started_at
       from public.video_assets v
-      join public.landing_pages lp on (lp.video_asset_id = v.id or lp.post_submit_video_asset_id = v.id)
+      join public.landing_pages lp on lp.post_submit_video_asset_id = v.id
       join public.landing_page_view_events e on e.landing_page_id = lp.id
        and (p_from is null or e.started_at >= p_from) and (p_to is null or e.started_at < p_to)
   ),
