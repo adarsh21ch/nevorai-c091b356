@@ -970,6 +970,9 @@ const PublicFunnel = () => {
       if (leadForm.website) return;
       const s = (v: string | null | undefined) => (v ? sanitizeText(v) : null);
       const { getTrackingSessionId } = await import("@/lib/tracking");
+      const shareLinkId =
+        getCachedShareLinkId(funnel!.id) ||
+        (await trackLinkEvent(funnel!.id, null, "lead"));
       await (supabase.from("funnel_leads") as any).insert({
         funnel_id: funnel!.id,
         name: s(leadForm.name), phone: leadForm.phone ? normalizePhone(leadForm.phone) : null,
@@ -982,8 +985,10 @@ const PublicFunnel = () => {
         session_id: getTrackingSessionId(),
         device_type: /Mobi/.test(navigator.userAgent) ? "mobile" : "desktop",
         user_agent: navigator.userAgent,
+        share_link_id: shareLinkId,
         ...captureAttribution("funnel", funnel!.id, funnel!.slug),
       });
+      if (!shareLinkId) void trackLinkEvent(funnel!.id, null, "lead");
       // Lead alert (to creator) + confirmation (to prospect) via Resend.
       import("@/lib/email").then(({ sendLeadEmails }) =>
         sendLeadEmails({
