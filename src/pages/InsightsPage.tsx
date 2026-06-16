@@ -84,6 +84,20 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const [sort, setSort] = useState<SortKey>("recent");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
+  const { data: hasTeam } = useHasTeam();
+  const [activityView, setActivityView] = useState<"team" | "mine">(() => {
+    if (typeof window === "undefined") return "mine";
+    const sp = new URLSearchParams(window.location.search);
+    const v = sp.get("view");
+    if (v === "team" || v === "mine") return v;
+    return "mine";
+  });
+  useEffect(() => {
+    if (hasTeam && typeof window !== "undefined") {
+      const sp = new URLSearchParams(window.location.search);
+      if (!sp.get("view")) setActivityView("team");
+    }
+  }, [hasTeam]);
 
   // Sync tab → URL
   useEffect(() => {
