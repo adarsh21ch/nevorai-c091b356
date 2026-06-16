@@ -26,7 +26,7 @@ import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { isYouTubeUrl } from "@/lib/youtube";
 import { sanitizeText } from "@/lib/sanitize";
-import { trackEntityView, captureAttribution } from "@/lib/tracking";
+import { captureAttribution } from "@/lib/tracking";
 import { trackLinkEvent, trackFunnelEvent, getCachedShareLinkId } from "@/lib/teamTracking";
 import { logFunnelEngagement } from "@/lib/funnelEngagement";
 import { trackLead, trackPixel } from "@/lib/pixel";
