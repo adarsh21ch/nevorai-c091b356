@@ -97,7 +97,7 @@ const ProfilePage = () => {
       toast.error("CTA URL must start with https://, mailto:, tel: or wa.me"); return;
     }
     const cleanForm = sanitizeFields(form, [
-      "full_name", "city", "bio", "company", "instagram_url", "cta_label",
+      "full_name", "display_name", "city", "address", "bio", "company", "instagram_url", "cta_label",
     ]) as any;
     cleanForm.phone = normalizePhone(form.phone);
     // whatsapp_number changes only via OTP re-verification, never via this form.
