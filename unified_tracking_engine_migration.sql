@@ -190,7 +190,7 @@ as $$
            count(distinct coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id))::bigint as uniq
       from my_videos v
       left join public.landing_pages lp
-        on (lp.video_asset_id = v.id or lp.post_submit_video_asset_id = v.id)
+       on lp.post_submit_video_asset_id = v.id
        and lp.owner_id = auth.uid()
       left join public.landing_page_view_events e
         on e.landing_page_id = lp.id
@@ -414,7 +414,7 @@ as $$
   fp_landing as (
     select v.id, coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id), e.started_at
       from public.video_assets v
-      join public.landing_pages lp on (lp.video_asset_id = v.id or lp.post_submit_video_asset_id = v.id)
+      join public.landing_pages lp on lp.post_submit_video_asset_id = v.id
       join public.landing_page_view_events e on e.landing_page_id = lp.id
        and (p_from is null or e.started_at >= p_from) and (p_to is null or e.started_at < p_to)
   ),
@@ -494,7 +494,7 @@ as $$
     select e.started_at, coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id)
       from public.landing_page_view_events e
       join public.landing_pages lp on lp.id = e.landing_page_id
-     where (lp.video_asset_id = p_video_id or lp.post_submit_video_asset_id = p_video_id)
+     where lp.post_submit_video_asset_id = p_video_id
        and e.started_at >= current_date - (p_days - 1)
     union all
     select e.started_at, coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id)
