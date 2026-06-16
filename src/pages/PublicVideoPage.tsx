@@ -79,17 +79,16 @@ const PublicVideoPage = () => {
     queryFn: async () => {
       if (!video?.owner_id) return null;
       const { data, error } = await (supabase as any)
-        .from("profiles")
-        .select("id, full_name, avatar_url, bio, is_verified, username, cta_label, cta_url")
+        .from("profiles_public")
+        .select("id, display_name, avatar_url, is_verified, username, cta_label, cta_url")
         .eq("id", video.owner_id)
         .maybeSingle();
       if (error) return null;
       return data as
         | {
             id: string;
-            full_name: string | null;
+            display_name: string | null;
             avatar_url: string | null;
-            bio: string | null;
             is_verified: boolean | null;
             username: string | null;
             cta_label: string | null;
