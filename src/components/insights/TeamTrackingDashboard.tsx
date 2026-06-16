@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { ExportCsvButton } from "@/components/insights/ExportCsvButton";
 import { ColumnConfigDialog } from "@/components/insights/ColumnConfigDialog";
 import { LabelManagerDialog } from "@/components/insights/LabelManagerDialog";
-import { InsightsEmptyState } from "@/components/insights/EmptyState";
+import { InsightsInsightsEmptyState } from "@/components/insights/InsightsEmptyState";
 import { formatCompact } from "@/lib/format";
 
 const PERIODS: { v: TeamTrackingPeriod; l: string }[] = [
@@ -101,7 +101,7 @@ export function TeamTrackingDashboard() {
 
   if (!hasTeam && (data?.members.length ?? 0) <= 1 && (data?.funnels.length ?? 0) === 0) {
     return (
-      <EmptyState
+      <InsightsEmptyState
         icon={Users}
         title="No team yet"
         hint="Connect your team to see their numbers here. Share your connect link from Profile → Team."
@@ -111,7 +111,7 @@ export function TeamTrackingDashboard() {
 
   if ((data?.funnels.length ?? 0) === 0) {
     return (
-      <EmptyState
+      <InsightsEmptyState
         icon={Users}
         title="No funnels yet"
         hint="Create a funnel to start sharing — your team's numbers will appear here."
