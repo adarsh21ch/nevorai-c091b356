@@ -3,6 +3,7 @@
 -- Run AFTER team_tracking_share_links_migration.sql + team_connect_links_migration.sql.
 -- Safe to re-run (idempotent).
 -- =====================================================================
+create extension if not exists pgcrypto;
 
 -- 1) Secondary dedup fallback: ip_ua_hash ------------------------------
 alter table public.link_events
