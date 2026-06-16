@@ -165,9 +165,14 @@ export default function MyTeamPage() {
               automatically get a personal tracking link for each of them.
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => teamQuery.refetch()}>
-            <RefreshCw className="h-4 w-4 mr-1" /> Refresh
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="default" size="sm" asChild>
+              <a href="/insights?tab=overview&view=team"><Users className="h-4 w-4 mr-1" /> Team Tracking</a>
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => teamQuery.refetch()}>
+              <RefreshCw className="h-4 w-4 mr-1" /> Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Connect link + QR */}
