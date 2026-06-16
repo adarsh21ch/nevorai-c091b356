@@ -407,25 +407,29 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     return embedded ? errorState : <DashboardLayout>{errorState}</DashboardLayout>;
   }
 
-  // === Compute KPIs ===
-  const totalEventViews = videoViews.length + funnelViews.length + lpViews.length;
+  // === Compute KPIs (unified: video + funnel + landing + LIVE) ===
+  const totalEventViews =
+    videoViews.length + funnelViews.length + lpViews.length + liveViews.length;
   const uniqueLeads = leads.length + registrations.length;
   const prevLeads = leadsPrev.length + regsPrev.length;
 
-  // True unique viewers across all entity types (dedup by session_id when present)
-  const uniqueSessionSet = new Set<string>();
+  // People = distinct visitor fingerprint across ALL surfaces (fall back to
+  // ip_ua_hash, then session_id). Same human on multiple surfaces counts once.
+  const uniqueFpSet = new Set<string>();
   let anonViewFallback = 0;
-  [...videoViews, ...funnelViews, ...lpViews].forEach((v: any) => {
-    if (v.session_id) uniqueSessionSet.add(v.session_id);
+  [...videoViews, ...funnelViews, ...lpViews, ...liveViews].forEach((v: any) => {
+    const fp = v.visitor_fingerprint || v.ip_ua_hash || v.session_id;
+    if (fp) uniqueFpSet.add(fp);
     else anonViewFallback += 1;
   });
-  const uniqueViewerEstimate = uniqueSessionSet.size + anonViewFallback;
+  const uniqueViewerEstimate = uniqueFpSet.size + anonViewFallback;
 
   // Sparklines (last 7 days regardless of period for hero KPIs)
   const allViewRows = [
     ...videoViews.map((v: any) => ({ at: v.started_at })),
     ...funnelViews.map((v: any) => ({ at: v.started_at })),
     ...lpViews.map((v: any) => ({ at: v.started_at })),
+    ...liveViews.map((v: any) => ({ at: v.started_at })),
   ];
   const viewsSpark = bucketByDay(allViewRows, 7);
   const leadsSpark = bucketByDay(
@@ -585,12 +589,12 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="space-y-5">
-          {/* Hero KPIs — Unique Viewers + Leads lead; Total Views demoted; Live moved to Live tab. */}
+          {/* Hero KPIs — People + Leads lead; Total Views demoted; Live moved to Live tab. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <KpiCard
                 icon={Users}
-                label="Unique Viewers"
+                label="People"
                 value={uniqueViewerEstimate}
                 spark={viewerSpark}
                 suffix={PERIOD_LABELS[period]}
@@ -601,6 +605,27 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
               </div>
             </div>
             <KpiCard icon={UserCheck} label="Total Leads" value={uniqueLeads} previous={prevLeads} spark={leadsSpark} suffix={PERIOD_LABELS[period]} />
+          </div>
+
+          {/* Dedicated, one-tap entry to the team tracking sheet. */}
+          <div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setActivityView("team");
+                if (typeof window !== "undefined") {
+                  const sp = new URLSearchParams(window.location.search);
+                  sp.set("view", "team");
+                  window.history.replaceState({}, "", `${window.location.pathname}?${sp.toString()}`);
+                  document.getElementById("team-tracking-anchor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              }}
+              className="h-9"
+            >
+              <Users size={14} className="mr-2" />
+              Open Team Tracking
+            </Button>
           </div>
 
 
