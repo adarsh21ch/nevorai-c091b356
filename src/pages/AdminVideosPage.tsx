@@ -19,7 +19,8 @@ type VideoStatsRow = {
   live_session_uses: number | null;
 };
 type UsageFilter = "all" | "used" | "unused";
-import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket } from "lucide-react";
+import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket, BarChart3, X } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
@@ -275,7 +276,7 @@ const AdminVideosPage = () => {
                   <th className="p-4 text-xs font-medium text-muted-foreground">Size</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Usage</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Views</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Unique</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">People</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Last viewed</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Actions</th>
                 </tr>
@@ -326,11 +327,12 @@ const AdminVideosPage = () => {
                       </td>
                       <td className="p-4 text-xs text-muted-foreground">{formatSize(v.file_size_bytes)}</td>
                       <td className="p-4"><UsageBadges v={v} /></td>
-                      <td className="p-4 text-xs text-muted-foreground">{v._stats?.total_views ?? v.view_count ?? 0}</td>
-                      <td className="p-4 text-xs text-muted-foreground">{v._stats?.unique_views ?? 0}</td>
+                      <td className="p-4 text-xs text-muted-foreground">{blendedMap[v.id]?.views ?? v._stats?.total_views ?? v.view_count ?? 0}</td>
+                      <td className="p-4 text-xs text-muted-foreground">{blendedMap[v.id]?.people ?? v._stats?.unique_views ?? 0}</td>
                       <td className="p-4 text-xs text-muted-foreground">{formatLastViewed(v._stats?.last_viewed_at)}</td>
                       <td className="p-4">
                         <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDrillVideo({ id: v.id, title: v.title })} title="View daily stats"><BarChart3 size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setRenameVideo({ id: v.id, title: v.title })}><Pencil size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyLink(v.id)}><Link2 size={14} /></Button>
@@ -374,9 +376,9 @@ const AdminVideosPage = () => {
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
                       <span>{formatSize(v.file_size_bytes)}</span>
                       <span>·</span>
-                      <span>{v._stats?.total_views ?? v.view_count ?? 0} views</span>
+                      <span>{blendedMap[v.id]?.views ?? v._stats?.total_views ?? v.view_count ?? 0} views</span>
                       <span>·</span>
-                      <span>{v._stats?.unique_views ?? 0} unique</span>
+                      <span>{blendedMap[v.id]?.people ?? v._stats?.unique_views ?? 0} people</span>
                       <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${v.status === "ready" ? "bg-success/10 text-success" : v.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>
                         {v.status}
                       </span>
