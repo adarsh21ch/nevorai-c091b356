@@ -15,6 +15,7 @@ import { Route as VerifyWhatsappRouteImport } from './routes/verify-whatsapp'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
@@ -60,6 +61,7 @@ import { Route as LiveIdRouteImport } from './routes/live.$id'
 import { Route as LandingPagesCreateRouteImport } from './routes/landing-pages.create'
 import { Route as LandingPagesIdRouteImport } from './routes/landing-pages.$id'
 import { Route as LSlugRouteImport } from './routes/l.$slug'
+import { Route as JoinTokenRouteImport } from './routes/join.$token'
 import { Route as FunnelsCreateRouteImport } from './routes/funnels.create'
 import { Route as FunnelsIdRouteImport } from './routes/funnels.$id'
 import { Route as CompareNevoraiVsYoutubeRouteImport } from './routes/compare.nevorai-vs-youtube'
@@ -129,6 +131,11 @@ const TermsRoute = TermsRouteImport.update({
   path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/terms.lazy').then((d) => d.Route))
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/team.lazy').then((d) => d.Route))
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -363,6 +370,11 @@ const LSlugRoute = LSlugRouteImport.update({
   path: '/l/$slug',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/l.$slug.lazy').then((d) => d.Route))
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/join.$token.lazy').then((d) => d.Route))
 const FunnelsCreateRoute = FunnelsCreateRouteImport.update({
   id: '/funnels/create',
   path: '/funnels/create',
@@ -484,9 +496,9 @@ const FSlugIndexRoute = FSlugIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/f.$slug.index.lazy').then((d) => d.Route))
 const TeamLeadsTokenRoute = TeamLeadsTokenRouteImport.update({
-  id: '/team/leads/$token',
-  path: '/team/leads/$token',
-  getParentRoute: () => rootRouteImport,
+  id: '/leads/$token',
+  path: '/leads/$token',
+  getParentRoute: () => TeamRoute,
 } as any).lazy(() =>
   import('./routes/team.leads.$token.lazy').then((d) => d.Route),
 )
@@ -610,6 +622,7 @@ export interface FileRoutesByFullPath {
   '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
@@ -634,6 +647,7 @@ export interface FileRoutesByFullPath {
   '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
+  '/join/$token': typeof JoinTokenRoute
   '/l/$slug': typeof LSlugRoute
   '/landing-pages/$id': typeof LandingPagesIdRouteWithChildren
   '/landing-pages/create': typeof LandingPagesCreateRoute
@@ -699,6 +713,7 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
@@ -722,6 +737,7 @@ export interface FileRoutesByTo {
   '/compare/nevorai-vs-vimeo': typeof CompareNevoraiVsVimeoRoute
   '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
   '/funnels/create': typeof FunnelsCreateRoute
+  '/join/$token': typeof JoinTokenRoute
   '/l/$slug': typeof LSlugRoute
   '/landing-pages/create': typeof LandingPagesCreateRoute
   '/live/$id': typeof LiveIdRoute
@@ -787,6 +803,7 @@ export interface FileRoutesById {
   '/robots.txt': typeof RobotsDottxtRoute
   '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
@@ -811,6 +828,7 @@ export interface FileRoutesById {
   '/compare/nevorai-vs-youtube': typeof CompareNevoraiVsYoutubeRoute
   '/funnels/$id': typeof FunnelsIdRouteWithChildren
   '/funnels/create': typeof FunnelsCreateRoute
+  '/join/$token': typeof JoinTokenRoute
   '/l/$slug': typeof LSlugRoute
   '/landing-pages/$id': typeof LandingPagesIdRouteWithChildren
   '/landing-pages/create': typeof LandingPagesCreateRoute
@@ -878,6 +896,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/settings'
     | '/sitemap.xml'
+    | '/team'
     | '/terms'
     | '/tools'
     | '/upgrade'
@@ -902,6 +921,7 @@ export interface FileRouteTypes {
     | '/compare/nevorai-vs-youtube'
     | '/funnels/$id'
     | '/funnels/create'
+    | '/join/$token'
     | '/l/$slug'
     | '/landing-pages/$id'
     | '/landing-pages/create'
@@ -967,6 +987,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/settings'
     | '/sitemap.xml'
+    | '/team'
     | '/terms'
     | '/tools'
     | '/upgrade'
@@ -990,6 +1011,7 @@ export interface FileRouteTypes {
     | '/compare/nevorai-vs-vimeo'
     | '/compare/nevorai-vs-youtube'
     | '/funnels/create'
+    | '/join/$token'
     | '/l/$slug'
     | '/landing-pages/create'
     | '/live/$id'
@@ -1054,6 +1076,7 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/settings'
     | '/sitemap.xml'
+    | '/team'
     | '/terms'
     | '/tools'
     | '/upgrade'
@@ -1078,6 +1101,7 @@ export interface FileRouteTypes {
     | '/compare/nevorai-vs-youtube'
     | '/funnels/$id'
     | '/funnels/create'
+    | '/join/$token'
     | '/l/$slug'
     | '/landing-pages/$id'
     | '/landing-pages/create'
@@ -1144,6 +1168,7 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TeamRoute: typeof TeamRouteWithChildren
   TermsRoute: typeof TermsRoute
   ToolsRoute: typeof ToolsRoute
   UpgradeRoute: typeof UpgradeRoute
@@ -1165,6 +1190,7 @@ export interface RootRouteChildren {
   CompareNevoraiVsYoutubeRoute: typeof CompareNevoraiVsYoutubeRoute
   FunnelsIdRoute: typeof FunnelsIdRouteWithChildren
   FunnelsCreateRoute: typeof FunnelsCreateRoute
+  JoinTokenRoute: typeof JoinTokenRoute
   LSlugRoute: typeof LSlugRoute
   LandingPagesIdRoute: typeof LandingPagesIdRouteWithChildren
   LandingPagesCreateRoute: typeof LandingPagesCreateRoute
@@ -1182,7 +1208,6 @@ export interface RootRouteChildren {
   ApiAdminWhatsappLeadsRoute: typeof ApiAdminWhatsappLeadsRoute
   ApiAdminWhatsappSendRoute: typeof ApiAdminWhatsappSendRoute
   FSlugMemberRoute: typeof FSlugMemberRoute
-  TeamLeadsTokenRoute: typeof TeamLeadsTokenRoute
   FSlugIndexRoute: typeof FSlugIndexRoute
   ApiAdminWhatsappMessagesLeadIdRoute: typeof ApiAdminWhatsappMessagesLeadIdRoute
   ApiPublicEmailSendRoute: typeof ApiPublicEmailSendRoute
@@ -1231,6 +1256,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1548,6 +1580,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/funnels/create': {
       id: '/funnels/create'
       path: '/funnels/create'
@@ -1697,10 +1736,10 @@ declare module '@tanstack/react-router' {
     }
     '/team/leads/$token': {
       id: '/team/leads/$token'
-      path: '/team/leads/$token'
+      path: '/leads/$token'
       fullPath: '/team/leads/$token'
       preLoaderRoute: typeof TeamLeadsTokenRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof TeamRoute
     }
     '/landing-pages/$id/edit': {
       id: '/landing-pages/$id/edit'
@@ -1854,6 +1893,16 @@ const LiveRouteChildren: LiveRouteChildren = {
 
 const LiveRouteWithChildren = LiveRoute._addFileChildren(LiveRouteChildren)
 
+interface TeamRouteChildren {
+  TeamLeadsTokenRoute: typeof TeamLeadsTokenRoute
+}
+
+const TeamRouteChildren: TeamRouteChildren = {
+  TeamLeadsTokenRoute: TeamLeadsTokenRoute,
+}
+
+const TeamRouteWithChildren = TeamRoute._addFileChildren(TeamRouteChildren)
+
 interface VideosRouteChildren {
   VideosIdRoute: typeof VideosIdRoute
 }
@@ -1925,6 +1974,7 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TeamRoute: TeamRouteWithChildren,
   TermsRoute: TermsRoute,
   ToolsRoute: ToolsRoute,
   UpgradeRoute: UpgradeRoute,
@@ -1946,6 +1996,7 @@ const rootRouteChildren: RootRouteChildren = {
   CompareNevoraiVsYoutubeRoute: CompareNevoraiVsYoutubeRoute,
   FunnelsIdRoute: FunnelsIdRouteWithChildren,
   FunnelsCreateRoute: FunnelsCreateRoute,
+  JoinTokenRoute: JoinTokenRoute,
   LSlugRoute: LSlugRoute,
   LandingPagesIdRoute: LandingPagesIdRouteWithChildren,
   LandingPagesCreateRoute: LandingPagesCreateRoute,
@@ -1963,7 +2014,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminWhatsappLeadsRoute: ApiAdminWhatsappLeadsRoute,
   ApiAdminWhatsappSendRoute: ApiAdminWhatsappSendRoute,
   FSlugMemberRoute: FSlugMemberRoute,
-  TeamLeadsTokenRoute: TeamLeadsTokenRoute,
   FSlugIndexRoute: FSlugIndexRoute,
   ApiAdminWhatsappMessagesLeadIdRoute: ApiAdminWhatsappMessagesLeadIdRoute,
   ApiPublicEmailSendRoute: ApiPublicEmailSendRoute,
