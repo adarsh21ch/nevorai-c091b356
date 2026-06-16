@@ -46,7 +46,7 @@ const ProfilePage = () => {
   }, [router]);
   const [editOpen, setEditOpen] = useState(false);
   const [form, setForm] = useState({
-    full_name: "", phone: "", city: "", bio: "", company: "",
+    full_name: "", display_name: "", phone: "", city: "", address: "", bio: "", company: "",
     instagram_url: "", whatsapp_number: "",
     username: "", cta_label: "", cta_url: "",
     email: "",
