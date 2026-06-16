@@ -19,7 +19,8 @@ type VideoStatsRow = {
   live_session_uses: number | null;
 };
 type UsageFilter = "all" | "used" | "unused";
-import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket } from "lucide-react";
+import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket, BarChart3, X } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
@@ -56,6 +57,33 @@ const AdminVideosPage = () => {
       return m;
     },
     staleTime: 60_000,
+  });
+
+  // Platform-wide blended views + people per video (via unified tracking RPC).
+  // Falls back silently to legacy video_stats if the RPC isn't deployed yet.
+  const { data: blendedMap = {} } = useQuery<Record<string, { views: number; people: number }>>({
+    queryKey: ["admin-video-blended"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await (supabase as any).rpc("get_admin_video_stats");
+        if (error || !data) return {};
+        const m: Record<string, { views: number; people: number }> = {};
+        for (const r of data as any[]) m[r.video_id] = { views: Number(r.views) || 0, people: Number(r.people) || 0 };
+        return m;
+      } catch { return {}; }
+    },
+    staleTime: 60_000,
+  });
+
+  const [drillVideo, setDrillVideo] = useState<{ id: string; title: string } | null>(null);
+  const { data: drillSeries = [], isLoading: drillLoading } = useQuery({
+    queryKey: ["admin-video-daily", drillVideo?.id],
+    queryFn: async () => {
+      if (!drillVideo) return [];
+      const { data } = await (supabase as any).rpc("get_admin_video_daily", { p_video_id: drillVideo.id, p_days: 30 });
+      return (data || []) as Array<{ date: string; views: number; people: number }>;
+    },
+    enabled: !!drillVideo,
   });
 
   const videos = useMemo(() => {
@@ -248,7 +276,7 @@ const AdminVideosPage = () => {
                   <th className="p-4 text-xs font-medium text-muted-foreground">Size</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Usage</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Views</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Unique</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">People</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Last viewed</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Actions</th>
                 </tr>
@@ -299,11 +327,12 @@ const AdminVideosPage = () => {
                       </td>
                       <td className="p-4 text-xs text-muted-foreground">{formatSize(v.file_size_bytes)}</td>
                       <td className="p-4"><UsageBadges v={v} /></td>
-                      <td className="p-4 text-xs text-muted-foreground">{v._stats?.total_views ?? v.view_count ?? 0}</td>
-                      <td className="p-4 text-xs text-muted-foreground">{v._stats?.unique_views ?? 0}</td>
+                      <td className="p-4 text-xs text-muted-foreground">{blendedMap[v.id]?.views ?? v._stats?.total_views ?? v.view_count ?? 0}</td>
+                      <td className="p-4 text-xs text-muted-foreground">{blendedMap[v.id]?.people ?? v._stats?.unique_views ?? 0}</td>
                       <td className="p-4 text-xs text-muted-foreground">{formatLastViewed(v._stats?.last_viewed_at)}</td>
                       <td className="p-4">
                         <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDrillVideo({ id: v.id, title: v.title })} title="View daily stats"><BarChart3 size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setRenameVideo({ id: v.id, title: v.title })}><Pencil size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyLink(v.id)}><Link2 size={14} /></Button>
@@ -347,9 +376,9 @@ const AdminVideosPage = () => {
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
                       <span>{formatSize(v.file_size_bytes)}</span>
                       <span>·</span>
-                      <span>{v._stats?.total_views ?? v.view_count ?? 0} views</span>
+                      <span>{blendedMap[v.id]?.views ?? v._stats?.total_views ?? v.view_count ?? 0} views</span>
                       <span>·</span>
-                      <span>{v._stats?.unique_views ?? 0} unique</span>
+                      <span>{blendedMap[v.id]?.people ?? v._stats?.unique_views ?? 0} people</span>
                       <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${v.status === "ready" ? "bg-success/10 text-success" : v.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>
                         {v.status}
                       </span>
@@ -436,6 +465,37 @@ const AdminVideosPage = () => {
           currentTitle={renameVideo.title}
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ["admin-all-videos"] })}
         />
+      )}
+
+      {drillVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setDrillVideo(null)}>
+          <div className="w-full max-w-3xl rounded-xl bg-card border border-border p-5 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-3 mb-4">
+              <div className="min-w-0">
+                <h3 className="text-base font-heading font-semibold truncate">{drillVideo.title}</h3>
+                <p className="text-xs text-muted-foreground">Platform-wide daily views &amp; people · last 30 days</p>
+              </div>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDrillVideo(null)}><X size={16} /></Button>
+            </div>
+            {drillLoading ? (
+              <div className="h-64 flex items-center justify-center text-xs text-muted-foreground">Loading…</div>
+            ) : drillSeries.length === 0 ? (
+              <div className="h-64 flex items-center justify-center text-xs text-muted-foreground">No views in the last 30 days.</div>
+            ) : (
+              <ResponsiveContainer width="100%" height={280}>
+                <LineChart data={drillSeries.map((d) => ({ ...d, date: String(d.date).slice(5) }))}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                  <XAxis dataKey="date" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} />
+                  <YAxis tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }} allowDecimals={false} />
+                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, color: "hsl(var(--foreground))", fontSize: 12 }} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Line type="monotone" dataKey="views" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} name="Views" />
+                  <Line type="monotone" dataKey="people" stroke="#10B981" strokeWidth={2} dot={false} name="People" />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
+          </div>
+        </div>
       )}
     </AdminLayout>
   );

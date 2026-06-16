@@ -1,65 +1,75 @@
-# Audit (STEP 0 — confirmed against the live repo)
+# Unified Tracking Engine — Audit + Plan
 
-1. **No anon INSERT policy on `*_view_events`.** `funnel_view_events` etc. are written by the server fn `startEntityView` via `supabaseAdmin` (service role), so RLS doesn't block them — but the call is silently swallowed in `tracking.ts` (`console.debug` only). That's why Insights can show **0 views** even when a lead saves. **Yes, this is a real silent-failure path.**
-2. **`funnels.total_views`** is a legacy counter column. Nothing in the current codebase increments it — the 2129 / 743 numbers are pre-existing data from an older code path. There's no active trigger or RPC writing it today.
-3. **`PublicFunnel.tsx` line 882** *does* call `trackLinkEvent(funnel.id, null, "view")` — but `trackLinkEvent` returns early if there is **no `?t=` / `?ref=` token in the URL**. So direct/owner/WhatsApp-forwarded opens never reach `link_events`. **Confirmed: owner views are invisible to Team Tracking.**
-4. There is **no owner-default `funnel_share_links` row** auto-created per funnel. Only links explicitly created by the user exist.
-5. `get_team_tracking` + `track_link_event_v2` exist and match `team_tracking_dashboard_migration.sql`. **Will not be recreated.**
+## STEP 0 — Audit (confirmed from live code)
 
-# The Fix
+1. **Video→surface links exist** — `funnels.video_asset_id`, `funnel_steps.video_id`, `landing_pages.video_asset_id` (+ `post_submit_video_asset_id`), `live_sessions.video_asset_id`. ✅
+2. **Event tables in code**: `video_view_events`, `funnel_view_events`, `landing_page_view_events`, `live_session_view_events` (all written via `supabaseAdmin` in `entityTracking.functions.ts`, except video which has no event writer today). `link_events` (team) already has `visitor_fingerprint` + `ip_ua_hash`. The 4 entity event tables currently only have `session_id` + `device_type` + `referrer_source` + `last_heartbeat_at` — **no `visitor_fingerprint`, no `ip_ua_hash`**. ❌
+3. **`PublicVideoPage.tsx` 178–192** does naive `view_count++` read-then-write, no event row. ✅ broken as described.
+4. **`InsightsPage.tsx` line 398**: `totalEventViews = videoViews + funnelViews + lpViews` — **live missing**, and direct video events not produced. ✅ broken.
+5. **Anon RLS / writes** — entity events are written from server functions via service role, so anon RLS isn't the blocker; but there's no client-side insert path and no anon insert policy on `video_view_events`. We'll route everything through a single RPC instead of opening anon inserts.
 
-Make **`link_events`** the single source of truth for funnel views. Every funnel open writes exactly one view event, attributed to the right member (owner by default).
+Conclusion: the prompt's diagnosis matches the live code. Safe to proceed.
 
-## Backend / SQL — new migration `unify_view_tracking_migration.sql`
+## Architecture
 
-1. **Owner-default share link per funnel.**
-   - `ensure_owner_share_link(p_funnel_id uuid) returns text` — `security definer`, granted to `anon, authenticated`. Looks up the funnel, finds-or-creates a row in `funnel_share_links` where `is_universal = true`, `owner_id = funnels.owner_id`, `assigned_user_id = funnels.owner_id`, `label = 'Direct'`. Returns the token. Idempotent via the existing `uq_share_links_universal_per_funnel`.
-   - Backfill: `insert ... select` one universal row for every existing funnel that lacks one.
-2. **`track_funnel_view(p_funnel_id, p_token, p_fingerprint, p_user_agent)`** — wrapper RPC, security definer, granted to `anon, authenticated`. If `p_token` is null/empty, calls `ensure_owner_share_link` to get the default, then delegates to the same logic as `track_link_event_v2`. Single entry point for "record a funnel view."
-3. **Optional one-time backfill** (commented "run once"): for every `funnel_leads` row whose `(share_link_id, visitor_fingerprint)` has no matching `link_events` view, insert a synthetic view. Also: for every `funnel_leads` row with NULL `share_link_id`, set it to the owner-default share link for that funnel. Guarantees the lead⇒view invariant for historical data.
-4. **`funnels.total_views` trigger.** `after insert on link_events when (new.event_type = 'view')` → `update funnels set total_views = total_views + 1 where id = new.funnel_id`. Plus a one-shot recompute that resets `total_views` to `count(distinct coalesce(visitor_fingerprint, ip_ua_hash))` from `link_events` so the list and Insights reconcile from day one.
-5. RLS: `link_events` insert path stays through the RPC (security definer); no new direct anon grants. Confirms anon EXECUTE on the new RPC.
+ONE engine, ONE definition everywhere:
+- **Views** = `count(*)`
+- **People** (UI label) / `unique_views` (DB) = `count(distinct coalesce(visitor_fingerprint, ip_ua_hash))`
+- Same `visitor_fingerprint` = the existing `nv_session_id` localStorage key already used by `trackEntityView`. Promote it from "session id" to "stable visitor fingerprint" (it already persists in localStorage).
 
-## Frontend
+Counters become **derived** from events via AFTER INSERT triggers. No app-code increments.
 
-### `src/pages/PublicFunnel.tsx`
-- Replace the `trackLinkEvent(funnel.id, null, "view")` + `trackEntityView("funnel", funnel.id)` pair with a single call to a new helper `trackFunnelView(funnelId)` (added to `src/lib/teamTracking.ts`) that calls the new `track_funnel_view` RPC. Resolves owner-default token when no `?t=`/`?ref=` is present. Fires on funnel load, **before** any gate (private / lead / code) renders, so gated funnels still record views.
-- On lead submit: keep existing `trackLinkEvent(..., "lead")` calls; additionally ensure a view event is recorded for the same visitor (the RPC handles dedup, safe to call view+lead).
-- Stop calling `trackEntityView("funnel", …)` for funnels. Videos / landing pages / live keep their existing tracker untouched.
+```text
+       ┌─────────────────────── shared client helper ──────────────────────┐
+       │  trackView(surface, id) → record_view RPC (security definer)      │
+       └──┬──────────────┬───────────────┬───────────────┬─────────────────┘
+          ▼              ▼               ▼               ▼
+   video_view_events  funnel_…    landing_page_…   live_session_…
+          │              │               │               │
+          └──► AFTER INSERT triggers update counter columns (video_assets.view_count, funnels.total_views, …)
+                          │
+                          ▼
+                get_video_rollup()  — blended per-video (direct + funnel + steps + landing + live)
+                get_creator_insights_summary()  — JSON the AI reads
+                get_admin_video_stats() / get_admin_video_daily()  — admin platform-wide
+```
 
-### `src/components/funnel/MultiStepViewer.tsx`
-- Same swap: per-step view uses the new helper so even owner-direct multi-step funnels record per-step views into `link_events`.
+## Files
 
-### `src/pages/InsightsPage.tsx`
-- The `funnel_view_events` query (~line 228) and the KPI math (`totalEventViews`, `uniqueViewerEstimate` ~561–562) read from `link_events` instead:
-  - **Total Views** = `count(*) where event_type='view' and funnel_id in (...) and created_at between …`
-  - **Unique Viewers** = `count(distinct coalesce(visitor_fingerprint, ip_ua_hash))`
-- Live-viewer "active in last 5 min" funnel branch (~line 258) also moves to `link_events`.
-- Video / landing / live KPI queries unchanged.
-- KPI hero reorder: **Unique Viewers** and **Leads** become the two big cards. **Total Views** becomes a small muted sub-line under Unique Viewers. **Live Viewers** card removed from Overview (kept on Live tab only).
-- Always render the `My Activity | Team Tracking` segment (drop the `hasTeam` gate on visibility — keep it only for the default selection).
+### New SQL migration `unified_tracking_engine_migration.sql`
+- Add `visitor_fingerprint text`, `ip_ua_hash text`, `user_agent text` to `video_view_events`, `funnel_view_events`, `landing_page_view_events`, `live_session_view_events` (idempotent `add column if not exists`).
+- Indexes: `(entity_id, coalesce(visitor_fingerprint, ip_ua_hash))` per table.
+- `record_view(p_surface text, p_entity_id uuid, p_fingerprint text, p_session_id text, p_user_agent text, p_referrer text, p_device text)` — security definer, granted to `anon, authenticated`. Routes into the correct event table; computes `ip_ua_hash` from `request.headers` IP + UA inside the function.
+- AFTER INSERT triggers:
+  - `video_view_events` → `update video_assets set view_count = view_count + 1` (raw counter; unique is derived on demand).
+  - `funnel_view_events` → `update funnels set total_views = total_views + 1` (we already added similar via `unify_view_tracking_migration` for `link_events`; keep both paths idempotent — funnel views currently flow through `link_events`, this trigger only fires if a future direct insert happens).
+- `get_video_rollup(p_from, p_to)` — owner-scoped, returns per-video `direct_*`, `funnel_*`, `landing_*`, `live_*`, `total_*` (blended distinct fingerprint).
+- `get_creator_insights_summary(p_owner uuid default auth.uid())` — single JSON with `period_totals`, `by_surface`, `top_videos`, `top_funnels`, `team_tracking`, `generated_at`.
+- `get_admin_video_stats(p_from, p_to)` and `get_admin_video_daily(p_video_id, p_days)` — `security definer`, role-checked via existing `has_role(auth.uid(), 'admin')`.
+- Optional one-time backfill of `ip_ua_hash` for existing rows (NULL-safe).
 
-### `src/pages/FunnelsPage.tsx`
-- `f.total_views` keeps rendering; the new trigger keeps it accurate. No code change needed beyond confirming the column is selected (already is, line 130 of InsightsPage / FunnelsPage list).
+### Frontend
+- **`src/lib/tracking.ts`**: rename `getOrCreateSessionId` → `getOrCreateVisitorFingerprint` (keep export alias), add `trackView(surface, entityId)` that calls `record_view` RPC. Keep existing `trackEntityView` (back-compat) but route it through `trackView`.
+- **`src/pages/PublicVideoPage.tsx`**: remove the manual `view_count++` block (lines 172–193) and replace with a one-time `trackView('video', id)` call (same session-flag guard).
+- **`src/components/funnel/MultiStepViewer.tsx`** + **`src/pages/PublicFunnel.tsx`**: keep `trackFunnelEvent` (already unified) — no change here.
+- **`src/pages/PublicLandingPage.tsx`** + **`src/pages/PublicLivePage.tsx`**: ensure they call `trackView('landing'|'live', id)` (currently call `trackEntityView` which now goes through the same path — no UI change).
+- **`src/pages/InsightsPage.tsx`**:
+  - Add `live_session_view_events` to the period query; recompute `totalEventViews` to include it.
+  - Recompute `uniqueViewerEstimate` using `visitor_fingerprint` (fall back to `session_id`, then `ip_ua_hash`).
+  - Relabel UI: "Unique Viewers" → **"People"** in all hero/sub copy.
+  - Per-funnel cards: date-filter already applied via the period query; ensure cards read `funnelViewCount[id]` not lifetime counter when period ≠ All. (Already partly handled at line 444 for videos; mirror for funnels.)
+  - Add **"Open Team Tracking"** Button below the KPI hero, visible to all (renders the existing `TeamTrackingDashboard` sheet — already supports solo-owner "You" row).
+- **`src/pages/VideosPage.tsx`** (or the video card list inside InsightsPage Videos tab): show blended total via `get_video_rollup` — one extra query, mapped to each card.
+- **`src/pages/AdminVideosPage.tsx`**: replace the 0/0 columns with data from `get_admin_video_stats`; relabel "Unique" → **"People"**. Row click → modal/drawer with a daily line chart (recharts is already in deps) fed by `get_admin_video_daily`.
 
-### `src/components/insights/TeamTrackingDashboard.tsx`
-- When `members` is just `[you]` and `grand_viewers > 0`, still render the sheet with the "You" row populated. When `grand_viewers === 0` AND no team, show the connect-link CTA **above** an empty-state sheet (not instead of). One sheet only; `MyTeamPage`'s deep-link is already `?tab=overview&view=team` — leave intact.
+### Edge function
+- **`supabase/functions/nev-ai-query/index.ts`**: replace its denormalised reads with a single `supabase.rpc('get_creator_insights_summary')` call; inject the JSON into the model prompt; update the system prompt to define "Views vs People vs Leads" and instruct the AI to SAY "people" (never "unique views"). Redeploy required.
 
-## Acceptance checks I'll run after the edits
-- Open a funnel in a fresh incognito tab → one row appears in `link_events` with `event_type='view'`, attributed to owner-default share link.
-- Refresh 50× → still 1 unique viewer (dedup via `uq_link_events_unique_view`).
-- Submit lead with no view yet (private/code gate) → both view + lead rows exist; `leads ≤ unique viewers` holds.
-- Insights Overview funnel KPIs match the My Funnels counters and Team Tracking grand_viewers.
-- Owner with no team sees "You" row populated in Team Tracking with their own funnel opens.
-- No console errors; video/landing/live KPIs unchanged.
+## Out of scope this round (acknowledged, not built)
+- Course surface (designed for it — `record_view` takes a surface string, `get_video_rollup` adds a course branch in one place).
 
-## Files touched
+## Acceptance — how each item gets verified
+After deploy: a fresh incognito visit to `/v/<id>` writes one `video_view_events` row with a fingerprint and bumps `video_assets.view_count` via trigger; refresh increments views, fingerprint stays so People = 1. Overview KPIs match the sum across `videos + funnels + landing + live` for the period. `get_video_rollup` returns non-zero for any video referenced by an active funnel/landing/live. Nev AI's "how many views this week" answer equals the dashboard's 7d Total Views.
 
-- new: `unify_view_tracking_migration.sql`
-- edit: `src/lib/teamTracking.ts` (add `trackFunnelView`)
-- edit: `src/pages/PublicFunnel.tsx`
-- edit: `src/components/funnel/MultiStepViewer.tsx`
-- edit: `src/pages/InsightsPage.tsx`
-- edit: `src/components/insights/TeamTrackingDashboard.tsx`
-
-No edge functions need redeploy. Run the new SQL migration in Supabase, then the frontend changes ship as a normal deploy.
+## Why this is one migration + ~8 edits
+Reusing the existing fingerprint key (`nv_session_id`) and routing everything through one `record_view` RPC means each surface gets uniqueness and blended rollup "for free" — no per-surface client rewrites.

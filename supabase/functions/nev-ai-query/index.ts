@@ -238,17 +238,26 @@ Deno.serve(async (req) => {
       bestFunnel = ranked[0];
     }
 
+    // ---- Unified insights summary (single source of truth) ----
+    // get_creator_insights_summary returns the same numbers the dashboard shows
+    // across video + funnel + landing + live, using fingerprint-based People.
+    const summary = await safe("get_creator_insights_summary", async () => {
+      const { data, error } = await admin.rpc("get_creator_insights_summary", { p_owner: user.id });
+      if (error) throw error;
+      return (data || {}) as Record<string, any>;
+    }, {} as Record<string, any>, errs);
+
     const stats = {
       creator: { name: profile?.full_name || "the creator", plan: effectivePlan },
-      totals: {
+      totals_legacy: {
         all_time_views: totalAllViews,
         all_time_leads: totalAllLeads,
         all_time_conversion_rate_percent: conversionRate,
         funnels_count: funnels.length,
         published_funnels_count: funnels.filter((f: any) => f.is_published).length,
       },
-      views: { today: todayViews, last_7_days: weekViews, last_30_days: monthViews },
-      leads: {
+      views_daily_30d: { today: todayViews, last_7_days: weekViews, last_30_days: monthViews },
+      leads_legacy: {
         today: leadsToday,
         last_7_days: leadsThisWeek,
         last_30_days: leads30.reduce((a, l) => a + l.count, 0),
@@ -261,15 +270,21 @@ Deno.serve(async (req) => {
         total_leads: f.total_leads || 0,
         total_payments: f.total_payments || 0,
       })),
+      unified_summary: summary,
     };
 
     // ---- Gemini ----
     const systemPrompt =
       `You are Nev AI, a friendly analytics assistant for creators on nFlow (a video funnel platform for Indian network marketers). ` +
-      `Answer the creator's question using ONLY the JSON stats provided below. ` +
-      `If a number is zero, say so plainly. If something is not in the stats, say you don't have that data yet. ` +
+      `Answer using ONLY the JSON stats below. If a number is zero, say so plainly. ` +
+      `If something is not in the stats, say you don't have that data yet. ` +
       `Keep answers short (1-3 sentences). Use Indian number formatting (e.g. 1,20,000). ` +
-      `Never invent data, never mention "JSON" or "stats object". Speak naturally.\n\n` +
+      `Never invent data, never mention "JSON" or "stats object". ` +
+      `\nMETRIC DEFINITIONS (use these words to non-technical users):\n` +
+      `  • "Views" = every time a video/funnel/landing/live was opened (refreshes counted).\n` +
+      `  • "People" = how many distinct humans watched (deduped across surfaces). Always say "people", NEVER "unique views" or "unique viewers".\n` +
+      `  • "Leads" = form submissions captured.\n` +
+      `Prefer numbers under unified_summary.period_totals and unified_summary.by_surface — those are the same numbers the dashboard shows. Use legacy fields only as a fallback when unified_summary is empty.\n\n` +
       `STATS (today is ${today}):\n${JSON.stringify(stats)}`;
 
     const contents: any[] = [];

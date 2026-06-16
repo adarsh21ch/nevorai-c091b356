@@ -212,7 +212,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     queryKey: ["video-views", user?.id, period, videoIds.length],
     queryFn: async () => {
       if (!videoIds.length) return [] as any[];
-      let q = (supabase as any).from("video_view_events").select("started_at,video_id,session_id").in("video_id", videoIds);
+      let q = (supabase as any).from("video_view_events").select("started_at,video_id,session_id,visitor_fingerprint,ip_ua_hash").in("video_id", videoIds);
       if (startIso) q = q.gte("started_at", startIso);
       return (await q.limit(2000)).data || [];
     },
@@ -251,7 +251,20 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     queryKey: ["lp-views", user?.id, period, lpIds.length],
     queryFn: async () => {
       if (!lpIds.length) return [] as any[];
-      let q = (supabase as any).from("landing_page_view_events").select("started_at,landing_page_id,session_id").in("landing_page_id", lpIds);
+      let q = (supabase as any).from("landing_page_view_events").select("started_at,landing_page_id,session_id,visitor_fingerprint,ip_ua_hash").in("landing_page_id", lpIds);
+      if (startIso) q = q.gte("started_at", startIso);
+      return (await q.limit(2000)).data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 15_000,
+    refetchInterval: visible ? 120_000 : false,
+  });
+
+  const { data: liveViews = [] } = useQuery({
+    queryKey: ["live-views", user?.id, period, liveIds.length],
+    queryFn: async () => {
+      if (!liveIds.length) return [] as any[];
+      let q = (supabase as any).from("live_session_view_events").select("started_at,live_session_id,session_id,visitor_fingerprint,ip_ua_hash").in("live_session_id", liveIds);
       if (startIso) q = q.gte("started_at", startIso);
       return (await q.limit(2000)).data || [];
     },
@@ -394,25 +407,29 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     return embedded ? errorState : <DashboardLayout>{errorState}</DashboardLayout>;
   }
 
-  // === Compute KPIs ===
-  const totalEventViews = videoViews.length + funnelViews.length + lpViews.length;
+  // === Compute KPIs (unified: video + funnel + landing + LIVE) ===
+  const totalEventViews =
+    videoViews.length + funnelViews.length + lpViews.length + liveViews.length;
   const uniqueLeads = leads.length + registrations.length;
   const prevLeads = leadsPrev.length + regsPrev.length;
 
-  // True unique viewers across all entity types (dedup by session_id when present)
-  const uniqueSessionSet = new Set<string>();
+  // People = distinct visitor fingerprint across ALL surfaces (fall back to
+  // ip_ua_hash, then session_id). Same human on multiple surfaces counts once.
+  const uniqueFpSet = new Set<string>();
   let anonViewFallback = 0;
-  [...videoViews, ...funnelViews, ...lpViews].forEach((v: any) => {
-    if (v.session_id) uniqueSessionSet.add(v.session_id);
+  [...videoViews, ...funnelViews, ...lpViews, ...liveViews].forEach((v: any) => {
+    const fp = v.visitor_fingerprint || v.ip_ua_hash || v.session_id;
+    if (fp) uniqueFpSet.add(fp);
     else anonViewFallback += 1;
   });
-  const uniqueViewerEstimate = uniqueSessionSet.size + anonViewFallback;
+  const uniqueViewerEstimate = uniqueFpSet.size + anonViewFallback;
 
   // Sparklines (last 7 days regardless of period for hero KPIs)
   const allViewRows = [
     ...videoViews.map((v: any) => ({ at: v.started_at })),
     ...funnelViews.map((v: any) => ({ at: v.started_at })),
     ...lpViews.map((v: any) => ({ at: v.started_at })),
+    ...liveViews.map((v: any) => ({ at: v.started_at })),
   ];
   const viewsSpark = bucketByDay(allViewRows, 7);
   const leadsSpark = bucketByDay(
@@ -572,12 +589,12 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="space-y-5">
-          {/* Hero KPIs — Unique Viewers + Leads lead; Total Views demoted; Live moved to Live tab. */}
+          {/* Hero KPIs — People + Leads lead; Total Views demoted; Live moved to Live tab. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <KpiCard
                 icon={Users}
-                label="Unique Viewers"
+                label="People"
                 value={uniqueViewerEstimate}
                 spark={viewerSpark}
                 suffix={PERIOD_LABELS[period]}
@@ -590,10 +607,31 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
             <KpiCard icon={UserCheck} label="Total Leads" value={uniqueLeads} previous={prevLeads} spark={leadsSpark} suffix={PERIOD_LABELS[period]} />
           </div>
 
+          {/* Dedicated, one-tap entry to the team tracking sheet. */}
+          <div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setActivityView("team");
+                if (typeof window !== "undefined") {
+                  const sp = new URLSearchParams(window.location.search);
+                  sp.set("view", "team");
+                  window.history.replaceState({}, "", `${window.location.pathname}?${sp.toString()}`);
+                  document.getElementById("team-tracking-anchor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              }}
+              className="h-9"
+            >
+              <Users size={14} className="mr-2" />
+              Open Team Tracking
+            </Button>
+          </div>
+
 
 
           {/* Activity / Team Tracking segment */}
-          <div className="space-y-3">
+          <div id="team-tracking-anchor" className="space-y-3">
             <div className="inline-flex rounded-lg border border-border p-0.5 bg-muted/30 text-xs">
               {[
                 { v: "mine" as const, l: "My Activity" },

@@ -1,6 +1,8 @@
 import { startEntityView, heartbeatEntityView } from "@/lib/entityTracking.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 type EntityType = "funnel" | "landing_page" | "live_session";
+export type ViewSurface = "video" | "landing" | "live";
 
 const SESSION_KEY = "nv_session_id";
 
@@ -96,6 +98,29 @@ export function trackEntityView(entityType: EntityType, entityId: string | null 
     cancelled = true;
     if (interval) clearInterval(interval);
   };
+}
+
+/**
+ * Unified view recorder. Routes any non-funnel surface through the
+ * record_view RPC so views + people (unique fingerprints) are tracked
+ * consistently. Funnel views go through trackFunnelEvent (link_events).
+ */
+export function trackView(surface: ViewSurface, entityId: string | null | undefined) {
+  if (!entityId || typeof window === "undefined") return;
+  try {
+    const fp = getOrCreateSessionId();
+    void (supabase as any).rpc("record_view", {
+      p_surface: surface,
+      p_entity_id: entityId,
+      p_fingerprint: fp,
+      p_session_id: fp,
+      p_user_agent: navigator.userAgent || null,
+      p_referrer: detectReferrer(),
+      p_device: detectDevice(),
+    });
+  } catch (err) {
+    console.debug("trackView failed (non-fatal):", err);
+  }
 }
 
 /**
