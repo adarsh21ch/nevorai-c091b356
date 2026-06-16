@@ -403,13 +403,15 @@ const PublicVideoPage = () => {
             "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
             "bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400",
           ];
-          return creatorProfile ? (
+          // Always render the creator row whenever we have an owner_id.
+          if (!video?.owner_id) return null;
+          return (
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
-                  {creatorProfile.avatar_url ? (
+                  {cp?.avatar_url ? (
                     <img
-                      src={creatorProfile.avatar_url}
+                      src={cp.avatar_url}
                       alt={name}
                       loading="lazy"
                       className="w-full h-full object-cover"
@@ -436,25 +438,25 @@ const PublicVideoPage = () => {
                       </span>
                     )}
                   </div>
-                  {creatorProfile.username && (
+                  {cp?.username && (
                     <div className="text-xs text-muted-foreground truncate">
-                      @{creatorProfile.username}
+                      @{cp.username}
                     </div>
                   )}
                 </div>
               </div>
-              {creatorProfile.cta_url && creatorProfile.cta_label && (
+              {cp?.cta_url && cp?.cta_label && (
                 <a
-                  href={creatorProfile.cta_url}
+                  href={cp.cta_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 px-4 h-9 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition-opacity"
                 >
-                  {creatorProfile.cta_label} →
+                  {cp.cta_label} →
                 </a>
               )}
             </div>
-          ) : null;
+          );
         })()}
 
         {/* Secondary meta row — date · views · duration · subtle distraction-free chip */}
