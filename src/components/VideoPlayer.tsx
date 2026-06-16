@@ -555,20 +555,60 @@ function NativeVideoPlayer({
           setDuration(v.duration || 0);
           setVolume(v.volume);
           setMuted(v.muted);
+          // Priority: explicit initialTime prop > stored resume position.
           if (initialTime && initialTime > 0 && isFinite(initialTime)) {
             try {
               v.currentTime = Math.min(initialTime, v.duration || initialTime);
             } catch {
               /* ignore */
             }
+          } else if (typeof window !== "undefined" && !live) {
+            try {
+              const saved = parseFloat(window.localStorage.getItem(resumeKey) || "");
+              const d = v.duration || 0;
+              // Only resume if >10s in and not within 15s of the end.
+              if (isFinite(saved) && saved > 10 && d > 30 && saved < d - 15) {
+                v.currentTime = saved;
+                maxWatchedRef.current = saved;
+                toast(`Resumed from ${fmt(saved)}`, { duration: 2000 });
+              }
+            } catch {
+              /* ignore */
+            }
           }
+          // Sync playbackRate state with whatever the element ends up with.
+          setPlaybackRate(v.playbackRate || 1);
         }}
         onTimeUpdate={(e) => {
           const v = e.currentTarget;
           setCurrent(v.currentTime);
           if (v.currentTime > maxWatchedRef.current) maxWatchedRef.current = v.currentTime;
           onTimeUpdate?.(v.currentTime, v.duration || 0);
+          // Persist resume position at most once every ~5s.
+          if (typeof window !== "undefined" && !live) {
+            const now = Date.now();
+            if (now - lastSaveRef.current > 5000) {
+              lastSaveRef.current = now;
+              try {
+                if (v.currentTime > 5 && v.currentTime < (v.duration || 0) - 5) {
+                  window.localStorage.setItem(resumeKey, String(v.currentTime));
+                } else if (v.duration && v.currentTime >= v.duration - 5) {
+                  window.localStorage.removeItem(resumeKey);
+                }
+              } catch {
+                /* ignore */
+              }
+            }
+          }
         }}
+        onEnded={() => {
+          if (typeof window !== "undefined") {
+            try { window.localStorage.removeItem(resumeKey); } catch { /* ignore */ }
+          }
+        }}
+        onWaiting={() => setWaiting(true)}
+        onPlaying={() => setWaiting(false)}
+        onCanPlay={() => setWaiting(false)}
         onSeeking={(e) => {
           const v = e.currentTarget;
           if (!allowSeek && v.currentTime > maxWatchedRef.current + 0.5) {
@@ -584,12 +624,44 @@ function NativeVideoPlayer({
           }
         }}
         onRateChange={(e) => {
-          if (!allowPlaybackSpeed && e.currentTarget.playbackRate !== 1) {
+          // When skip-protection is on, lock playback at 1x regardless of allowPlaybackSpeed.
+          if (!speedEnabled && e.currentTarget.playbackRate !== 1) {
             e.currentTarget.playbackRate = 1;
           }
+          setPlaybackRate(e.currentTarget.playbackRate);
         }}
         onError={onError}
       />
+
+      {/* Buffering spinner — saffron, only while truly waiting on data */}
+      {waiting && !videoError(undefined as any) && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+          <Loader2 size={isFs ? 64 : 48} className="animate-spin" style={{ color: SAFFRON }} />
+        </div>
+      )}
+
+      {/* Double-tap seek hint (mobile) */}
+      {seekHint && (
+        <div
+          key={seekHint.key}
+          className={cn(
+            "absolute top-0 bottom-0 flex items-center justify-center pointer-events-none z-20 text-white",
+            seekHint.side === "left" ? "left-0 w-1/2" : "right-0 w-1/2",
+          )}
+          onAnimationEnd={() => setSeekHint(null)}
+          style={{ animation: "nflowSeekHint 600ms ease-out forwards" }}
+        >
+          <div className="flex flex-col items-center gap-1 bg-black/40 backdrop-blur-sm rounded-full px-4 py-3">
+            {seekHint.side === "left" ? <RotateCcw size={26} /> : <RotateCw size={26} />}
+            <span className="text-xs font-semibold tabular-nums">
+              {seekHint.side === "left" ? "-" : "+"}
+              {seekHint.amount}s
+            </span>
+          </div>
+        </div>
+      )}
+
+
 
       {/* Mobile centered play button */}
       {isMobile && controlsVisible && (
