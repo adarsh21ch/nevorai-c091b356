@@ -406,7 +406,7 @@ as $$
       join (
         select id as funnel_id, video_asset_id as vid from public.funnels where video_asset_id is not null
         union
-        select funnel_id, video_id from public.funnel_steps where video_id is not null
+        select funnel_id, video_asset_id as vid from public.funnel_steps where video_asset_id is not null
       ) fv on fv.vid = v.id
       join public.link_events le on le.funnel_id = fv.funnel_id and le.event_type = 'view'
        and (p_from is null or le.created_at >= p_from) and (p_to is null or le.created_at < p_to)
