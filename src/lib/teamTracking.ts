@@ -167,7 +167,7 @@ export function useTeamLabels() {
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as TeamLabel[];
+      return ((data ?? []) as unknown) as TeamLabel[];
     },
     staleTime: 10 * 60 * 1000,
   });
