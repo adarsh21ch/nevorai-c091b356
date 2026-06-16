@@ -58,6 +58,33 @@ const AdminVideosPage = () => {
     staleTime: 60_000,
   });
 
+  // Platform-wide blended views + people per video (via unified tracking RPC).
+  // Falls back silently to legacy video_stats if the RPC isn't deployed yet.
+  const { data: blendedMap = {} } = useQuery<Record<string, { views: number; people: number }>>({
+    queryKey: ["admin-video-blended"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await (supabase as any).rpc("get_admin_video_stats");
+        if (error || !data) return {};
+        const m: Record<string, { views: number; people: number }> = {};
+        for (const r of data as any[]) m[r.video_id] = { views: Number(r.views) || 0, people: Number(r.people) || 0 };
+        return m;
+      } catch { return {}; }
+    },
+    staleTime: 60_000,
+  });
+
+  const [drillVideo, setDrillVideo] = useState<{ id: string; title: string } | null>(null);
+  const { data: drillSeries = [], isLoading: drillLoading } = useQuery({
+    queryKey: ["admin-video-daily", drillVideo?.id],
+    queryFn: async () => {
+      if (!drillVideo) return [];
+      const { data } = await (supabase as any).rpc("get_admin_video_daily", { p_video_id: drillVideo.id, p_days: 30 });
+      return (data || []) as Array<{ date: string; views: number; people: number }>;
+    },
+    enabled: !!drillVideo,
+  });
+
   const videos = useMemo(() => {
     const merged = (videosRaw as any[]).map((v) => {
       const s = statsMap[v.id];
