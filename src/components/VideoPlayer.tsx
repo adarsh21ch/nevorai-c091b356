@@ -240,6 +240,29 @@ function NativeVideoPlayer({
     [allowSeek],
   );
 
+  const seekBy = useCallback(
+    (delta: number) => {
+      if (!allowSeek) return;
+      const v = videoRef.current;
+      if (!v || !isFinite(v.duration)) return;
+      v.currentTime = Math.max(0, Math.min(v.duration, (v.currentTime || 0) + delta));
+      setSeekHint({ side: delta > 0 ? "right" : "left", amount: Math.abs(delta), key: Date.now() });
+    },
+    [allowSeek],
+  );
+
+  const setRate = useCallback(
+    (rate: number) => {
+      const v = videoRef.current;
+      if (!v) return;
+      const effective = speedEnabled ? rate : 1;
+      v.playbackRate = effective;
+      setPlaybackRate(effective);
+    },
+    [speedEnabled],
+  );
+
+
   const toggleFullscreen = useCallback(async () => {
     const el = wrapRef.current;
     if (!el) return;
