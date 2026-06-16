@@ -439,7 +439,7 @@ as $$
      group by video_id
   )
   select va.id, va.title, va.owner_id,
-         coalesce(p.full_name, p.email, 'Unknown'),
+         coalesce(p.display_name, p.username, 'Unknown'),
          va.status::text,
          va.file_size_bytes::bigint,
          va.created_at,
