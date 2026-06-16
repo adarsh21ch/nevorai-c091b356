@@ -57,15 +57,29 @@ export async function trackLinkEvent(
       }
       sessionStorage.setItem(key, "1");
     }
-    const { data, error } = await (supabase as any).rpc("track_link_event", {
+    const ua = typeof navigator !== "undefined" ? navigator.userAgent : null;
+    const { data, error } = await (supabase as any).rpc("track_link_event_v2", {
       p_token: token,
       p_step_id: stepId,
       p_event_type: eventType,
       p_fingerprint: getVisitorFingerprint(),
+      p_user_agent: ua,
     });
     if (error) {
-      console.warn("[teamTracking] track_link_event failed", error.message);
-      return null;
+      // fall back to v1 if v2 not deployed yet
+      const fb = await (supabase as any).rpc("track_link_event", {
+        p_token: token,
+        p_step_id: stepId,
+        p_event_type: eventType,
+        p_fingerprint: getVisitorFingerprint(),
+      });
+      if (fb.error) {
+        console.warn("[teamTracking] track_link_event failed", fb.error.message);
+        return null;
+      }
+      const shareLinkId = (fb.data as string | null) ?? null;
+      if (shareLinkId) cacheShareLinkId(funnelId, shareLinkId);
+      return shareLinkId;
     }
     const shareLinkId = (data as string | null) ?? null;
     if (shareLinkId) cacheShareLinkId(funnelId, shareLinkId);
