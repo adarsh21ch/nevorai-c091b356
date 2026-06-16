@@ -168,7 +168,7 @@ as $$
     union
     select v.id, fs.funnel_id
       from my_videos v
-      join public.funnel_steps fs on fs.video_id = v.id
+      join public.funnel_steps fs on fs.video_asset_id = v.id
       join public.funnels f on f.id = fs.funnel_id and f.owner_id = auth.uid()
   ),
   funnel as (
