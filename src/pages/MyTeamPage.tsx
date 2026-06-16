@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import QRCode from "qrcode";
 import { Copy, QrCode, Link as LinkIcon, Users, Share2, Search, Download, RefreshCw } from "lucide-react";
-import { BRAND } from "@/config/brand";
+import { brand as BRAND } from "@/config/brand";
 
 type TeamRow = {
   upline_id: string;

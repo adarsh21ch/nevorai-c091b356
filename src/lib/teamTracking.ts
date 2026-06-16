@@ -57,7 +57,7 @@ export async function trackLinkEvent(
       }
       sessionStorage.setItem(key, "1");
     }
-    const { data, error } = await supabase.rpc("track_link_event", {
+    const { data, error } = await (supabase as any).rpc("track_link_event", {
       p_token: token,
       p_step_id: stepId,
       p_event_type: eventType,
