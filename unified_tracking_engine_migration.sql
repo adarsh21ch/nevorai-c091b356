@@ -190,7 +190,7 @@ as $$
            count(distinct coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id))::bigint as uniq
       from my_videos v
       left join public.landing_pages lp
-        on (lp.video_asset_id = v.id or lp.post_submit_video_asset_id = v.id)
+       on lp.post_submit_video_asset_id = v.id
        and lp.owner_id = auth.uid()
       left join public.landing_page_view_events e
         on e.landing_page_id = lp.id
