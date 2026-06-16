@@ -61,7 +61,8 @@ const ProfilePage = () => {
     if (profile) {
       const p = profile as any;
       setForm({
-        full_name: profile.full_name || "", phone: profile.phone || "", city: profile.city || "",
+        full_name: profile.full_name || "", display_name: p.display_name || "",
+        phone: profile.phone || "", city: profile.city || "", address: p.address || "",
         bio: profile.bio || "", company: profile.company || "",
         instagram_url: profile.instagram_url || "", whatsapp_number: profile.whatsapp_number || "",
         username: p.username || "", cta_label: p.cta_label || "", cta_url: p.cta_url || "",
