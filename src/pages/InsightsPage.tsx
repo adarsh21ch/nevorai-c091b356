@@ -631,7 +631,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
 
           {/* Activity / Team Tracking segment */}
-          <div className="space-y-3">
+          <div id="team-tracking-anchor" className="space-y-3">
             <div className="inline-flex rounded-lg border border-border p-0.5 bg-muted/30 text-xs">
               {[
                 { v: "mine" as const, l: "My Activity" },
