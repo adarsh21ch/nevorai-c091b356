@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
   User, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Crown, GraduationCap, Home, Wrench, Activity,
-  GitBranch, Layout, Sparkles,
+  GitBranch, Layout, Sparkles, Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,7 @@ const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: Video, label: "My Videos", path: "/videos" },
+  { icon: Users, label: "My Team", path: "/team" },
   { icon: Activity, label: "Activity", path: "/insights" },
   { icon: Layers, label: "Tools", path: "/tools" },
 ];
