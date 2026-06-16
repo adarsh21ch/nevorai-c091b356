@@ -21,7 +21,6 @@ import {
   sessionDurationSec, googleCalendarUrl, buildICS, downloadICS,
 } from "@/lib/liveSession";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { MaterialsManager } from "@/components/MaterialsManager";
 
 const LiveDetailPage = () => {
   const { id } = useParams();
@@ -415,14 +414,8 @@ const LiveDetailPage = () => {
             </div>
           )}
         </div>
-        {id && (
-          <div className="mt-6">
-            <MaterialsManager entityType="live_session" entityId={id} />
-          </div>
-        )}
       </div>
     </DashboardLayout>
-
   );
 };
 

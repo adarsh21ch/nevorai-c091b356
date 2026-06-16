@@ -15,8 +15,6 @@ import { LandingPageCodeGate } from "@/components/funnel/LandingPageCodeGate";
 import { DateOfBirthInput } from "@/components/funnel/DateOfBirthInput";
 import { PostSubmitVideoPlayer } from "@/components/landing/PostSubmitVideoPlayer";
 import { trackEntityView, captureAttribution } from "@/lib/tracking";
-import { PrivacyGuardMount } from "@/components/PrivacyGuard";
-import { MaterialsList } from "@/components/MaterialsList";
 
 import {
   normalizePhone,
@@ -317,14 +315,6 @@ const PublicLandingPage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${bgClass}`}>
-      <PrivacyGuardMount
-        watermarkText={
-          (formData?.name || formData?.phone)
-            ? `${formData.name || ""} ${formData.phone || ""}`.trim()
-            : page?.title || "Protected page"
-        }
-      />
-
       <header className="flex items-center justify-center px-4 md:px-8 py-4 border-b border-border">
         <a href="https://nevorai.com" target="_blank" rel="noopener noreferrer"><Logo size="sm" /></a>
       </header>
@@ -562,14 +552,6 @@ const PublicLandingPage = () => {
           </div>
         )}
       </main>
-
-      {page?.id && (
-        <div className="max-w-3xl mx-auto w-full px-4 mb-6">
-          <MaterialsList entityType="landing_page" entityId={page.id} />
-        </div>
-      )}
-
-
 
       <footer style={{ textAlign: "center", padding: "24px 16px", color: "#9ca3af", fontSize: 13, borderTop: "1px solid hsl(var(--border))" }}>
         © 2026 Nevorai · All Rights Reserved · India
