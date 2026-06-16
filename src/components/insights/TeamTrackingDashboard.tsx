@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { ExportCsvButton } from "@/components/insights/ExportCsvButton";
 import { ColumnConfigDialog } from "@/components/insights/ColumnConfigDialog";
 import { LabelManagerDialog } from "@/components/insights/LabelManagerDialog";
-import { EmptyState } from "@/components/insights/EmptyState";
+import { InsightsEmptyState } from "@/components/insights/EmptyState";
 import { formatCompact } from "@/lib/format";
 
 const PERIODS: { v: TeamTrackingPeriod; l: string }[] = [
