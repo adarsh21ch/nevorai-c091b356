@@ -487,7 +487,7 @@ as $$
       join (
         select id as funnel_id from public.funnels where video_asset_id = p_video_id
         union
-        select funnel_id from public.funnel_steps where video_id = p_video_id
+        select funnel_id from public.funnel_steps where video_asset_id = p_video_id
       ) fv on fv.funnel_id = le.funnel_id
      where le.event_type = 'view' and le.created_at >= current_date - (p_days - 1)
     union all
