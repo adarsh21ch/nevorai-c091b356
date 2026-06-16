@@ -463,6 +463,11 @@ export const MultiStepViewer = ({
     const s = (v: string | null | undefined) => (v ? sanitizeText(v) : null);
     try {
       const { getTrackingSessionId } = await import("@/lib/tracking");
+      const activeStep = steps[activeStepIndex];
+      // Resolve the share link (cached or via tracking call) so we can attribute.
+      const shareLinkId =
+        getCachedShareLinkId(funnel.id) ||
+        (await trackLinkEvent(funnel.id, activeStep?.id ?? null, "lead"));
       await (supabase.from("funnel_leads") as any).insert({
         funnel_id: funnel.id,
         name: s(trimSmart(leadForm.name)),
@@ -476,8 +481,11 @@ export const MultiStepViewer = ({
         session_id: getTrackingSessionId(),
         device_type: /Mobi/.test(navigator.userAgent) ? "mobile" : "desktop",
         user_agent: navigator.userAgent,
+        share_link_id: shareLinkId,
         ...captureAttribution("funnel", funnel.id, (funnel as any).slug),
       });
+      // Fire the 'lead' event after the insert (idempotent if already fired above).
+      if (!shareLinkId) void trackLinkEvent(funnel.id, activeStep?.id ?? null, "lead");
       // Lead alert (to creator) + confirmation (to prospect) via Resend.
       import("@/lib/email").then(({ sendLeadEmails }) =>
         sendLeadEmails({
