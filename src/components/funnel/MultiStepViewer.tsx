@@ -12,6 +12,7 @@ import {
 import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
 import { sanitizeText } from "@/lib/sanitize";
 import { captureAttribution } from "@/lib/tracking";
+import { trackLinkEvent, getCachedShareLinkId } from "@/lib/teamTracking";
 import {
   normalizePhone,
   trimSmart,
