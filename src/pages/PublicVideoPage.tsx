@@ -111,23 +111,37 @@ const PublicVideoPage = () => {
     queryKey: ["public-video-creator", video?.owner_id],
     queryFn: async () => {
       if (!video?.owner_id) return null;
-      const { data, error } = await (supabase as any)
-        .from("profiles_public")
-        .select("id, display_name, avatar_url, is_verified, username, cta_label, cta_url")
-        .eq("id", video.owner_id)
-        .maybeSingle();
-      if (error) return null;
-      return data as
-        | {
-            id: string;
-            display_name: string | null;
-            avatar_url: string | null;
-            is_verified: boolean | null;
-            username: string | null;
-            cta_label: string | null;
-            cta_url: string | null;
-          }
-        | null;
+      // 1) Preferred: SECURITY DEFINER RPC (bypasses RLS safely).
+      try {
+        const { data, error } = await (supabase as any).rpc("get_creator_public", {
+          _user_id: video.owner_id,
+        });
+        if (!error && Array.isArray(data) && data.length > 0) return data[0];
+        if (!error && data && !Array.isArray(data)) return data;
+      } catch {
+        /* fall through */
+      }
+      // 2) Fallback: public view.
+      try {
+        const { data } = await (supabase as any)
+          .from("profiles_public")
+          .select("id, display_name, avatar_url, is_verified, username, cta_label, cta_url")
+          .eq("id", video.owner_id)
+          .maybeSingle();
+        if (data) return data;
+      } catch {
+        /* ignore */
+      }
+      // 3) Last resort — return a stub so the row still renders.
+      return {
+        id: video.owner_id,
+        display_name: "Creator",
+        avatar_url: null,
+        is_verified: false,
+        username: null,
+        cta_label: null,
+        cta_url: null,
+      };
     },
     enabled: !!video?.owner_id,
     staleTime: 10 * 60 * 1000,
