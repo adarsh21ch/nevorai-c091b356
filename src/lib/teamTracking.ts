@@ -97,3 +97,175 @@ function cacheShareLinkId(funnelId: string, id: string) {
 export function getCachedShareLinkId(funnelId: string): string | null {
   try { return sessionStorage.getItem(`${RESOLVED_KEY_PREFIX}${funnelId}`); } catch { return null; }
 }
+
+// =====================================================================
+// Dashboard hooks (caller = funnel owner)
+// =====================================================================
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+
+export type TeamTrackingPeriod = "today" | "7d" | "30d" | "all";
+
+function periodToRange(p: TeamTrackingPeriod): { from: string | null; to: string | null } {
+  if (p === "all") return { from: null, to: null };
+  const now = new Date();
+  const to = now.toISOString();
+  const from = new Date(now);
+  if (p === "today") from.setHours(0, 0, 0, 0);
+  else if (p === "7d") from.setDate(from.getDate() - 7);
+  else if (p === "30d") from.setDate(from.getDate() - 30);
+  return { from: from.toISOString(), to };
+}
+
+export type TeamMatrixFunnel = { id: string; name: string };
+export type TeamMatrixCell = { funnel_id: string; viewers: number; leads: number };
+export type TeamMatrixMember = {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  is_you: boolean;
+  label_id: string | null;
+  funnels: TeamMatrixCell[];
+  total_viewers: number;
+  total_leads: number;
+};
+export type TeamMatrixTotals = {
+  per_funnel: TeamMatrixCell[];
+  grand_viewers: number;
+  grand_leads: number;
+};
+export type TeamMatrix = {
+  funnels: TeamMatrixFunnel[];
+  members: TeamMatrixMember[];
+  totals: TeamMatrixTotals;
+};
+
+export function useTeamTracking(period: TeamTrackingPeriod) {
+  return useQuery<TeamMatrix>({
+    queryKey: ["team-tracking", period],
+    queryFn: async () => {
+      const { from, to } = periodToRange(period);
+      const { data, error } = await (supabase as any).rpc("get_team_tracking", {
+        p_from: from,
+        p_to: to,
+      });
+      if (error) throw error;
+      return (data ?? { funnels: [], members: [], totals: { per_funnel: [], grand_viewers: 0, grand_leads: 0 } }) as TeamMatrix;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export type TeamLabel = { id: string; name: string; sort_order: number };
+
+export function useTeamLabels() {
+  return useQuery<TeamLabel[]>({
+    queryKey: ["team-labels"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("team_labels" as any)
+        .select("id,name,sort_order")
+        .order("sort_order", { ascending: true })
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as TeamLabel[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
+export function useCreateLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Not signed in");
+      const { data, error } = await supabase
+        .from("team_labels" as any)
+        .insert({ name, owner_id: u.user.id })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["team-labels"] }),
+  });
+}
+
+export function useDeleteLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("team_labels" as any).delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["team-labels"] });
+      qc.invalidateQueries({ queryKey: ["team-tracking"] });
+    },
+  });
+}
+
+export function useAssignMemberLabel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ memberId, labelId }: { memberId: string; labelId: string | null }) => {
+      const { error } = await (supabase as any).rpc("assign_member_label", {
+        p_member_id: memberId,
+        p_label_id: labelId,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["team-tracking"] }),
+  });
+}
+
+export function useColumnConfig() {
+  return useQuery<string[]>({
+    queryKey: ["tracking-column-config"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return [];
+      const { data } = await supabase
+        .from("tracking_column_config" as any)
+        .select("funnel_order")
+        .eq("owner_id", u.user.id)
+        .maybeSingle();
+      return ((data as any)?.funnel_order ?? []) as string[];
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useSaveColumnConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (funnelOrder: string[]) => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Not signed in");
+      const { error } = await supabase.from("tracking_column_config" as any).upsert({
+        owner_id: u.user.id,
+        funnel_order: funnelOrder,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tracking-column-config"] }),
+  });
+}
+
+export function useHasTeam() {
+  return useQuery<boolean>({
+    queryKey: ["has-team-connections"],
+    queryFn: async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return false;
+      const { count } = await supabase
+        .from("team_connections" as any)
+        .select("id", { count: "exact", head: true })
+        .eq("upline_id", u.user.id)
+        .eq("status", "active");
+      return (count ?? 0) > 0;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
+}
