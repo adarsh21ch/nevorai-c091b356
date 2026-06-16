@@ -168,28 +168,18 @@ const PublicVideoPage = () => {
     gcTime: 30 * 60 * 1000,
   });
 
-  // View ping — once per session.
+  // View ping — once per session. Writes a real video_view_events row via the
+  // unified record_view RPC so direct video shares contribute both Views and
+  // People (unique fingerprints). The video_assets.view_count counter is bumped
+  // by an AFTER INSERT trigger; we never hand-increment it.
   useEffect(() => {
     if (!id) return;
     const flag = `nflow:viewed:${id}`;
     if (typeof window === "undefined" || sessionStorage.getItem(flag)) return;
     sessionStorage.setItem(flag, "1");
-    (async () => {
-      try {
-        const { data } = await (supabase as any)
-          .from("video_assets")
-          .select("view_count")
-          .eq("id", id)
-          .maybeSingle();
-        const next = (data?.view_count ?? 0) + 1;
-        await (supabase as any)
-          .from("video_assets")
-          .update({ view_count: next })
-          .eq("id", id);
-      } catch {
-        /* silent */
-      }
-    })();
+    import("@/lib/tracking")
+      .then(({ trackView }) => trackView("video", id))
+      .catch(() => { /* silent */ });
   }, [id]);
 
   // Attach tracking to the custom player's video element.
