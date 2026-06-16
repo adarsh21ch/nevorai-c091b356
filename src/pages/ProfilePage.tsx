@@ -294,9 +294,17 @@ const ProfilePage = () => {
               <div className="px-4 pb-4 pt-2 space-y-4 border-t border-border mt-2">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div><Label className="text-xs">Full Name</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="mt-1 bg-muted border-border" /></div>
+                  <div>
+                    <Label className="text-xs">Display Name <span className="text-muted-foreground">(shown publicly)</span></Label>
+                    <Input value={form.display_name} maxLength={60} placeholder={form.full_name || "Channel name"} onChange={(e) => setForm({ ...form, display_name: e.target.value })} className="mt-1 bg-muted border-border" />
+                  </div>
                   <div><Label className="text-xs">Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">City</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="mt-1 bg-muted border-border" /></div>
+                  <div className="sm:col-span-2"><Label className="text-xs">Address</Label><Input value={form.address} maxLength={200} onChange={(e) => setForm({ ...form, address: e.target.value })} className="mt-1 bg-muted border-border" /></div>
                   <div><Label className="text-xs">Company</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="mt-1 bg-muted border-border" /></div>
+                  <div className="sm:col-span-2 text-[11px] text-muted-foreground bg-muted/40 rounded-md px-3 py-2">
+                    Verified badge is granted after KYC review.
+                  </div>
                   <div className="sm:col-span-2">
                     <Label className="text-xs">Email <span className="text-muted-foreground">(used for login)</span></Label>
                     <div className="flex gap-2 mt-1">
