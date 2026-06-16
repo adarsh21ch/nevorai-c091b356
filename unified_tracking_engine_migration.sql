@@ -494,7 +494,7 @@ as $$
     select e.started_at, coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id)
       from public.landing_page_view_events e
       join public.landing_pages lp on lp.id = e.landing_page_id
-     where (lp.video_asset_id = p_video_id or lp.post_submit_video_asset_id = p_video_id)
+     where lp.post_submit_video_asset_id = p_video_id
        and e.started_at >= current_date - (p_days - 1)
     union all
     select e.started_at, coalesce(e.visitor_fingerprint, e.ip_ua_hash, e.session_id)
