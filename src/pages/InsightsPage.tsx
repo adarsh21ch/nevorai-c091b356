@@ -212,7 +212,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     queryKey: ["video-views", user?.id, period, videoIds.length],
     queryFn: async () => {
       if (!videoIds.length) return [] as any[];
-      let q = (supabase as any).from("video_view_events").select("started_at,video_id,session_id").in("video_id", videoIds);
+      let q = (supabase as any).from("video_view_events").select("started_at,video_id,session_id,visitor_fingerprint,ip_ua_hash").in("video_id", videoIds);
       if (startIso) q = q.gte("started_at", startIso);
       return (await q.limit(2000)).data || [];
     },
@@ -251,7 +251,20 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     queryKey: ["lp-views", user?.id, period, lpIds.length],
     queryFn: async () => {
       if (!lpIds.length) return [] as any[];
-      let q = (supabase as any).from("landing_page_view_events").select("started_at,landing_page_id,session_id").in("landing_page_id", lpIds);
+      let q = (supabase as any).from("landing_page_view_events").select("started_at,landing_page_id,session_id,visitor_fingerprint,ip_ua_hash").in("landing_page_id", lpIds);
+      if (startIso) q = q.gte("started_at", startIso);
+      return (await q.limit(2000)).data || [];
+    },
+    enabled: !!user?.id,
+    staleTime: 15_000,
+    refetchInterval: visible ? 120_000 : false,
+  });
+
+  const { data: liveViews = [] } = useQuery({
+    queryKey: ["live-views", user?.id, period, liveIds.length],
+    queryFn: async () => {
+      if (!liveIds.length) return [] as any[];
+      let q = (supabase as any).from("live_session_view_events").select("started_at,live_session_id,session_id,visitor_fingerprint,ip_ua_hash").in("live_session_id", liveIds);
       if (startIso) q = q.gte("started_at", startIso);
       return (await q.limit(2000)).data || [];
     },
