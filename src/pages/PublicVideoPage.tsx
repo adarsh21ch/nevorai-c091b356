@@ -44,7 +44,7 @@ const TitleBlock = ({ title }: { title: string }) => {
       <h1
         ref={ref}
         className={`text-xl sm:text-2xl font-heading font-semibold leading-tight tracking-tight transition-[max-height] duration-200 ease-out ${
-          expanded ? "" : "line-clamp-2"
+          expanded ? "" : "line-clamp-1"
         }`}
       >
         {title}
