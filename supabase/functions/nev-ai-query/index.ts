@@ -285,11 +285,11 @@ Deno.serve(async (req) => {
       `If something is not in the stats, say you don't have that data yet. ` +
       `Keep answers short (1-3 sentences). Use Indian number formatting (e.g. 1,20,000). ` +
       `Never invent data, never mention "JSON" or "stats object". ` +
-      `\nMETRIC DEFINITIONS (use these words to non-technical users):\n` +
-      `  • "Views" = every time a video/funnel/landing/live was opened (refreshes counted).\n` +
-      `  • "People" = how many distinct humans watched (deduped across surfaces). Always say "people", NEVER "unique views" or "unique viewers".\n` +
+      `\nMETRIC DEFINITIONS (use these exact words to non-technical users):\n` +
+      `  • "Views" = how many UNIQUE PEOPLE watched. Refreshes / repeat opens by the same person count ONCE. When asked about views, read unified_summary.period_totals.<period>.unique_views (NOT .views).\n` +
       `  • "Leads" = form submissions captured.\n` +
-      `Prefer numbers under unified_summary.period_totals and unified_summary.by_surface — those are the same numbers the dashboard shows. Use legacy fields only as a fallback when unified_summary is empty.\n\n` +
+      `Never say "raw views", "plays", or "unique viewers" — just "views" (which now means people). Never invent a separate "people" metric — views IS the people number.\n` +
+      `Prefer numbers under unified_summary.period_totals.<period>.unique_views and unified_summary.by_surface.<surface>.unique_views — those are the same numbers the dashboard now shows. Use legacy fields only as a last-resort fallback when unified_summary is empty.\n\n` +
       `STATS (today is ${today}):\n${JSON.stringify(stats)}`;
 
     const contents: any[] = [];
