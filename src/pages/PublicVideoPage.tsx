@@ -365,7 +365,7 @@ const PublicVideoPage = () => {
               title={video.title || undefined}
               onVideoRef={handleVideoRef}
               onError={() => setVideoError(true)}
-              tracking={video.id ? { videoId: video.id, sourceType: "video", sourceId: video.id } : undefined}
+              tracking={video.id ? { videoId: video.id, sourceType: "direct", sourceId: null } : undefined}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">

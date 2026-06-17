@@ -5,6 +5,10 @@ interface PostSubmitVideoPlayerProps {
   thumbnailUrl?: string | null;
   allowSeek?: boolean;
   allowSpeed?: boolean;
+  /** video_assets.id — required for view tracking */
+  videoId?: string | null;
+  /** landing_pages.id — tagged on the view event as source_id */
+  landingPageId?: string | null;
 }
 
 export const PostSubmitVideoPlayer = ({
@@ -12,6 +16,8 @@ export const PostSubmitVideoPlayer = ({
   thumbnailUrl,
   allowSeek = true,
   allowSpeed = true,
+  videoId,
+  landingPageId,
 }: PostSubmitVideoPlayerProps) => {
   return (
     <div className="relative aspect-video rounded-xl overflow-hidden bg-black">
@@ -21,6 +27,11 @@ export const PostSubmitVideoPlayer = ({
         allowSeek={allowSeek}
         allowPlaybackSpeed={allowSpeed}
         autoplay
+        tracking={
+          videoId
+            ? { videoId, sourceType: "landing", sourceId: landingPageId ?? null }
+            : undefined
+        }
       />
     </div>
   );
