@@ -1,11 +1,15 @@
 import { useEffect, useRef } from "react";
 import { startVideoView, heartbeatVideoView } from "@/lib/videoTracking.functions";
 
-type SourceType = "funnel" | "landing_page" | "live_session" | "video" | "other";
+/**
+ * Canonical surface where a video is being played.
+ * Adding a new surface = add a new string here (no schema change required).
+ */
+export type VideoSourceType = "direct" | "funnel" | "landing" | "live" | "course" | "other";
 
 export interface VideoTrackingMeta {
   videoId: string;
-  sourceType: SourceType;
+  sourceType: VideoSourceType;
   sourceId?: string | null;
 }
 
@@ -25,16 +29,32 @@ function getOrCreateSessionId(): string {
   }
 }
 
+/** Guard so refresh/seek/replay in the same tab doesn't multi-count one view. */
+function alreadyCountedThisSession(meta: VideoTrackingMeta): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    const key = `nv_v_seen:${meta.videoId}:${meta.sourceType}:${meta.sourceId ?? ""}`;
+    if (sessionStorage.getItem(key)) return true;
+    sessionStorage.setItem(key, "1");
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 function detectDevice(): string {
   if (typeof navigator === "undefined") return "unknown";
   return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? "mobile" : "desktop";
 }
 
 /**
- * Attach view tracking to an existing <video> element.
- * - Fires startVideoView on first play
- * - Sends heartbeats at 25%, 50%, 75% progress milestones
- * - Marks completed at >=80% watched or on the `ended` event
+ * Attach view tracking to a <video> element. This is the SINGLE writer
+ * for video plays across every surface (direct, funnel, landing, live, …).
+ *
+ * - First play in a tab-session writes ONE row to `video_view_events`,
+ *   tagged with `source_type` + `source_id`.
+ * - Heartbeats mark 25/50/75% progress and >=80% completion.
+ * - Refresh/seek in the same tab does not multi-count (sessionStorage guard).
  */
 export function useVideoTracking(
   videoRef: React.RefObject<HTMLVideoElement | null>,
@@ -53,10 +73,13 @@ export function useVideoTracking(
     const start = async () => {
       if (startedRef.current) return;
       startedRef.current = true;
+      if (alreadyCountedThisSession(meta)) return; // dedup within tab
       try {
         const res = await startVideoView({
           data: {
             videoId: meta.videoId,
+            sourceType: meta.sourceType,
+            sourceId: meta.sourceId ?? null,
             sessionId: getOrCreateSessionId(),
             durationSeconds: isFinite(v.duration) ? Math.floor(v.duration) : null,
             deviceType: detectDevice(),

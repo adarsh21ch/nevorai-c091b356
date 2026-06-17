@@ -5,6 +5,8 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 const StartSchema = z.object({
   videoId: z.string().uuid(),
   sessionId: z.string().min(8).max(64),
+  sourceType: z.enum(["direct", "funnel", "landing", "live", "course", "other"]).default("direct"),
+  sourceId: z.string().uuid().nullable().optional(),
   durationSeconds: z.number().nullable().optional(),
   deviceType: z.string().max(20).optional(),
   referrerSource: z.string().max(255).optional(),
@@ -26,6 +28,8 @@ export const startVideoView = createServerFn({ method: "POST" })
       .insert({
         video_id: data.videoId,
         session_id: data.sessionId,
+        source_type: data.sourceType,
+        source_id: data.sourceId ?? null,
         duration_seconds: data.durationSeconds ?? null,
         device_type: data.deviceType ?? null,
         referrer_source: data.referrerSource ?? null,
