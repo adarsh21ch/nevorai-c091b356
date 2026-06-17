@@ -7,10 +7,15 @@ let _admin: SupabaseClient | null = null;
 
 function getAdmin(): SupabaseClient {
   if (_admin) return _admin;
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Prefer Lovable-managed SUPABASE_* (when Lovable Cloud is on); otherwise fall
+  // back to project-defined NEVORAI_SUPABASE_* secrets (external Supabase project).
+  const url = process.env.SUPABASE_URL || process.env.NEVORAI_SUPABASE_URL;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEVORAI_SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) {
-    throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in server env");
+    throw new Error(
+      "Missing SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY (or NEVORAI_SUPABASE_URL / NEVORAI_SUPABASE_SERVICE_ROLE_KEY) in server env",
+    );
   }
   _admin = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
