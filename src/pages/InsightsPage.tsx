@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List } from "lucide-react";
+import { Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List, Eye } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
@@ -413,16 +413,16 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const uniqueLeads = leads.length + registrations.length;
   const prevLeads = leadsPrev.length + regsPrev.length;
 
-  // People = distinct visitor fingerprint across ALL surfaces (fall back to
-  // ip_ua_hash, then session_id). Same human on multiple surfaces counts once.
+  // People = distinct visitor across ALL surfaces. Same human refreshing
+  // the same page counts ONCE. Falls back from fingerprint → ip_ua_hash →
+  // session_id. Rows with none of these are ignored (don't inflate the
+  // unique-person count to equal raw views).
   const uniqueFpSet = new Set<string>();
-  let anonViewFallback = 0;
   [...videoViews, ...funnelViews, ...lpViews, ...liveViews].forEach((v: any) => {
     const fp = v.visitor_fingerprint || v.ip_ua_hash || v.session_id;
-    if (fp) uniqueFpSet.add(fp);
-    else anonViewFallback += 1;
+    if (fp) uniqueFpSet.add(String(fp));
   });
-  const uniqueViewerEstimate = uniqueFpSet.size + anonViewFallback;
+  const uniqueViewerEstimate = uniqueFpSet.size;
 
   // Sparklines (last 7 days regardless of period for hero KPIs)
   const allViewRows = [
@@ -589,23 +589,26 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="space-y-5">
-          {/* Hero KPIs — People + Leads lead; Total Views demoted; Live moved to Live tab. */}
+          {/* Hero KPIs — Views (total, refreshes counted) + People (unique humans). */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <KpiCard
-                icon={Users}
-                label="People"
-                value={uniqueViewerEstimate}
-                spark={viewerSpark}
-                suffix={PERIOD_LABELS[period]}
-                previous={0}
-              />
-              <div className="px-1 text-[10px] text-muted-foreground">
-                {formatCompact(totalEventViews)} total views (refreshes counted)
-              </div>
-            </div>
-            <KpiCard icon={UserCheck} label="Total Leads" value={uniqueLeads} previous={prevLeads} spark={leadsSpark} suffix={PERIOD_LABELS[period]} />
+            <KpiCard
+              icon={Eye}
+              label="Views"
+              value={totalEventViews}
+              spark={viewsSpark}
+              suffix={PERIOD_LABELS[period]}
+              previous={0}
+            />
+            <KpiCard
+              icon={Users}
+              label="People"
+              value={uniqueViewerEstimate}
+              spark={viewerSpark}
+              suffix={PERIOD_LABELS[period]}
+              previous={0}
+            />
           </div>
+
 
           {/* Dedicated, one-tap entry to the team tracking sheet. */}
           <div>
