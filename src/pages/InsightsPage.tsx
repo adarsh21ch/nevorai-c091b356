@@ -413,16 +413,16 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const uniqueLeads = leads.length + registrations.length;
   const prevLeads = leadsPrev.length + regsPrev.length;
 
-  // People = distinct visitor fingerprint across ALL surfaces (fall back to
-  // ip_ua_hash, then session_id). Same human on multiple surfaces counts once.
+  // People = distinct visitor across ALL surfaces. Same human refreshing
+  // the same page counts ONCE. Falls back from fingerprint → ip_ua_hash →
+  // session_id. Rows with none of these are ignored (don't inflate the
+  // unique-person count to equal raw views).
   const uniqueFpSet = new Set<string>();
-  let anonViewFallback = 0;
   [...videoViews, ...funnelViews, ...lpViews, ...liveViews].forEach((v: any) => {
     const fp = v.visitor_fingerprint || v.ip_ua_hash || v.session_id;
-    if (fp) uniqueFpSet.add(fp);
-    else anonViewFallback += 1;
+    if (fp) uniqueFpSet.add(String(fp));
   });
-  const uniqueViewerEstimate = uniqueFpSet.size + anonViewFallback;
+  const uniqueViewerEstimate = uniqueFpSet.size;
 
   // Sparklines (last 7 days regardless of period for hero KPIs)
   const allViewRows = [
