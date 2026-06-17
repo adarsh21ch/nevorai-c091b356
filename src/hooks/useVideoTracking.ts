@@ -96,6 +96,8 @@ export function useVideoTracking(
             sourceType: meta.sourceType,
             sourceId: meta.sourceId ?? null,
             sessionId: getOrCreateSessionId(),
+            fingerprint: getOrCreateFingerprint(),
+            userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
             durationSeconds: isFinite(v.duration) ? Math.floor(v.duration) : null,
             deviceType: detectDevice(),
             referrerSource: (typeof document !== "undefined" && document.referrer) || undefined,
