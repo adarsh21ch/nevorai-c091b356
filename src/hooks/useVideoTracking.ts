@@ -14,6 +14,7 @@ export interface VideoTrackingMeta {
 }
 
 const SESSION_KEY = "nv_session_id";
+const FINGERPRINT_KEY = "nv_fp_id";
 
 function getOrCreateSessionId(): string {
   if (typeof window === "undefined") return "ssr";
@@ -26,6 +27,20 @@ function getOrCreateSessionId(): string {
     return id;
   } catch {
     return Math.random().toString(36).slice(2);
+  }
+}
+
+function getOrCreateFingerprint(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    let id = localStorage.getItem(FINGERPRINT_KEY);
+    if (!id) {
+      id = (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)).replace(/-/g, "");
+      localStorage.setItem(FINGERPRINT_KEY, id);
+    }
+    return id;
+  } catch {
+    return null;
   }
 }
 
@@ -81,6 +96,8 @@ export function useVideoTracking(
             sourceType: meta.sourceType,
             sourceId: meta.sourceId ?? null,
             sessionId: getOrCreateSessionId(),
+            fingerprint: getOrCreateFingerprint(),
+            userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
             durationSeconds: isFinite(v.duration) ? Math.floor(v.duration) : null,
             deviceType: detectDevice(),
             referrerSource: (typeof document !== "undefined" && document.referrer) || undefined,

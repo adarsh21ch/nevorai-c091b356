@@ -7,6 +7,8 @@ const StartSchema = z.object({
   sessionId: z.string().min(8).max(64),
   sourceType: z.enum(["direct", "funnel", "landing", "live", "course", "other"]).default("direct"),
   sourceId: z.string().uuid().nullable().optional(),
+  fingerprint: z.string().max(128).nullable().optional(),
+  userAgent: z.string().max(512).nullable().optional(),
   durationSeconds: z.number().nullable().optional(),
   deviceType: z.string().max(20).optional(),
   referrerSource: z.string().max(255).optional(),
@@ -23,24 +25,22 @@ const HeartbeatSchema = z.object({
 export const startVideoView = createServerFn({ method: "POST" })
   .inputValidator((input) => StartSchema.parse(input))
   .handler(async ({ data }) => {
-    const { data: row, error } = await supabaseAdmin
-      .from("video_view_events" as any)
-      .insert({
-        video_id: data.videoId,
-        session_id: data.sessionId,
-        source_type: data.sourceType,
-        source_id: data.sourceId ?? null,
-        duration_seconds: data.durationSeconds ?? null,
-        device_type: data.deviceType ?? null,
-        referrer_source: data.referrerSource ?? null,
-      })
-      .select("id")
-      .single();
+    // Delegate to the security-definer `record_view` RPC. The RPC owns
+    // the insert into video_view_events + server-side fingerprint/IP hashing,
+    // so every surface (direct/funnel/landing/live/…) goes through one path.
+    const { data: eventId, error } = await supabaseAdmin.rpc("record_view" as any, {
+      p_surface: data.sourceType,
+      p_entity_id: data.videoId,
+      p_fingerprint: data.fingerprint ?? null,
+      p_session_id: data.sessionId,
+      p_user_agent: data.userAgent ?? null,
+    } as any);
     if (error) {
-      console.error("startVideoView error:", error.message);
+      console.error("startVideoView (record_view) error:", error.message);
       return { eventId: null as string | null };
     }
-    return { eventId: (row as any).id as string };
+    // record_view may return either a uuid (event id) or null when deduped.
+    return { eventId: (eventId as unknown as string | null) ?? null };
   });
 
 export const heartbeatVideoView = createServerFn({ method: "POST" })
