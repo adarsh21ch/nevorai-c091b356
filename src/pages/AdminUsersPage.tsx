@@ -179,7 +179,7 @@ const AdminUsersPage = () => {
                   <th className="p-4 text-xs text-muted-foreground font-medium">KYC</th>
                   <th className="p-4 text-xs text-muted-foreground font-medium text-center">Verified</th>
                   <th className="p-4 text-xs text-muted-foreground font-medium">Joined</th>
-                  <th className="p-4 text-xs text-muted-foreground font-medium text-right">Views (this month)</th>
+                  <th className="p-4 text-xs text-muted-foreground font-medium text-right">Quota used (this month)</th>
                   <th className="p-4 text-xs text-muted-foreground font-medium text-right">Actions</th>
                 </tr>
               </thead>
@@ -262,7 +262,7 @@ const AdminUsersPage = () => {
                     })()}
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
-                    <span className="text-[10px] text-muted-foreground">Views</span>
+                    <span className="text-[10px] text-muted-foreground">Quota used</span>
                     <ViewsCell used={used} />
                   </div>
                   <div className="flex items-center justify-between gap-2 pt-1">

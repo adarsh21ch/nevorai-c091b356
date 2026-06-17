@@ -275,7 +275,7 @@ const AdminVideosPage = () => {
                   <th className="p-4 text-xs font-medium text-muted-foreground">Status</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Size</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Usage</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Views</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Views (raw)</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">People</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Last viewed</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Actions</th>
