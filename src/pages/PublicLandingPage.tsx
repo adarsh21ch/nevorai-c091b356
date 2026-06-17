@@ -337,6 +337,8 @@ const PublicLandingPage = () => {
                   thumbnailUrl={video.thumbnail_url}
                   allowSeek={video.allow_seek !== false}
                   allowSpeed={video.allow_playback_speed !== false}
+                  videoId={video.id}
+                  landingPageId={page.id}
                 />
               </>
             ) : (
