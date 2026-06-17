@@ -2,16 +2,22 @@ import { Crown, AlertTriangle, ArrowRight } from "lucide-react";
 import { useNavigate } from "@/lib/router-compat";
 import { useMonthlyViews } from "@/hooks/useMonthlyViews";
 import { useDailyViews } from "@/hooks/useDailyViews";
+import { useOwnerUniquePeople } from "@/hooks/useUniquePeople";
 import { usePlan } from "@/hooks/usePlan";
 import { planDisplay } from "@/config/planDisplay";
+import { ViewsLabel } from "@/components/insights/ViewsLabel";
 import { format } from "date-fns";
 
 const fmt = (n: number) => n.toLocaleString("en-IN");
 
 export const DashboardKpiStrip = () => {
   const { plan } = usePlan();
+  // Quota meters
   const monthly = useMonthlyViews();
   const daily = useDailyViews();
+  // Real user-facing "Views" = unique people
+  const todayPeople = useOwnerUniquePeople("today");
+  const monthPeople = useOwnerUniquePeople("month");
   const navigate = useNavigate();
   const display = planDisplay(plan.tier);
   const expiresIn = plan.daysLeft ?? null;
@@ -49,32 +55,42 @@ export const DashboardKpiStrip = () => {
 
       <div className="hidden h-10 w-px shrink-0 bg-border md:block" />
 
+      {/* Monthly VIEWS — unique people; quota shown beneath as limit text */}
       <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Monthly Views</span>
-          <span className="font-semibold">
-            {fmt(monthly.used)} / {monthly.isUnlimited ? "∞" : fmt(monthly.limit)}
-          </span>
+          <ViewsLabel label="Monthly Views" className="text-muted-foreground" />
+          <span className="font-semibold">{fmt(monthPeople.total)}</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all" style={{ width: `${monthPct}%` }} />
-        </div>
-        <span className="text-[10px] text-muted-foreground/70">Resets {resetDateFmt}</span>
+        {!monthly.isUnlimited && (
+          <>
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-blue-500 transition-all" style={{ width: `${monthPct}%` }} />
+            </div>
+            <span className="text-[10px] text-muted-foreground/70">
+              {fmt(monthly.used)} of {fmt(monthly.limit)} monthly limit used · Resets {resetDateFmt}
+            </span>
+          </>
+        )}
       </div>
 
       <div className="hidden h-10 w-px shrink-0 bg-border md:block" />
 
+      {/* Today's VIEWS — unique people; quota shown beneath as limit text */}
       <div className="flex min-w-[180px] flex-1 flex-col gap-1.5">
         <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Today's Views</span>
-          <span className="font-semibold">
-            {fmt(daily.used)} / {daily.isUnlimited ? "∞" : fmt(daily.limit)}
-          </span>
+          <ViewsLabel label="Today's Views" className="text-muted-foreground" />
+          <span className="font-semibold">{fmt(todayPeople.total)}</span>
         </div>
-        <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all" style={{ width: `${dayPct}%` }} />
-        </div>
-        <span className="text-[10px] text-muted-foreground/70">Resets midnight IST</span>
+        {!daily.isUnlimited && (
+          <>
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all" style={{ width: `${dayPct}%` }} />
+            </div>
+            <span className="text-[10px] text-muted-foreground/70">
+              {fmt(daily.used)} of {fmt(daily.limit)} daily limit used · Resets midnight IST
+            </span>
+          </>
+        )}
       </div>
 
       {showRenew && (
@@ -100,7 +116,7 @@ export const DashboardKpiStrip = () => {
           onClick={() => navigate("/billing?upgrade=views")}
           className="flex w-full items-center justify-between gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-xs font-semibold text-amber-400 transition-colors hover:bg-amber-500/15"
         >
-          <span className="flex items-center gap-2"><AlertTriangle size={12} /> {dayPct}% of today's views used</span>
+          <span className="flex items-center gap-2"><AlertTriangle size={12} /> {dayPct}% of daily limit used</span>
           <span className="flex items-center gap-1">Get more views <ArrowRight size={12} /></span>
         </button>
       )}
