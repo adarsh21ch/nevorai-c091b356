@@ -62,8 +62,8 @@ const AnalyticsPage = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="glass-card p-5">
+          {kpis.map((k, i) => (
+            <div key={i} className="glass-card p-5">
               <div className="flex items-center gap-2 mb-2"><k.icon size={16} className="text-primary" /><span className="text-xs text-muted-foreground">{k.label}</span></div>
               <div className="text-2xl font-heading font-bold">{k.value}</div>
             </div>
