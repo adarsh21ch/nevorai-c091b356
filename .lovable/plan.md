@@ -1,83 +1,112 @@
-# Root cause: two server secrets are missing
+# New real cause — `digest()` function missing in `record_view`
 
-## Answering your two questions first
+## What the Worker log shows
 
-**1. "Why Cloudflare Workers? We don't use Workers."**
-
-You do — you just don't see it. Here's the split:
-
-- **Cloudflare R2** = file storage (videos, thumbnails). You knew this.
-- **Cloudflare Workers** = the runtime that executes your *server functions* (every `createServerFn` in the app, including `startVideoView`). Lovable deploys your TanStack Start backend onto Workers automatically. There is no separate "Lovable backend server" — Lovable IS Workers.
-- **Supabase** = database + auth only. Your Workers call Supabase over HTTPS using the URL + service-role key.
-
-So "set the env var in your production server runtime" = "add it as a **Lovable Project Secret**". Lovable injects project secrets into the Worker at request time as `process.env.X`. Nothing to do with Cloudflare's dashboard.
-
-**2. "The SQL returned `Success. No rows returned`."**
-
-That's the proof the fix isn't live yet. We expected today's funnel row to appear; it didn't, because the server function is still failing for the same reason every real-traffic insert has failed: it can't reach Supabase.
-
-## The actual cause (confirmed)
-
-I checked your project secrets. You have R2, Razorpay, Resend, Gemini, Meta, Google — but you do **not** have:
-
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_ROLE_KEY`
-
-`src/integrations/supabase/client.server.ts` is the admin client used by `startVideoView`. Lines 10–14:
-
-```ts
-const url = process.env.SUPABASE_URL;
-const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-if (!url || !key) {
-  throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY in server env");
-}
+```
+[error] startVideoView (record_view) error: function digest(text, unknown) does not exist
 ```
 
-Because these two secrets don't exist in the Worker runtime, **every** call to `startVideoView` throws before it can even attempt the `record_view` RPC. That's why:
+This means:
+- The secrets fix worked. The Worker successfully reached Supabase and called the `record_view` RPC.
+- The RPC itself crashed inside Postgres because it calls `digest(...)` (the SHA-256 helper from the `pgcrypto` extension) and that extension isn't available on the `search_path` your RPC runs under.
 
-- Funnel videos → no row.
-- Direct video links → no row from real traffic either. The 3 rows in `video_view_events` are the May 27 backfill (identical microsecond timestamps, NULL session_id, NULL device_type — none of them came from the frontend player).
-- Multi-step funnel "tracking" you thought was working is actually the older `funnel_engagement` pixel path (separate concern), not `video_view_events`.
+That's why the `started_at > now() - interval '5 minutes'` query still returns zero rows — the insert is rolled back inside the function before any row is written.
 
-This is consistent with every symptom you reported.
+## The fix (one SQL migration, no code change)
 
-## The fix (one step, no code change, no SQL)
+Recreate `public.record_view` so it computes the IP/UA hash using Postgres's built-in `sha256()` + `encode()` (available since PG 14, no extension required) instead of `digest()`. Everything else about the RPC — surface mapping, fingerprint handling, dedup, return value — stays identical to the version you ran last time.
 
-Add the two missing secrets to the Lovable project so the Worker can construct the admin client.
-
-Values to paste (from your external Supabase project → Settings → API):
-
-1. `SUPABASE_URL` = `https://<your-project-ref>.supabase.co`  
-   (same value as your frontend `VITE_SUPABASE_URL`)
-2. `SUPABASE_SERVICE_ROLE_KEY` = the **service_role** secret (NOT the anon/publishable key) from Supabase → Settings → API → Project API keys → `service_role`. Keep it secret — it bypasses RLS.
-
-Once added, the next published deploy will pick them up. No SQL, no code edit, no migration.
-
-## How to verify (the only thing that proves it's fixed)
-
-1. After the secrets are added and a new deploy is live, open one funnel in an incognito window and play the video for ~5 seconds.
-2. Run this SQL — it should return exactly one row for that play:
+### SQL to run in Supabase SQL editor
 
 ```sql
-select id, video_id, source_type, source_id, session_id, started_at, last_heartbeat_at, device_type
-from public.video_view_events
-where started_at > now() - interval '5 minutes'
-order by started_at desc;
+CREATE OR REPLACE FUNCTION public.record_view(
+  p_surface     text,
+  p_entity_id   uuid,
+  p_fingerprint text DEFAULT NULL,
+  p_session_id  text DEFAULT NULL,
+  p_user_agent  text DEFAULT NULL,
+  p_referrer    text DEFAULT NULL,
+  p_device      text DEFAULT NULL,
+  p_source_id   uuid DEFAULT NULL
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_source_type text;
+  v_ip          inet;
+  v_ip_ua_hash  text;
+  v_event_id    uuid;
+BEGIN
+  v_source_type := CASE
+    WHEN p_surface = 'video' THEN 'direct'
+    WHEN p_surface IN ('direct','funnel','landing','live','course','other') THEN p_surface
+    ELSE NULL
+  END;
+  IF v_source_type IS NULL THEN
+    RAISE EXCEPTION 'record_view: invalid p_surface %', p_surface;
+  END IF;
+
+  -- Best-effort client IP (NULL if not present in request headers).
+  BEGIN
+    v_ip := nullif(current_setting('request.headers', true)::json->>'x-forwarded-for','')::inet;
+  EXCEPTION WHEN others THEN
+    v_ip := NULL;
+  END;
+
+  -- Built-in SHA-256 — no pgcrypto dependency.
+  v_ip_ua_hash := encode(
+    sha256(convert_to(coalesce(host(v_ip),'') || '|' || coalesce(p_user_agent,''), 'UTF8')),
+    'hex'
+  );
+
+  INSERT INTO public.video_view_events (
+    video_id, source_type, source_id, session_id,
+    fingerprint, user_agent, ip_ua_hash,
+    referrer_source, device_type,
+    started_at, last_heartbeat_at
+  )
+  VALUES (
+    p_entity_id, v_source_type, p_source_id, p_session_id,
+    p_fingerprint, p_user_agent, v_ip_ua_hash,
+    p_referrer, p_device,
+    now(), now()
+  )
+  RETURNING id INTO v_event_id;
+
+  RETURN v_event_id;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.record_view(text, uuid, text, text, text, text, text, uuid) TO anon, authenticated, service_role;
 ```
 
-The row must have `source_type = 'funnel'`, a non-null `session_id`, and a non-null `device_type`. If it does, every other surface (direct, landing, live, future) starts recording at the same moment because they all go through the same `startVideoView` → `record_view` path.
+Notes:
+- `sha256(bytea)` and `encode(bytea, 'hex')` are core Postgres — no extension to enable.
+- `SECURITY DEFINER` + `SET search_path = public` keeps the bypass narrow.
+- Signature and return type are unchanged from what your server function already calls, so no app code edit is needed.
 
 ## What I will NOT change
 
-- No schema changes, no new tables, no edits to RLS.
-- No code changes — the tracking pipeline itself is already correct; it's just unreachable until the secrets exist.
-- No touching the existing funnel `funnel_engagement` pixel; separate concern.
+- No edits to `video_view_events` schema.
+- No edits to RLS, GRANTs on the table, or any other surface.
+- No code changes — `startVideoView` already calls `record_view` with the right arguments.
+- No re-deploy of the app needed; the migration takes effect the moment it runs.
 
-## Action for you before I implement
+## Verify after running the SQL
 
-I cannot read your Supabase service-role key. Please either:
+1. Open a funnel video in incognito and play ~5 seconds.
+2. Re-run the same SQL you just ran:
 
-- **(A)** Paste the `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` values here and I'll add them as Lovable secrets, **or**
-- **(B)** Add them yourself in Lovable → Project Settings → Secrets, then tell me and I'll re-run the verification SQL with you.
+```sql
+SELECT id, video_id, source_type, source_id, session_id, started_at, device_type
+FROM public.video_view_events
+WHERE started_at > now() - interval '5 minutes'
+ORDER BY started_at DESC;
+```
 
-Which do you prefer?
+Expect one row with `source_type = 'funnel'`, non-null `session_id`, non-null `device_type`. If that row appears, every surface (direct/landing/live) starts recording from the same moment — they share the path.
+
+If it still doesn't appear, send a screenshot and I'll pull the next Worker log immediately.
