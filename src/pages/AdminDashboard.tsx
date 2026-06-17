@@ -51,8 +51,20 @@ const AdminDashboard = () => {
     },
   });
 
+  // Platform-wide unique people (last 30d) — single source of truth for "Views"
+  const { data: platformPeople = 0 } = useQuery({
+    queryKey: ["admin-platform-unique-people-30d"],
+    queryFn: async () => {
+      const to = new Date().toISOString();
+      const from = new Date(Date.now() - 30 * 86400_000).toISOString();
+      const { data } = await (supabase as any).rpc("get_platform_unique_people", { p_from: from, p_to: to });
+      return Number(data || 0);
+    },
+    staleTime: 5 * 60_000,
+  });
+
   const mrr = subs.filter((s) => s.status === "active" && s.tier !== "free").reduce((a, s) => a + (s.amount_paid || 0), 0);
-  const totalViews = funnels.reduce((a, f) => a + ((f as any).total_views || 0), 0);
+  const totalViews = platformPeople;
   const totalLeads = funnels.reduce((a, f) => a + ((f as any).total_leads || 0), 0);
 
   // 14-day signups series
@@ -85,7 +97,7 @@ const AdminDashboard = () => {
     { icon: TrendingUp, label: "Signups Today", value: formatInt(todaySignups) },
     { icon: Layers, label: "Total Funnels", value: formatInt(funnels.length) },
     { icon: Video, label: "Total Videos", value: formatInt(videos.length) },
-    { icon: BarChart3, label: "Total Views", value: formatCompact(totalViews) },
+    { icon: BarChart3, label: "Views (30d)", value: formatCompact(totalViews), hint: "Unique people" },
     { icon: Users, label: "Total Leads", value: formatCompact(totalLeads) },
     { icon: IndianRupee, label: "Revenue", value: formatINR(mrr) },
     { icon: Shield, label: "KYC Pending", value: formatInt(kycPending.length) },
@@ -102,7 +114,7 @@ const AdminDashboard = () => {
 
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-4 sm:gap-3">
           {kpis.map((k) => (
-            <div key={k.label} className="glass-card min-w-0 p-3 sm:p-5">
+            <div key={String(k.label)} className="glass-card min-w-0 p-3 sm:p-5">
               <div className="flex items-center gap-2.5">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <k.icon size={15} className="text-primary" />

@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Eye, Users, TrendingUp, IndianRupee, Clock, Layers } from "lucide-react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useOwnerUniquePeople, useEntityUniquePeople } from "@/hooks/useUniquePeople";
+import { ViewsLabel } from "@/components/insights/ViewsLabel";
 
 const AnalyticsPage = () => {
   const { user } = useAuth();
@@ -28,7 +30,9 @@ const AnalyticsPage = () => {
     enabled: funnels.length > 0,
   });
 
-  const totalViews = funnels.reduce((a, f) => a + (f.total_views || 0), 0);
+  // Views = unique people across all owner surfaces (matches Dashboard + Insights)
+  const people = useOwnerUniquePeople("all");
+  const totalViews = people.total;
   const convRate = totalViews > 0 ? ((leads.length / totalViews) * 100).toFixed(1) : "0";
 
   const statusCounts = leads.reduce((acc, l) => {
@@ -40,10 +44,10 @@ const AnalyticsPage = () => {
   const COLORS = ["#2563EB", "#6366F1", "#10B981", "#F59E0B", "#EF4444"];
 
   const topFunnels = [...funnels].sort((a, b) => (b.total_leads || 0) - (a.total_leads || 0)).slice(0, 5)
-    .map((f) => ({ name: f.title.slice(0, 20), views: f.total_views || 0, leads: f.total_leads || 0 }));
+    .map((f) => ({ name: f.title.slice(0, 20), leads: f.total_leads || 0 }));
 
   const kpis = [
-    { icon: Eye, label: "Total Views", value: totalViews.toLocaleString("en-IN") },
+    { icon: Eye, label: <ViewsLabel />, value: totalViews.toLocaleString("en-IN") },
     { icon: Users, label: "Total Leads", value: String(leads.length) },
     { icon: TrendingUp, label: "Conversion Rate", value: `${convRate}%` },
     { icon: Layers, label: "Active Funnels", value: String(funnels.filter((f) => f.is_published).length) },
@@ -58,8 +62,8 @@ const AnalyticsPage = () => {
         </div>
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpis.map((k) => (
-            <div key={k.label} className="glass-card p-5">
+          {kpis.map((k, i) => (
+            <div key={i} className="glass-card p-5">
               <div className="flex items-center gap-2 mb-2"><k.icon size={16} className="text-primary" /><span className="text-xs text-muted-foreground">{k.label}</span></div>
               <div className="text-2xl font-heading font-bold">{k.value}</div>
             </div>
@@ -75,7 +79,6 @@ const AnalyticsPage = () => {
                   <XAxis dataKey="name" tick={{ fill: "#94A3B8", fontSize: 11 }} />
                   <YAxis tick={{ fill: "#94A3B8", fontSize: 11 }} />
                   <Tooltip contentStyle={{ background: "#111118", border: "1px solid #1E1E2E", borderRadius: 8 }} />
-                  <Bar dataKey="views" fill="#2563EB" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="leads" fill="#6366F1" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

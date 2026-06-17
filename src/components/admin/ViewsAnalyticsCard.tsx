@@ -62,12 +62,12 @@ export const ViewsAnalyticsCard = () => {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
           <BarChart3 size={15} className="text-primary" />
         </div>
-        <h2 className="text-sm font-heading font-semibold sm:text-base">Views Analytics — This Month</h2>
+        <h2 className="text-sm font-heading font-semibold sm:text-base">Plan Quota Usage — This Month</h2>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
         <div className="rounded-lg border border-border/40 p-2.5">
-          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><TrendingUp size={11} /> Total views</div>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground"><TrendingUp size={11} /> Total quota used</div>
           <p className="mt-1 text-lg font-bold sm:text-xl">{totalViews.toLocaleString("en-IN")}</p>
         </div>
         <div className="rounded-lg border border-border/40 p-2.5">

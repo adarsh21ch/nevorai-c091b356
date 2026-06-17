@@ -14,6 +14,8 @@ import {
 import { DrillHeader, KpiStrip } from "@/components/insights/DrillHeader";
 import { formatCompact, formatRelativeDate, formatDuration } from "@/lib/format";
 import { ExportCsvButton } from "@/components/insights/ExportCsvButton";
+import { ViewsLabel } from "@/components/insights/ViewsLabel";
+import { useEntityUniquePeople } from "@/hooks/useUniquePeople";
 
 const PIE = ["hsl(var(--primary))", "#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
@@ -57,8 +59,9 @@ export default function VideoInsightsPage() {
     staleTime: 30_000,
   });
 
+  const people = useEntityUniquePeople("video", id);
+
   const stats = useMemo(() => {
-    const uniqueSessions = new Set(views.map((v: any) => v.session_id).filter(Boolean)).size;
     const devices: Record<string, number> = {};
     const sources: Record<string, number> = {};
     const byDay: Record<string, number> = {};
@@ -71,7 +74,6 @@ export default function VideoInsightsPage() {
       byDay[day] = (byDay[day] || 0) + 1;
     });
     return {
-      uniqueSessions,
       deviceData: Object.entries(devices).map(([name, value]) => ({ name, value })),
       sourceData: Object.entries(sources).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([name, value]) => ({ name, value })),
       dailyData: Object.entries(byDay).sort().map(([date, views]) => ({ date, views })),
@@ -95,12 +97,11 @@ export default function VideoInsightsPage() {
 
         <KpiStrip
           cards={[
-            { icon: Eye, label: "Total Views", value: formatCompact(views.length) },
-            { icon: Users, label: "Unique Viewers", value: formatCompact(stats.uniqueSessions) },
+            { icon: Eye, label: (<ViewsLabel />) as any, value: formatCompact(people) },
             { icon: UserCheck, label: "Leads", value: formatCompact(leads.length) },
             { icon: Radio, label: "Live Now", value: formatCompact(liveCount) },
             { icon: Clock, label: "Duration", value: video?.duration_seconds ? formatDuration(video.duration_seconds) : "—" },
-            { icon: TrendingUp, label: "Conv Rate", value: views.length ? `${((leads.length / views.length) * 100).toFixed(1)}%` : "—" },
+            { icon: TrendingUp, label: "Conv Rate", value: people ? `${((leads.length / people) * 100).toFixed(1)}%` : "—" },
           ]}
         />
 

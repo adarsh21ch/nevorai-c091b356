@@ -14,6 +14,8 @@ import {
 import { DrillHeader, KpiStrip } from "@/components/insights/DrillHeader";
 import { formatCompact, formatRelativeDate } from "@/lib/format";
 import { ExportCsvButton } from "@/components/insights/ExportCsvButton";
+import { ViewsLabel } from "@/components/insights/ViewsLabel";
+import { useEntityUniquePeople } from "@/hooks/useUniquePeople";
 
 const PIE = ["hsl(var(--primary))", "#6366F1", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
 
@@ -57,8 +59,9 @@ export default function FunnelInsightsPage() {
     staleTime: 30_000,
   });
 
+  const people = useEntityUniquePeople("funnel", id);
+
   const stats = useMemo(() => {
-    const uniqueSessions = new Set(views.map((v: any) => v.session_id).filter(Boolean)).size;
     const sources: Record<string, number> = {};
     const utms: Record<string, number> = {};
     views.forEach((v: any) => {
@@ -70,13 +73,12 @@ export default function FunnelInsightsPage() {
       utms[u] = (utms[u] || 0) + 1;
     });
     return {
-      uniqueSessions,
       sourceData: Object.entries(sources).map(([name, value]) => ({ name, value })),
       utmData: Object.entries(utms).map(([name, value]) => ({ name, value })),
     };
   }, [views, leads]);
 
-  const convRate = views.length ? ((leads.length / views.length) * 100).toFixed(1) + "%" : "—";
+  const convRate = people ? ((leads.length / people) * 100).toFixed(1) + "%" : "—";
   const tooltipStyle = { background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8 };
 
   return (
@@ -94,8 +96,7 @@ export default function FunnelInsightsPage() {
 
         <KpiStrip
           cards={[
-            { icon: Eye, label: "Views", value: formatCompact(views.length || funnel?.total_views || 0) },
-            { icon: Users, label: "Unique", value: formatCompact(stats.uniqueSessions) },
+            { icon: Eye, label: (<ViewsLabel />) as any, value: formatCompact(people) },
             { icon: UserCheck, label: "Leads", value: formatCompact(leads.length || funnel?.total_leads || 0) },
             { icon: TrendingUp, label: "Conv Rate", value: convRate },
             { icon: Target, label: "Sources", value: stats.utmData.length },

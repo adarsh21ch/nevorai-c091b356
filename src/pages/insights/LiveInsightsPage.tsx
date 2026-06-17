@@ -12,6 +12,8 @@ import {
 } from "recharts";
 import { DrillHeader, KpiStrip } from "@/components/insights/DrillHeader";
 import { formatCompact, formatRelativeDate } from "@/lib/format";
+import { ViewsLabel } from "@/components/insights/ViewsLabel";
+import { useEntityUniquePeople } from "@/hooks/useUniquePeople";
 
 export default function LiveInsightsPage() {
   const { id } = useParams();
@@ -46,15 +48,15 @@ export default function LiveInsightsPage() {
     refetchInterval: visible ? 60_000 : false,
   });
 
+  const people = useEntityUniquePeople("live", id);
+
   const stats = useMemo(() => {
-    const uniqueSessions = new Set(views.map((v: any) => v.session_id).filter(Boolean)).size;
     const byDay: Record<string, number> = {};
     views.forEach((v: any) => {
       const day = new Date(v.started_at).toISOString().slice(5, 10);
       byDay[day] = (byDay[day] || 0) + 1;
     });
     return {
-      uniqueSessions,
       dailyData: Object.entries(byDay).sort().map(([date, views]) => ({ date, views })),
     };
   }, [views]);
@@ -75,8 +77,7 @@ export default function LiveInsightsPage() {
 
         <KpiStrip
           cards={[
-            { icon: Eye, label: "Total Views", value: formatCompact(views.length) },
-            { icon: Users, label: "Unique", value: formatCompact(stats.uniqueSessions) },
+            { icon: Eye, label: (<ViewsLabel />) as any, value: formatCompact(people) },
             { icon: Radio, label: "Live Now", value: formatCompact(liveCount) },
             { icon: UserCheck, label: "Status", value: session?.status || "—" },
             { icon: Clock, label: "Created", value: session?.created_at ? formatRelativeDate(session.created_at) : "—" },

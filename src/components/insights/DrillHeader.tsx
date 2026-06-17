@@ -60,7 +60,7 @@ export function DrillHeader({
 export function KpiStrip({
   cards,
 }: {
-  cards: Array<{ icon: LucideIcon; label: string; value: string | number; hint?: string }>;
+  cards: Array<{ icon: LucideIcon; label: ReactNode; value: string | number; hint?: string }>;
 }) {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
