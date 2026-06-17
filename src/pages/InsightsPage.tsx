@@ -17,6 +17,7 @@ import {
 } from "recharts";
 import { formatCompact, formatInt } from "@/lib/format";
 import { KpiCard } from "@/components/insights/KpiCard";
+import { ViewsLabel } from "@/components/insights/ViewsLabel";
 import { LivePulseDot } from "@/components/insights/LivePulseDot";
 import { ActivityFeed, type ActivityItem } from "@/components/insights/ActivityFeed";
 import { EntityCard } from "@/components/insights/EntityCard";
@@ -589,23 +590,23 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="space-y-5">
-          {/* Hero KPIs — Views (total, refreshes counted) + People (unique humans). */}
+          {/* Hero KPIs — Views (unique people) + Leads. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <KpiCard
               icon={Eye}
-              label="Views"
-              value={totalEventViews}
+              label={<ViewsLabel />}
+              value={uniqueViewerEstimate}
               spark={viewsSpark}
               suffix={PERIOD_LABELS[period]}
               previous={0}
             />
             <KpiCard
               icon={Users}
-              label="People"
-              value={uniqueViewerEstimate}
-              spark={viewerSpark}
+              label="Leads"
+              value={uniqueLeads}
+              spark={leadsSpark}
               suffix={PERIOD_LABELS[period]}
-              previous={0}
+              previous={prevLeads}
             />
           </div>
 

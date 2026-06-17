@@ -6,7 +6,7 @@ import { Sparkline } from "./Sparkline";
 
 interface KpiCardProps {
   icon: LucideIcon;
-  label: string;
+  label: React.ReactNode;
   value: number;
   previous?: number;
   spark?: number[];
