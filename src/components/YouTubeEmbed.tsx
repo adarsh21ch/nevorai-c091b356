@@ -89,7 +89,7 @@ export const YouTubeEmbed = ({
           : "desktop",
         referrerSource: (typeof document !== "undefined" && document.referrer) || undefined,
       },
-    }).catch((err) => console.debug("YouTubeEmbed tracking failed:", err));
+    }).catch((err) => console.error("YouTubeEmbed tracking failed:", err));
   }, [videoId, tracking?.videoId, tracking?.sourceType, tracking?.sourceId]);
 
   if (!videoId) return null;
