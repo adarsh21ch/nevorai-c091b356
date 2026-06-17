@@ -126,6 +126,7 @@ const CustomVideoPlayer = (props: CustomVideoPlayerProps) => {
           src={props.src}
           autoplay={props.autoplay}
           initialTime={props.initialTime}
+          tracking={props.tracking}
         />
       </div>
     );
