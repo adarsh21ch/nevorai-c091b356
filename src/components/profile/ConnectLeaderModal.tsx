@@ -32,6 +32,11 @@ function parseConnectCode(input: string): string | null {
   return tok ? s : null;
 }
 
+function sourceForTab(tab: "paste" | "scan" | "upload") {
+  if (tab === "scan" || tab === "upload") return "qr";
+  return "connect_link";
+}
+
 export function ConnectLeaderModal({ open, onOpenChange, onConnected }: Props) {
   const [tab, setTab] = useState<"paste" | "scan" | "upload">("paste");
   const [pasted, setPasted] = useState("");
@@ -108,7 +113,7 @@ export function ConnectLeaderModal({ open, onOpenChange, onConnected }: Props) {
     try {
       const { data, error } = await (supabase as any).rpc("connect_to_upline", {
         p_token: code,
-        p_source: tab === "paste" ? "paste" : tab === "scan" ? "qr_scan" : "qr_upload",
+        p_source: sourceForTab(tab),
       });
       if (error) {
         const msg = (error.message || "").toLowerCase();
