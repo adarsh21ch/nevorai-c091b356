@@ -34,10 +34,13 @@ export const startVideoView = createServerFn({ method: "POST" })
       p_fingerprint: data.fingerprint ?? null,
       p_session_id: data.sessionId,
       p_user_agent: data.userAgent ?? null,
+      p_referrer: data.referrerSource ?? null,
+      p_device: data.deviceType ?? null,
+      p_source_id: data.sourceId ?? null,
     } as any);
     if (error) {
       console.error("startVideoView (record_view) error:", error.message);
-      return { eventId: null as string | null };
+      throw new Error(`startVideoView record_view failed: ${error.message}`);
     }
     // record_view may return either a uuid (event id) or null when deduped.
     return { eventId: (eventId as unknown as string | null) ?? null };

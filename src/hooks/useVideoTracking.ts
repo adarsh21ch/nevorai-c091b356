@@ -105,7 +105,7 @@ export function useVideoTracking(
         });
         eventIdRef.current = res?.eventId ?? null;
       } catch (err) {
-        console.debug("startVideoView failed:", err);
+        console.error("startVideoView failed:", err);
       }
     };
 
