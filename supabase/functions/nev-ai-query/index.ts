@@ -169,21 +169,26 @@ Deno.serve(async (req) => {
       errs.push(msg);
     }
 
-    // ---- Daily views ----
+    // ---- Daily views (quota-pipeline raw plays — kept ONLY as a fallback
+    //      signal for Nev AI; user-facing "views" come from the unique-people
+    //      RPC below). user_daily_views columns are `view_date` / `total_views`,
+    //      NOT `date` / `views`. Previous names silently failed inside safe()
+    //      and made Nev AI answer "I don't have that data" -> looked dead.
     const since = new Date();
     since.setDate(since.getDate() - 30);
     const sinceIso = since.toISOString().slice(0, 10);
 
-    const dailyViews = await safe("user_daily_views", async () => {
+    const dailyViewsRaw = await safe("user_daily_views", async () => {
       const { data, error } = await admin
         .from("user_daily_views")
-        .select("date, views")
+        .select("view_date, total_views")
         .eq("user_id", user.id)
-        .gte("date", sinceIso)
-        .order("date", { ascending: false });
+        .gte("view_date", sinceIso)
+        .order("view_date", { ascending: false });
       if (error) throw error;
-      return (data as Array<{ date: string; views: number }>) || [];
-    }, [] as Array<{ date: string; views: number }>, errs);
+      return (data as Array<{ view_date: string; total_views: number }>) || [];
+    }, [] as Array<{ view_date: string; total_views: number }>, errs);
+    const dailyViews = dailyViewsRaw.map((r) => ({ date: r.view_date, views: r.total_views }));
 
     // ---- Leads ----
     let leads30: Array<{ funnel_id: string; count: number }> = [];
