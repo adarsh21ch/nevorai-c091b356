@@ -25,6 +25,7 @@ import { sanitizeFields, normalizePhone } from "@/lib/sanitize";
 import { StorageUsageCard } from "@/components/StorageUsageCard";
 import { ProfilePhotoCropModal } from "@/components/ProfilePhotoCropModal";
 import { WhatsAppVerification } from "@/components/profile/WhatsAppVerification";
+import { LeaderConnectionCard } from "@/components/profile/LeaderConnectionCard";
 
 const ProfilePage = () => {
   useDocumentTitle("Profile");
@@ -363,6 +364,9 @@ const ProfilePage = () => {
 
         {/* Storage Usage */}
         <StorageUsageCard />
+
+        {/* Leader connection */}
+        <LeaderConnectionCard />
 
         {/* WhatsApp Notifications */}
         <WhatsAppVerification />
