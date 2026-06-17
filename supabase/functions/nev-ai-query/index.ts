@@ -169,21 +169,26 @@ Deno.serve(async (req) => {
       errs.push(msg);
     }
 
-    // ---- Daily views ----
+    // ---- Daily views (quota-pipeline raw plays — kept ONLY as a fallback
+    //      signal for Nev AI; user-facing "views" come from the unique-people
+    //      RPC below). user_daily_views columns are `view_date` / `total_views`,
+    //      NOT `date` / `views`. Previous names silently failed inside safe()
+    //      and made Nev AI answer "I don't have that data" -> looked dead.
     const since = new Date();
     since.setDate(since.getDate() - 30);
     const sinceIso = since.toISOString().slice(0, 10);
 
-    const dailyViews = await safe("user_daily_views", async () => {
+    const dailyViewsRaw = await safe("user_daily_views", async () => {
       const { data, error } = await admin
         .from("user_daily_views")
-        .select("date, views")
+        .select("view_date, total_views")
         .eq("user_id", user.id)
-        .gte("date", sinceIso)
-        .order("date", { ascending: false });
+        .gte("view_date", sinceIso)
+        .order("view_date", { ascending: false });
       if (error) throw error;
-      return (data as Array<{ date: string; views: number }>) || [];
-    }, [] as Array<{ date: string; views: number }>, errs);
+      return (data as Array<{ view_date: string; total_views: number }>) || [];
+    }, [] as Array<{ view_date: string; total_views: number }>, errs);
+    const dailyViews = dailyViewsRaw.map((r) => ({ date: r.view_date, views: r.total_views }));
 
     // ---- Leads ----
     let leads30: Array<{ funnel_id: string; count: number }> = [];
@@ -280,11 +285,11 @@ Deno.serve(async (req) => {
       `If something is not in the stats, say you don't have that data yet. ` +
       `Keep answers short (1-3 sentences). Use Indian number formatting (e.g. 1,20,000). ` +
       `Never invent data, never mention "JSON" or "stats object". ` +
-      `\nMETRIC DEFINITIONS (use these words to non-technical users):\n` +
-      `  • "Views" = every time a video/funnel/landing/live was opened (refreshes counted).\n` +
-      `  • "People" = how many distinct humans watched (deduped across surfaces). Always say "people", NEVER "unique views" or "unique viewers".\n` +
+      `\nMETRIC DEFINITIONS (use these exact words to non-technical users):\n` +
+      `  • "Views" = how many UNIQUE PEOPLE watched. Refreshes / repeat opens by the same person count ONCE. When asked about views, read unified_summary.period_totals.<period>.unique_views (NOT .views).\n` +
       `  • "Leads" = form submissions captured.\n` +
-      `Prefer numbers under unified_summary.period_totals and unified_summary.by_surface — those are the same numbers the dashboard shows. Use legacy fields only as a fallback when unified_summary is empty.\n\n` +
+      `Never say "raw views", "plays", or "unique viewers" — just "views" (which now means people). Never invent a separate "people" metric — views IS the people number.\n` +
+      `Prefer numbers under unified_summary.period_totals.<period>.unique_views and unified_summary.by_surface.<surface>.unique_views — those are the same numbers the dashboard now shows. Use legacy fields only as a last-resort fallback when unified_summary is empty.\n\n` +
       `STATS (today is ${today}):\n${JSON.stringify(stats)}`;
 
     const contents: any[] = [];
