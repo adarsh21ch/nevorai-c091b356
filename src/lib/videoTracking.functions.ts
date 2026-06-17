@@ -36,6 +36,7 @@ export const startVideoView = createServerFn({ method: "POST" })
       p_user_agent: data.userAgent ?? null,
       p_referrer: data.referrerSource ?? null,
       p_device: data.deviceType ?? null,
+      p_source_id: data.sourceId ?? null,
     } as any);
     if (error) {
       console.error("startVideoView (record_view) error:", error.message);
