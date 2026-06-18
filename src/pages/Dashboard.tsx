@@ -6,6 +6,7 @@ import { MonthlyViewsBanner } from "@/components/MonthlyViewsBanner";
 import { DashboardKpiStrip } from "@/components/dashboard/DashboardKpiStrip";
 import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
 import { LatestVideoShareCard } from "@/components/dashboard/LatestVideoShareCard";
+import { PromoteSection } from "@/components/dashboard/PromoteSection";
 import { useHasVideos } from "@/hooks/useHasVideos";
 import { Layers, Users, Eye, IndianRupee, ArrowRight, Upload, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
