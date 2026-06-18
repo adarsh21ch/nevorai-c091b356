@@ -533,17 +533,6 @@ function TeamTrackingMatrix() {
     },
   });
 
-  const leadsQuery = useQuery<TrackingRow[]>({
-    queryKey: ["team-leads", range],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await (supabase as any).rpc("get_team_lead_tracking", {
-        p_from, p_to: null,
-      });
-      if (error) throw error;
-      return (data ?? []) as TrackingRow[];
-    },
-  });
 
   // Leader's "Direct" views: viewer_user_id = me, share_link_id IS NULL.
   const directQuery = useQuery<{ funnel_id: string; session_id: string | null }[]>({
@@ -566,17 +555,15 @@ function TeamTrackingMatrix() {
   const funnels = useMemo(() => {
     const m = new Map<string, string>();
     for (const r of viewsQuery.data ?? []) m.set(r.funnel_id, r.funnel_title);
-    for (const r of leadsQuery.data ?? []) if (!m.has(r.funnel_id)) m.set(r.funnel_id, r.funnel_title);
     return Array.from(m.entries()).map(([id, title]) => ({ id, title }));
-  }, [viewsQuery.data, leadsQuery.data]);
+  }, [viewsQuery.data]);
 
   // Members map
   const members = useMemo(() => {
     const m = new Map<string, string>();
     for (const r of viewsQuery.data ?? []) m.set(r.member_id, r.member_name || "—");
-    for (const r of leadsQuery.data ?? []) if (!m.has(r.member_id)) m.set(r.member_id, r.member_name || "—");
     return Array.from(m.entries()).map(([id, name]) => ({ id, name }));
-  }, [viewsQuery.data, leadsQuery.data]);
+  }, [viewsQuery.data]);
 
   // matrix lookup
   const viewsMap = useMemo(() => {
@@ -586,13 +573,6 @@ function TeamTrackingMatrix() {
     }
     return m;
   }, [viewsQuery.data]);
-  const leadsMap = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const r of leadsQuery.data ?? []) {
-      m.set(`${r.member_id}::${r.funnel_id}`, Number(r.leads ?? 0));
-    }
-    return m;
-  }, [leadsQuery.data]);
 
   // Direct row per funnel — unique sessions
   const directPerFunnel = useMemo(() => {
@@ -612,34 +592,30 @@ function TeamTrackingMatrix() {
   // Per-funnel totals (Level 2)
   const perFunnel = funnels.map((f) => {
     let views = directPerFunnel.get(f.id) ?? 0;
-    let leads = 0;
     for (const m of members) {
       views += viewsMap.get(`${m.id}::${f.id}`) ?? 0;
-      leads += leadsMap.get(`${m.id}::${f.id}`) ?? 0;
     }
-    return { ...f, views, leads };
+    return { ...f, views };
   });
 
   // KPI totals (Level 1)
   const totalViews = perFunnel.reduce((s, f) => s + f.views, 0);
-  const totalLeads = perFunnel.reduce((s, f) => s + f.leads, 0);
+
 
   const exportCsv = () => {
     const header = [
       "Member",
       ...funnels.map((f) => `${f.title} (views)`),
       "Total Views",
-      "Total Leads",
     ];
     const rows: (string | number)[][] = members.map((m) => {
-      let totalV = 0, totalL = 0;
+      let totalV = 0;
       const cells = funnels.map((f) => {
         const v = viewsMap.get(`${m.id}::${f.id}`) ?? 0;
-        const l = leadsMap.get(`${m.id}::${f.id}`) ?? 0;
-        totalV += v; totalL += l;
+        totalV += v;
         return v;
       });
-      return [m.name, ...cells, totalV, totalL];
+      return [m.name, ...cells, totalV];
     });
     // Direct row
     let directTotal = 0;
@@ -648,7 +624,8 @@ function TeamTrackingMatrix() {
       directTotal += v;
       return v;
     });
-    rows.push(["Direct", ...directCells, directTotal, 0]);
+    rows.push(["Direct", ...directCells, directTotal]);
+
     const csv = [header, ...rows]
       .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
       .join("\n");
@@ -681,7 +658,7 @@ function TeamTrackingMatrix() {
         </div>
       </div>
 
-      {/* Level 1 — KPIs */}
+      {/* Level 1 — KPI */}
       <div className="grid gap-3 sm:grid-cols-2">
         <Card>
           <CardContent className="p-5">
@@ -691,15 +668,8 @@ function TeamTrackingMatrix() {
             <p className="text-3xl font-bold mt-1">{totalViews}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Total Leads
-            </p>
-            <p className="text-3xl font-bold mt-1">{totalLeads}</p>
-          </CardContent>
-        </Card>
       </div>
+
 
       {/* Level 2 — per funnel */}
       {perFunnel.length === 0 ? (
@@ -719,12 +689,9 @@ function TeamTrackingMatrix() {
                     <p className="text-xs text-muted-foreground">Views</p>
                     <p className="font-semibold">{f.views}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Leads</p>
-                    <p className="font-semibold">{f.leads}</p>
-                  </div>
                 </div>
               </CardContent>
+
             </Card>
           ))}
         </div>
@@ -750,12 +717,11 @@ function TeamTrackingMatrix() {
                     </th>
                   ))}
                   <th className="py-2 px-2 text-center">Total Views</th>
-                  <th className="py-2 px-2 text-center">Total Leads</th>
                 </tr>
               </thead>
               <tbody>
                 {members.map((m) => {
-                  let tv = 0, tl = 0;
+                  let tv = 0;
                   return (
                     <tr key={m.id} className="border-b">
                       <td className="py-2 pr-3 sticky left-0 bg-card font-medium whitespace-nowrap">
@@ -763,19 +729,14 @@ function TeamTrackingMatrix() {
                       </td>
                       {funnels.map((f) => {
                         const v = viewsMap.get(`${m.id}::${f.id}`) ?? 0;
-                        const l = leadsMap.get(`${m.id}::${f.id}`) ?? 0;
-                        tv += v; tl += l;
+                        tv += v;
                         return (
                           <td key={f.id} className="text-center px-2">
                             <div>{v}</div>
-                            {l > 0 && (
-                              <div className="text-[10px] text-primary">{l} lead{l > 1 ? "s" : ""}</div>
-                            )}
                           </td>
                         );
                       })}
                       <td className="text-center px-2 font-semibold">{tv}</td>
-                      <td className="text-center px-2 font-semibold">{tl}</td>
                     </tr>
                   );
                 })}
@@ -792,8 +753,8 @@ function TeamTrackingMatrix() {
                   <td className="text-center px-2 font-semibold">
                     {Array.from(directPerFunnel.values()).reduce((s, n) => s + n, 0)}
                   </td>
-                  <td className="text-center px-2 font-semibold">0</td>
                 </tr>
+
               </tbody>
             </table>
           </CardContent>
