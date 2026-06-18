@@ -717,12 +717,11 @@ function TeamTrackingMatrix() {
                     </th>
                   ))}
                   <th className="py-2 px-2 text-center">Total Views</th>
-                  <th className="py-2 px-2 text-center">Total Leads</th>
                 </tr>
               </thead>
               <tbody>
                 {members.map((m) => {
-                  let tv = 0, tl = 0;
+                  let tv = 0;
                   return (
                     <tr key={m.id} className="border-b">
                       <td className="py-2 pr-3 sticky left-0 bg-card font-medium whitespace-nowrap">
@@ -730,19 +729,14 @@ function TeamTrackingMatrix() {
                       </td>
                       {funnels.map((f) => {
                         const v = viewsMap.get(`${m.id}::${f.id}`) ?? 0;
-                        const l = leadsMap.get(`${m.id}::${f.id}`) ?? 0;
-                        tv += v; tl += l;
+                        tv += v;
                         return (
                           <td key={f.id} className="text-center px-2">
                             <div>{v}</div>
-                            {l > 0 && (
-                              <div className="text-[10px] text-primary">{l} lead{l > 1 ? "s" : ""}</div>
-                            )}
                           </td>
                         );
                       })}
                       <td className="text-center px-2 font-semibold">{tv}</td>
-                      <td className="text-center px-2 font-semibold">{tl}</td>
                     </tr>
                   );
                 })}
@@ -759,8 +753,8 @@ function TeamTrackingMatrix() {
                   <td className="text-center px-2 font-semibold">
                     {Array.from(directPerFunnel.values()).reduce((s, n) => s + n, 0)}
                   </td>
-                  <td className="text-center px-2 font-semibold">0</td>
                 </tr>
+
               </tbody>
             </table>
           </CardContent>
