@@ -112,29 +112,21 @@ export function ConnectLeaderModal({ open, onOpenChange, onConnected }: Props) {
     setErr("");
     setBusy(true);
     try {
-      const { data, error } = await (supabase as any).rpc("connect_to_upline", {
+      const { data, error } = await (supabase as any).rpc("connect_to_leader", {
         p_token: code,
         p_source: sourceForTab(tab),
       });
       if (error) {
         const msg = (error.message || "").toLowerCase();
-        if (msg.includes("invalid")) setErr("This code is invalid or expired.");
-        else if (msg.includes("self") || msg.includes("yourself"))
-          setErr("You can't use your own connect link.");
+        if (msg.includes("invalid")) setErr("This link is invalid or expired.");
+        else if (msg.includes("self"))
+          setErr("You can't connect to yourself.");
         else setErr(error.message || "Connection failed. Please try again.");
         return;
       }
-      // Look up leader name for toast
-      let leaderName = "your leader";
-      try {
-        const { data: prof } = await (supabase as any)
-          .from("profiles")
-          .select("full_name, email")
-          .eq("connect_token", code)
-          .maybeSingle();
-        leaderName = prof?.full_name || prof?.email || leaderName;
-      } catch {}
-      toast.success(`Connected to ${leaderName}!`);
+      const leaderName =
+        (data && (data.leader_name as string)) || "your leader";
+      toast.success(`Connected to ${leaderName}! 🎉`);
       onConnected(leaderName);
       onOpenChange(false);
     } catch (e: any) {
