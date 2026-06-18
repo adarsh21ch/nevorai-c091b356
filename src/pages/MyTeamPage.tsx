@@ -689,12 +689,9 @@ function TeamTrackingMatrix() {
                     <p className="text-xs text-muted-foreground">Views</p>
                     <p className="font-semibold">{f.views}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Leads</p>
-                    <p className="font-semibold">{f.leads}</p>
-                  </div>
                 </div>
               </CardContent>
+
             </Card>
           ))}
         </div>
