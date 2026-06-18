@@ -60,6 +60,35 @@ function detectReferrer(): string {
  * Sends a single start event + a heartbeat every 30s while the tab is visible.
  * Returns a cleanup function — call it on unmount.
  */
+/**
+ * Resolve the ?t= attribution token in the URL to a share_link_id.
+ * Cached in sessionStorage so we only query once per page.
+ */
+const SHARE_LINK_SS_KEY = "nf_share_link_id";
+async function resolveShareLinkIdFromUrl(): Promise<string | null> {
+  if (typeof window === "undefined") return null;
+  try {
+    const cached = sessionStorage.getItem(SHARE_LINK_SS_KEY);
+    if (cached !== null) return cached || null;
+    const params = new URLSearchParams(window.location.search);
+    const token = (params.get("t") || params.get("ref") || "").trim();
+    if (!token) {
+      sessionStorage.setItem(SHARE_LINK_SS_KEY, "");
+      return null;
+    }
+    const { data } = await (supabase as any)
+      .from("funnel_share_links")
+      .select("id")
+      .eq("token", token)
+      .maybeSingle();
+    const id = data?.id ?? null;
+    sessionStorage.setItem(SHARE_LINK_SS_KEY, id ?? "");
+    return id;
+  } catch {
+    return null;
+  }
+}
+
 export function trackEntityView(entityType: EntityType, entityId: string | null | undefined) {
   if (!entityId || typeof window === "undefined") return () => {};
 
@@ -69,6 +98,8 @@ export function trackEntityView(entityType: EntityType, entityId: string | null 
 
   const start = async () => {
     try {
+      const shareLinkId =
+        entityType === "funnel" ? await resolveShareLinkIdFromUrl() : null;
       const res = await startEntityView({
         data: {
           entityType,
@@ -76,6 +107,7 @@ export function trackEntityView(entityType: EntityType, entityId: string | null 
           sessionId: getOrCreateSessionId(),
           deviceType: detectDevice(),
           referrerSource: detectReferrer(),
+          shareLinkId,
         },
       });
       if (cancelled) return;
