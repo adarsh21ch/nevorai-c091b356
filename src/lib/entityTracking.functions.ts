@@ -16,6 +16,7 @@ const StartSchema = z.object({
   sessionId: z.string().min(8).max(64),
   deviceType: z.string().max(20).optional(),
   referrerSource: z.string().max(255).optional(),
+  shareLinkId: z.string().uuid().nullable().optional(),
 });
 
 const HeartbeatSchema = z.object({
@@ -27,14 +28,18 @@ export const startEntityView = createServerFn({ method: "POST" })
   .inputValidator((input) => StartSchema.parse(input))
   .handler(async ({ data }) => {
     const meta = TABLE_BY_ENTITY[data.entityType];
+    const payload: Record<string, unknown> = {
+      [meta.idCol]: data.entityId,
+      session_id: data.sessionId,
+      device_type: data.deviceType ?? null,
+      referrer_source: data.referrerSource ?? null,
+    };
+    if (data.entityType === "funnel" && data.shareLinkId) {
+      payload.share_link_id = data.shareLinkId;
+    }
     const { data: row, error } = await supabaseAdmin
       .from(meta.table as any)
-      .insert({
-        [meta.idCol]: data.entityId,
-        session_id: data.sessionId,
-        device_type: data.deviceType ?? null,
-        referrer_source: data.referrerSource ?? null,
-      })
+      .insert(payload)
       .select("id")
       .single();
     if (error) {
