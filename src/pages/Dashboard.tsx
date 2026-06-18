@@ -224,6 +224,9 @@ const Dashboard = () => {
         {/* Content row */}
         <DashboardContentRow />
 
+        {/* Promote — visible only when user is connected to a leader */}
+        <PromoteSection />
+
         {/* Recent funnels — gated for free users */}
         {funnels.length === 0 ? (
           isFree ? (
