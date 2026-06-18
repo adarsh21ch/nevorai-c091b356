@@ -658,7 +658,7 @@ function TeamTrackingMatrix() {
         </div>
       </div>
 
-      {/* Level 1 — KPIs */}
+      {/* Level 1 — KPI */}
       <div className="grid gap-3 sm:grid-cols-2">
         <Card>
           <CardContent className="p-5">
@@ -668,15 +668,8 @@ function TeamTrackingMatrix() {
             <p className="text-3xl font-bold mt-1">{totalViews}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-5">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">
-              Total Leads
-            </p>
-            <p className="text-3xl font-bold mt-1">{totalLeads}</p>
-          </CardContent>
-        </Card>
       </div>
+
 
       {/* Level 2 — per funnel */}
       {perFunnel.length === 0 ? (
