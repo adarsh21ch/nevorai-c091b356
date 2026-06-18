@@ -607,17 +607,15 @@ function TeamTrackingMatrix() {
       "Member",
       ...funnels.map((f) => `${f.title} (views)`),
       "Total Views",
-      "Total Leads",
     ];
     const rows: (string | number)[][] = members.map((m) => {
-      let totalV = 0, totalL = 0;
+      let totalV = 0;
       const cells = funnels.map((f) => {
         const v = viewsMap.get(`${m.id}::${f.id}`) ?? 0;
-        const l = leadsMap.get(`${m.id}::${f.id}`) ?? 0;
-        totalV += v; totalL += l;
+        totalV += v;
         return v;
       });
-      return [m.name, ...cells, totalV, totalL];
+      return [m.name, ...cells, totalV];
     });
     // Direct row
     let directTotal = 0;
@@ -626,7 +624,8 @@ function TeamTrackingMatrix() {
       directTotal += v;
       return v;
     });
-    rows.push(["Direct", ...directCells, directTotal, 0]);
+    rows.push(["Direct", ...directCells, directTotal]);
+
     const csv = [header, ...rows]
       .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
       .join("\n");
