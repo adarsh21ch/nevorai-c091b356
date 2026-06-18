@@ -32,9 +32,10 @@ function parseConnectCode(input: string): string | null {
   return tok ? s : null;
 }
 
-function sourceForTab(tab: "paste" | "scan" | "upload") {
-  if (tab === "scan" || tab === "upload") return "qr";
-  return "connect_link";
+function sourceForTab(tab: "paste" | "scan" | "upload"): "paste_link" | "qr_scan" | "upload_qr" {
+  if (tab === "scan") return "qr_scan";
+  if (tab === "upload") return "upload_qr";
+  return "paste_link";
 }
 
 export function ConnectLeaderModal({ open, onOpenChange, onConnected }: Props) {
