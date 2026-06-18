@@ -555,17 +555,15 @@ function TeamTrackingMatrix() {
   const funnels = useMemo(() => {
     const m = new Map<string, string>();
     for (const r of viewsQuery.data ?? []) m.set(r.funnel_id, r.funnel_title);
-    for (const r of leadsQuery.data ?? []) if (!m.has(r.funnel_id)) m.set(r.funnel_id, r.funnel_title);
     return Array.from(m.entries()).map(([id, title]) => ({ id, title }));
-  }, [viewsQuery.data, leadsQuery.data]);
+  }, [viewsQuery.data]);
 
   // Members map
   const members = useMemo(() => {
     const m = new Map<string, string>();
     for (const r of viewsQuery.data ?? []) m.set(r.member_id, r.member_name || "—");
-    for (const r of leadsQuery.data ?? []) if (!m.has(r.member_id)) m.set(r.member_id, r.member_name || "—");
     return Array.from(m.entries()).map(([id, name]) => ({ id, name }));
-  }, [viewsQuery.data, leadsQuery.data]);
+  }, [viewsQuery.data]);
 
   // matrix lookup
   const viewsMap = useMemo(() => {
@@ -575,13 +573,6 @@ function TeamTrackingMatrix() {
     }
     return m;
   }, [viewsQuery.data]);
-  const leadsMap = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const r of leadsQuery.data ?? []) {
-      m.set(`${r.member_id}::${r.funnel_id}`, Number(r.leads ?? 0));
-    }
-    return m;
-  }, [leadsQuery.data]);
 
   // Direct row per funnel — unique sessions
   const directPerFunnel = useMemo(() => {
@@ -601,17 +592,15 @@ function TeamTrackingMatrix() {
   // Per-funnel totals (Level 2)
   const perFunnel = funnels.map((f) => {
     let views = directPerFunnel.get(f.id) ?? 0;
-    let leads = 0;
     for (const m of members) {
       views += viewsMap.get(`${m.id}::${f.id}`) ?? 0;
-      leads += leadsMap.get(`${m.id}::${f.id}`) ?? 0;
     }
-    return { ...f, views, leads };
+    return { ...f, views };
   });
 
   // KPI totals (Level 1)
   const totalViews = perFunnel.reduce((s, f) => s + f.views, 0);
-  const totalLeads = perFunnel.reduce((s, f) => s + f.leads, 0);
+
 
   const exportCsv = () => {
     const header = [
