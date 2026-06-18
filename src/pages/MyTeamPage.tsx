@@ -533,17 +533,6 @@ function TeamTrackingMatrix() {
     },
   });
 
-  const leadsQuery = useQuery<TrackingRow[]>({
-    queryKey: ["team-leads", range],
-    enabled: !!user?.id,
-    queryFn: async () => {
-      const { data, error } = await (supabase as any).rpc("get_team_lead_tracking", {
-        p_from, p_to: null,
-      });
-      if (error) throw error;
-      return (data ?? []) as TrackingRow[];
-    },
-  });
 
   // Leader's "Direct" views: viewer_user_id = me, share_link_id IS NULL.
   const directQuery = useQuery<{ funnel_id: string; session_id: string | null }[]>({
