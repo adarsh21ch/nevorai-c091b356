@@ -47,9 +47,9 @@ export default function JoinPage() {
 
   const doConnect = async () => {
     setStatus("connecting");
-    const { error: rpcError } = await (supabase as any).rpc("connect_to_upline", {
+    const { error: rpcError } = await (supabase as any).rpc("connect_to_leader", {
       p_token: token,
-      p_source: "connect_link",
+      p_source: "paste_link",
     });
     if (rpcError) {
       setError(rpcError.message || "Could not connect.");
