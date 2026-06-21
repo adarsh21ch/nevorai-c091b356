@@ -174,6 +174,38 @@ function NativeVideoPlayer({
   // because the upcoming play() will be gesture-driven.
   const [initialMutedAttr] = useState(() => !!autoplay);
   const [muted, setMuted] = useState(initialMutedAttr);
+  const [volume, setVolume] = useState(1);
+  const [current, setCurrent] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [buffered, setBuffered] = useState(0);
+  const [isFs, setIsFs] = useState(false);
+  const [controlsVisible, setControlsVisible] = useState(true);
+  const [canPiP, setCanPiP] = useState(false);
+  const [canNativeShare, setCanNativeShare] = useState(false);
+  const [hoverFrac, setHoverFrac] = useState<number | null>(null);
+  const [waiting, setWaiting] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [needsTapForSound, setNeedsTapForSound] = useState(false);
+  const [seekHint, setSeekHint] = useState<null | { side: "left" | "right"; amount: number; key: number }>(null);
+  const lastTapRef = useRef<{ time: number; x: number; side: "left" | "right" | null }>({ time: 0, x: 0, side: null });
+  const resumeKey = useMemo(() => `nflow:resume:${tracking?.videoId ?? src}`, [tracking?.videoId, src]);
+  const lastSaveRef = useRef(0);
+  const speedEnabled = allowPlaybackSpeed;
+
+  useEffect(() => {
+    setCanPiP(typeof document !== "undefined" && !!(document as any).pictureInPictureEnabled);
+    setCanNativeShare(typeof navigator !== "undefined" && !!(navigator as any).share);
+  }, []);
+
+  useEffect(() => {
+    onVideoRef?.(videoRef.current);
+  }, [onVideoRef]);
+
+  useEffect(() => {
+    const onChange = () => setIsFs(document.fullscreenElement === wrapRef.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
   // Autoplay: always begin muted+playing so the prospect sees the video
   // running in the background, then surface the "Tap for sound" overlay
   // (unless the user already chose silence this session).
