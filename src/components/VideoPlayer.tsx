@@ -168,13 +168,11 @@ function NativeVideoPlayer({
   useVideoTracking(videoRef, tracking);
 
   const [playing, setPlaying] = useState(false);
-  // Initial muted attribute: only autoplay paths render muted when the user
-  // has previously chosen to mute this session. Non-autoplay always renders
-  // unmuted because the upcoming play() will be gesture-driven (sound allowed).
-  const [initialMutedAttr] = useState(() => {
-    if (!autoplay) return false;
-    return readSoundPref() === "off";
-  });
+  // Autoplay always starts muted so iOS Safari / Android Chrome reliably begin
+  // playback without a gesture. The "Tap for sound" overlay then handles
+  // unmuting in-place (no restart, no seek). Non-autoplay renders unmuted
+  // because the upcoming play() will be gesture-driven.
+  const [initialMutedAttr] = useState(() => !!autoplay);
   const [muted, setMuted] = useState(initialMutedAttr);
   const [volume, setVolume] = useState(1);
   const [current, setCurrent] = useState(0);
@@ -187,19 +185,12 @@ function NativeVideoPlayer({
   const [hoverFrac, setHoverFrac] = useState<number | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
-  // When the browser blocks unmuted autoplay we fall back to muted+play and
-  // surface a large tap-anywhere overlay so the prospect can enable sound in
-  // a single tap.
   const [needsTapForSound, setNeedsTapForSound] = useState(false);
   const [seekHint, setSeekHint] = useState<null | { side: "left" | "right"; amount: number; key: number }>(null);
   const lastTapRef = useRef<{ time: number; x: number; side: "left" | "right" | null }>({ time: 0, x: 0, side: null });
   const resumeKey = useMemo(() => `nflow:resume:${tracking?.videoId ?? src}`, [tracking?.videoId, src]);
   const lastSaveRef = useRef(0);
-  // Speed menu is independent of seeking. Skip-protection only blocks fast-forwarding via the
-  // timeline — viewers can still choose 1×/1.25×/1.5×/2× playback as long as the creator allows it.
   const speedEnabled = allowPlaybackSpeed;
-
-  
 
   useEffect(() => {
     setCanPiP(typeof document !== "undefined" && !!(document as any).pictureInPictureEnabled);
@@ -210,45 +201,24 @@ function NativeVideoPlayer({
     onVideoRef?.(videoRef.current);
   }, [onVideoRef]);
 
-  // Fullscreen change listener
   useEffect(() => {
     const onChange = () => setIsFs(document.fullscreenElement === wrapRef.current);
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
-
-  // Autoplay-with-sound fallback. The video element is rendered with
-  // `autoPlay` and an initial `muted` attribute derived from the session
-  // sound preference. We then try to (re-)play unmuted; if the browser
-  // rejects (no prior gesture / strict autoplay policy), we mute and play
-  // and surface the "Tap for sound" overlay. One tap unmutes.
+  // Autoplay: always begin muted+playing so the prospect sees the video
+  // running in the background, then surface the "Tap for sound" overlay
+  // (unless the user already chose silence this session).
   useEffect(() => {
     if (!autoplay) return;
     const v = videoRef.current;
     if (!v) return;
     const pref = readSoundPref();
-    // Give the element a tick so the autoPlay attribute can attempt first.
+    v.muted = true;
+    setMuted(true);
     const id = window.setTimeout(() => {
-      if (pref === "off") {
-        // User chose silence this session — respect it.
-        v.muted = true;
-        setMuted(true);
-        v.play().catch(() => {});
-        return;
-      }
-      v.muted = false;
-      setMuted(false);
-      const p = v.play();
-      if (p && typeof p.catch === "function") {
-        p.catch(() => {
-          // Browser blocked unmuted autoplay — fall back to muted playback
-          // with a one-tap unmute overlay.
-          v.muted = true;
-          setMuted(true);
-          setNeedsTapForSound(true);
-          v.play().catch(() => {});
-        });
-      }
+      v.play().catch(() => {});
+      if (pref !== "off") setNeedsTapForSound(true);
     }, 0);
     return () => window.clearTimeout(id);
   }, [autoplay, src]);
