@@ -717,7 +717,7 @@ function NativeVideoPlayer({
             setNeedsTapForSound(false);
             v.play().catch(() => {});
           }}
-          className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-[1px] cursor-pointer"
+          className="absolute inset-0 z-30 flex items-center justify-center bg-transparent cursor-pointer"
           aria-label="Tap for sound"
         >
           <span className="flex items-center gap-3 px-6 py-4 rounded-full bg-black/80 text-white font-semibold text-base sm:text-lg shadow-2xl animate-pulse">
