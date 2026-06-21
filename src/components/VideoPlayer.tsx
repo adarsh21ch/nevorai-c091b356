@@ -611,7 +611,7 @@ function NativeVideoPlayer({
         src={src}
         poster={poster}
         autoPlay={autoplay}
-        muted={autoplay}
+        muted={initialMutedAttr}
         playsInline
         preload="auto"
         controls={false}
