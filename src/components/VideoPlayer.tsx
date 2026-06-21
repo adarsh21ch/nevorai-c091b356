@@ -719,6 +719,44 @@ function NativeVideoPlayer({
         onError={onError}
       />
 
+      {/* Tap-for-sound overlay — shown only when unmuted autoplay was blocked.
+          Sits above everything (z-30) so a single tap unmutes before the
+          wrapper's tap-to-pause handler fires. */}
+      {needsTapForSound && (
+        <button
+          type="button"
+          data-no-tap
+          onClick={(e) => {
+            e.stopPropagation();
+            const v = videoRef.current;
+            if (!v) return;
+            v.muted = false;
+            setMuted(false);
+            writeSoundPref("on");
+            setNeedsTapForSound(false);
+            v.play().catch(() => {});
+          }}
+          onTouchEnd={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            const v = videoRef.current;
+            if (!v) return;
+            v.muted = false;
+            setMuted(false);
+            writeSoundPref("on");
+            setNeedsTapForSound(false);
+            v.play().catch(() => {});
+          }}
+          className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-[1px] cursor-pointer"
+          aria-label="Tap for sound"
+        >
+          <span className="flex items-center gap-3 px-6 py-4 rounded-full bg-black/80 text-white font-semibold text-base sm:text-lg shadow-2xl animate-pulse">
+            <Volume2 size={28} />
+            Tap for sound
+          </span>
+        </button>
+      )}
+
       {/* Buffering spinner — saffron, only while truly waiting on data */}
       {waiting && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
