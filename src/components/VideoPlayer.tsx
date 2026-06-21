@@ -174,7 +174,6 @@ function NativeVideoPlayer({
   // because the upcoming play() will be gesture-driven.
   const [initialMutedAttr] = useState(() => !!autoplay);
   const [muted, setMuted] = useState(initialMutedAttr);
-...
   // Autoplay: always begin muted+playing so the prospect sees the video
   // running in the background, then surface the "Tap for sound" overlay
   // (unless the user already chose silence this session).
