@@ -237,8 +237,22 @@ function NativeVideoPlayer({
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) v.play().catch(() => {});
-    else v.pause();
+    if (v.paused) {
+      // Gesture-driven play: honor the session sound preference. Browsers
+      // allow unmuted audio when play() is called inside a user gesture,
+      // so this is the primary "default = sound ON" path.
+      if (readSoundPref() === "on") {
+        v.muted = false;
+        setMuted(false);
+        writeSoundPref("on");
+      }
+      setNeedsTapForSound(false);
+      v.play().catch(() => {
+        /* ignore */
+      });
+    } else {
+      v.pause();
+    }
   }, []);
 
 
@@ -248,6 +262,8 @@ function NativeVideoPlayer({
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
+    writeSoundPref(v.muted ? "off" : "on");
+    if (!v.muted) setNeedsTapForSound(false);
   }, []);
 
   const setVol = useCallback((val: number) => {
@@ -258,6 +274,8 @@ function NativeVideoPlayer({
     v.muted = clamped === 0;
     setVolume(clamped);
     setMuted(clamped === 0);
+    writeSoundPref(clamped === 0 ? "off" : "on");
+    if (clamped > 0) setNeedsTapForSound(false);
   }, []);
 
   const seekToFraction = useCallback(
