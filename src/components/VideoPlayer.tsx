@@ -217,6 +217,43 @@ function NativeVideoPlayer({
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
 
+  // Autoplay-with-sound fallback. The video element is rendered with
+  // `autoPlay` and an initial `muted` attribute derived from the session
+  // sound preference. We then try to (re-)play unmuted; if the browser
+  // rejects (no prior gesture / strict autoplay policy), we mute and play
+  // and surface the "Tap for sound" overlay. One tap unmutes.
+  useEffect(() => {
+    if (!autoplay) return;
+    const v = videoRef.current;
+    if (!v) return;
+    const pref = readSoundPref();
+    // Give the element a tick so the autoPlay attribute can attempt first.
+    const id = window.setTimeout(() => {
+      if (pref === "off") {
+        // User chose silence this session — respect it.
+        v.muted = true;
+        setMuted(true);
+        v.play().catch(() => {});
+        return;
+      }
+      v.muted = false;
+      setMuted(false);
+      const p = v.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {
+          // Browser blocked unmuted autoplay — fall back to muted playback
+          // with a one-tap unmute overlay.
+          v.muted = true;
+          setMuted(true);
+          setNeedsTapForSound(true);
+          v.play().catch(() => {});
+        });
+      }
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [autoplay, src]);
+
+
   const hideDelay = isMobile ? 3000 : 2000;
 
   const showControls = useCallback(() => {
