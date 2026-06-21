@@ -39,26 +39,6 @@ import { useVideoTracking, type VideoTrackingMeta } from "@/hooks/useVideoTracki
 const SAFFRON = "var(--accent-saffron)";
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
-// Session-persistent sound preference. Default = ON (sound).
-// Set to 'off' only when the user explicitly mutes.
-const SOUND_PREF_KEY = "nflow:sound-pref";
-function readSoundPref(): "on" | "off" {
-  if (typeof window === "undefined") return "on";
-  try {
-    return window.sessionStorage.getItem(SOUND_PREF_KEY) === "off" ? "off" : "on";
-  } catch {
-    return "on";
-  }
-}
-function writeSoundPref(p: "on" | "off") {
-  if (typeof window === "undefined") return;
-  try {
-    window.sessionStorage.setItem(SOUND_PREF_KEY, p);
-  } catch {
-    /* ignore */
-  }
-}
-
 export interface VideoPlayerProps {
   src: string;
   poster?: string;
@@ -168,12 +148,7 @@ function NativeVideoPlayer({
   useVideoTracking(videoRef, tracking);
 
   const [playing, setPlaying] = useState(false);
-  // Autoplay always starts muted so iOS Safari / Android Chrome reliably begin
-  // playback without a gesture. The "Tap for sound" overlay then handles
-  // unmuting in-place (no restart, no seek). Non-autoplay renders unmuted
-  // because the upcoming play() will be gesture-driven.
-  const [initialMutedAttr] = useState(() => !!autoplay);
-  const [muted, setMuted] = useState(initialMutedAttr);
+  const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(1);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -185,12 +160,15 @@ function NativeVideoPlayer({
   const [hoverFrac, setHoverFrac] = useState<number | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
-  const [needsTapForSound, setNeedsTapForSound] = useState(false);
   const [seekHint, setSeekHint] = useState<null | { side: "left" | "right"; amount: number; key: number }>(null);
   const lastTapRef = useRef<{ time: number; x: number; side: "left" | "right" | null }>({ time: 0, x: 0, side: null });
   const resumeKey = useMemo(() => `nflow:resume:${tracking?.videoId ?? src}`, [tracking?.videoId, src]);
   const lastSaveRef = useRef(0);
+  // Speed menu is independent of seeking. Skip-protection only blocks fast-forwarding via the
+  // timeline — viewers can still choose 1×/1.25×/1.5×/2× playback as long as the creator allows it.
   const speedEnabled = allowPlaybackSpeed;
+
+  
 
   useEffect(() => {
     setCanPiP(typeof document !== "undefined" && !!(document as any).pictureInPictureEnabled);
@@ -201,28 +179,12 @@ function NativeVideoPlayer({
     onVideoRef?.(videoRef.current);
   }, [onVideoRef]);
 
+  // Fullscreen change listener
   useEffect(() => {
     const onChange = () => setIsFs(document.fullscreenElement === wrapRef.current);
     document.addEventListener("fullscreenchange", onChange);
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, []);
-  // Autoplay: always begin muted+playing so the prospect sees the video
-  // running in the background, then surface the "Tap for sound" overlay
-  // (unless the user already chose silence this session).
-  useEffect(() => {
-    if (!autoplay) return;
-    const v = videoRef.current;
-    if (!v) return;
-    const pref = readSoundPref();
-    v.muted = true;
-    setMuted(true);
-    const id = window.setTimeout(() => {
-      v.play().catch(() => {});
-      if (pref !== "off") setNeedsTapForSound(true);
-    }, 0);
-    return () => window.clearTimeout(id);
-  }, [autoplay, src]);
-
 
   const hideDelay = isMobile ? 3000 : 2000;
 
@@ -244,22 +206,8 @@ function NativeVideoPlayer({
   const togglePlay = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
-    if (v.paused) {
-      // Gesture-driven play: honor the session sound preference. Browsers
-      // allow unmuted audio when play() is called inside a user gesture,
-      // so this is the primary "default = sound ON" path.
-      if (readSoundPref() === "on") {
-        v.muted = false;
-        setMuted(false);
-        writeSoundPref("on");
-      }
-      setNeedsTapForSound(false);
-      v.play().catch(() => {
-        /* ignore */
-      });
-    } else {
-      v.pause();
-    }
+    if (v.paused) v.play().catch(() => {});
+    else v.pause();
   }, []);
 
 
@@ -269,8 +217,6 @@ function NativeVideoPlayer({
     if (!v) return;
     v.muted = !v.muted;
     setMuted(v.muted);
-    writeSoundPref(v.muted ? "off" : "on");
-    if (!v.muted) setNeedsTapForSound(false);
   }, []);
 
   const setVol = useCallback((val: number) => {
@@ -281,8 +227,6 @@ function NativeVideoPlayer({
     v.muted = clamped === 0;
     setVolume(clamped);
     setMuted(clamped === 0);
-    writeSoundPref(clamped === 0 ? "off" : "on");
-    if (clamped > 0) setNeedsTapForSound(false);
   }, []);
 
   const seekToFraction = useCallback(
@@ -581,7 +525,7 @@ function NativeVideoPlayer({
         src={src}
         poster={poster}
         autoPlay={autoplay}
-        muted={initialMutedAttr}
+        muted={autoplay}
         playsInline
         preload="auto"
         controls={false}
@@ -688,44 +632,6 @@ function NativeVideoPlayer({
         }}
         onError={onError}
       />
-
-      {/* Tap-for-sound overlay — shown only when unmuted autoplay was blocked.
-          Sits above everything (z-30) so a single tap unmutes before the
-          wrapper's tap-to-pause handler fires. */}
-      {needsTapForSound && (
-        <button
-          type="button"
-          data-no-tap
-          onClick={(e) => {
-            e.stopPropagation();
-            const v = videoRef.current;
-            if (!v) return;
-            v.muted = false;
-            setMuted(false);
-            writeSoundPref("on");
-            setNeedsTapForSound(false);
-            v.play().catch(() => {});
-          }}
-          onTouchEnd={(e) => {
-            e.stopPropagation();
-            e.preventDefault();
-            const v = videoRef.current;
-            if (!v) return;
-            v.muted = false;
-            setMuted(false);
-            writeSoundPref("on");
-            setNeedsTapForSound(false);
-            v.play().catch(() => {});
-          }}
-          className="absolute inset-0 z-30 flex items-center justify-center bg-transparent cursor-pointer"
-          aria-label="Tap for sound"
-        >
-          <span className="flex items-center gap-3 px-6 py-4 rounded-full bg-black/80 text-white font-semibold text-base sm:text-lg shadow-2xl animate-pulse">
-            <Volume2 size={28} />
-            Tap for sound
-          </span>
-        </button>
-      )}
 
       {/* Buffering spinner — saffron, only while truly waiting on data */}
       {waiting && (
