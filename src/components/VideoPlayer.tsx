@@ -168,7 +168,14 @@ function NativeVideoPlayer({
   useVideoTracking(videoRef, tracking);
 
   const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
+  // Initial muted attribute: only autoplay paths render muted when the user
+  // has previously chosen to mute this session. Non-autoplay always renders
+  // unmuted because the upcoming play() will be gesture-driven (sound allowed).
+  const [initialMutedAttr] = useState(() => {
+    if (!autoplay) return false;
+    return readSoundPref() === "off";
+  });
+  const [muted, setMuted] = useState(initialMutedAttr);
   const [volume, setVolume] = useState(1);
   const [current, setCurrent] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -180,6 +187,10 @@ function NativeVideoPlayer({
   const [hoverFrac, setHoverFrac] = useState<number | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
+  // When the browser blocks unmuted autoplay we fall back to muted+play and
+  // surface a large tap-anywhere overlay so the prospect can enable sound in
+  // a single tap.
+  const [needsTapForSound, setNeedsTapForSound] = useState(false);
   const [seekHint, setSeekHint] = useState<null | { side: "left" | "right"; amount: number; key: number }>(null);
   const lastTapRef = useRef<{ time: number; x: number; side: "left" | "right" | null }>({ time: 0, x: 0, side: null });
   const resumeKey = useMemo(() => `nflow:resume:${tracking?.videoId ?? src}`, [tracking?.videoId, src]);
