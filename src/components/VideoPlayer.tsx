@@ -39,6 +39,26 @@ import { useVideoTracking, type VideoTrackingMeta } from "@/hooks/useVideoTracki
 const SAFFRON = "var(--accent-saffron)";
 const SPEED_OPTIONS = [0.5, 0.75, 1, 1.25, 1.5, 2] as const;
 
+// Session-persistent sound preference. Default = ON (sound).
+// Set to 'off' only when the user explicitly mutes.
+const SOUND_PREF_KEY = "nflow:sound-pref";
+function readSoundPref(): "on" | "off" {
+  if (typeof window === "undefined") return "on";
+  try {
+    return window.sessionStorage.getItem(SOUND_PREF_KEY) === "off" ? "off" : "on";
+  } catch {
+    return "on";
+  }
+}
+function writeSoundPref(p: "on" | "off") {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(SOUND_PREF_KEY, p);
+  } catch {
+    /* ignore */
+  }
+}
+
 export interface VideoPlayerProps {
   src: string;
   poster?: string;
