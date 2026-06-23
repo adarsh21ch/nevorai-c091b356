@@ -138,6 +138,8 @@ const PricingFullPage = () => {
   const [loading, setLoading] = useState<string | null>(null);
   const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const { currency, gateway } = useCurrency();
+  const [checkoutCtx, setCheckoutCtx] = useState<null | { planName: string; planKey: string; price: number; tierId: string | null }>(null);
+
   
   const autoTriggeredRef = useRef(false);
   const isDashboardUpgradeView = !!user;
