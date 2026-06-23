@@ -16,6 +16,8 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useAllPlans, planLabel, type PlanConfigRow } from "@/hooks/usePlans";
 
 const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
+const CouponsTab = lazy(() => import("@/components/admin/CouponsTab").then((m) => ({ default: m.CouponsTab })));
+
 const fallback = <div className="glass-card p-4 text-sm text-muted-foreground">Loading…</div>;
 
 const PlanField = ({ planName, field, label, type = "number", disabled = false, hint, value: initialValue, onSave }: {
@@ -507,7 +509,14 @@ const AdminPlansPage = () => {
           Enterprise plan is managed separately in Subscriptions → Enterprise.
         </p>
 
+        <div className="pt-4 border-t border-border">
+          <Suspense fallback={fallback}>
+            <CouponsTab />
+          </Suspense>
+        </div>
+
         <TrialSettingsStrip />
+
       </div>
     </AdminLayout>
   );

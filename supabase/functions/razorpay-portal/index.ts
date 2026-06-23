@@ -108,6 +108,95 @@ function pickTierPrice(tierRow: any, interval: string) {
   return Number(tierRow?.monthly_price ?? tierRow?.yearly_price ?? 0);
 }
 
+// ============================================================
+// Coupon helpers (admin-managed discount codes for plans)
+// Validates a coupon code for a given plan/tier/billing/user.
+// Returns either { valid:false, error } or full discount preview.
+async function validateCouponForCheckout(
+  serviceClient: any,
+  args: {
+    code: string;
+    plan_name: string;        // 'basic' | 'pro' (base, not _monthly)
+    tier_id: string | null;
+    billing_interval: string; // 'monthly' | 'yearly'
+    tier_price: number;
+    user_id: string;
+  },
+): Promise<
+  | { valid: false; error: string }
+  | {
+      valid: true;
+      coupon: any;
+      original_price: number;
+      discounted_price: number;
+      discount_label: string;
+    }
+> {
+  const codeNorm = String(args.code || "").trim().toUpperCase();
+  if (!codeNorm) return { valid: false, error: "Coupon code is required" };
+
+  const { data: coupon, error } = await serviceClient
+    .from("plan_coupons")
+    .select("id, code, plan_name, tier_id, billing_cycle, discount_type, discount_value, expires_at, is_active")
+    .ilike("code", codeNorm)
+    .maybeSingle();
+
+  if (error || !coupon) return { valid: false, error: "Invalid coupon code" };
+  if (!coupon.is_active) return { valid: false, error: "This coupon is no longer active" };
+  if (coupon.expires_at && new Date(coupon.expires_at).getTime() < Date.now()) {
+    return { valid: false, error: "This coupon has expired" };
+  }
+  if (coupon.plan_name && coupon.plan_name !== args.plan_name) {
+    return { valid: false, error: "Coupon not valid for this plan" };
+  }
+  if (coupon.tier_id && coupon.tier_id !== args.tier_id) {
+    return { valid: false, error: "Coupon not valid for this tier" };
+  }
+  const bc = (coupon.billing_cycle || "both").toLowerCase();
+  if (bc !== "both" && bc !== args.billing_interval) {
+    return { valid: false, error: `Coupon valid only for ${bc} billing` };
+  }
+
+  const { data: existing } = await serviceClient
+    .from("coupon_redemptions")
+    .select("id")
+    .eq("coupon_id", coupon.id)
+    .eq("user_id", args.user_id)
+    .maybeSingle();
+  if (existing) return { valid: false, error: "You have already used this coupon" };
+
+  const tierPrice = Number(args.tier_price);
+  if (!tierPrice || tierPrice <= 0) return { valid: false, error: "Invalid plan price" };
+
+  let discounted = tierPrice;
+  let label = "";
+  if (coupon.discount_type === "percent") {
+    const pct = Number(coupon.discount_value);
+    if (pct <= 0 || pct >= 100) return { valid: false, error: "Coupon misconfigured" };
+    discounted = Math.max(1, Math.round(tierPrice * (1 - pct / 100)));
+    label = `${pct}% off`;
+  } else if (coupon.discount_type === "fixed_price") {
+    const fp = Number(coupon.discount_value);
+    if (fp <= 0 || fp >= tierPrice) {
+      return { valid: false, error: "Coupon price is not lower than the plan price" };
+    }
+    discounted = Math.max(1, Math.round(fp));
+    label = `Special price — save ₹${Math.round(tierPrice - discounted)}`;
+  } else {
+    return { valid: false, error: "Coupon misconfigured" };
+  }
+
+  return {
+    valid: true,
+    coupon,
+    original_price: Math.round(tierPrice),
+    discounted_price: discounted,
+    discount_label: label,
+  };
+}
+
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   await ensureRazorpayCreds();
@@ -298,6 +387,34 @@ Deno.serve(async (req) => {
         }
       }
 
+      // ===== Coupon code (admin-managed discount) =====
+      // Coupons apply on top of tier price BEFORE any proration. We disallow
+      // mixing coupons with plan-upgrade proration to keep accounting clean.
+      let appliedCoupon: any = null;
+      let originalTierPrice = Math.round(targetPlanPrice);
+      const couponCodeRaw = typeof body.coupon_code === "string" ? body.coupon_code.trim() : "";
+      if (couponCodeRaw) {
+        if (isPlanUpgrade) {
+          return jsonResponse({
+            error: "Coupons can't be combined with a prorated plan upgrade. Please contact support to apply this coupon.",
+          }, 400);
+        }
+        const v = await validateCouponForCheckout(serviceClient, {
+          code: couponCodeRaw,
+          plan_name: baseTier,
+          tier_id: resolvedTierId,
+          billing_interval: targetBillingInterval,
+          tier_price: authoritativeAmount,
+          user_id: user.id,
+        });
+        if (!v.valid) return jsonResponse({ error: v.error }, 400);
+        appliedCoupon = v;
+        originalTierPrice = v.original_price;
+        authoritativeAmount = v.discounted_price;
+      }
+
+
+
       // Price-parity guard: if user passed display_price and no upgrade proration applies,
       // refuse the order if the displayed price doesn't match what we would charge.
       if (displayPriceProvided && !isPlanUpgrade) {
@@ -343,6 +460,14 @@ Deno.serve(async (req) => {
         orderNotes.cycle_days = String(targetCycleDays);
         orderNotes.expires_at = activePaidSub!.expires_at as string;
       }
+
+      if (appliedCoupon) {
+        orderNotes.coupon_id = appliedCoupon.coupon.id;
+        orderNotes.coupon_code = appliedCoupon.coupon.code;
+        orderNotes.coupon_original_price = String(originalTierPrice);
+        orderNotes.coupon_discount_label = appliedCoupon.discount_label;
+      }
+
 
       const orderRes = await fetch(`${RAZORPAY_API}/orders`, {
         method: "POST",
@@ -396,8 +521,70 @@ Deno.serve(async (req) => {
         price_difference: isPlanUpgrade ? priceDiff : null,
         days_remaining: isPlanUpgrade ? daysRemaining : null,
         target_price: isPlanUpgrade ? targetPlanPrice : null,
+        coupon: appliedCoupon ? {
+          code: appliedCoupon.coupon.code,
+          original_price: originalTierPrice,
+          discounted_price: appliedCoupon.discounted_price,
+          discount_label: appliedCoupon.discount_label,
+        } : null,
       });
     }
+
+    // ============================================================
+    // Validate coupon (preview discount before creating an order)
+    // ============================================================
+    if (action === "validate_coupon") {
+      const code = String(body.coupon_code || "").trim();
+      const planKey = String(body.plan_key || "");
+      const tierIdInput = body.tier_id ? String(body.tier_id) : null;
+      if (!code || !planKey) {
+        return jsonResponse({ valid: false, error: "Missing code or plan" }, 200);
+      }
+      const baseName = planKey.split("_")[0];
+      const billingInt = getBillingInterval(planKey, null);
+
+      // Resolve tier (use given tier_id or base tier for the plan)
+      let tierRow: any = null;
+      if (tierIdInput) {
+        const { data } = await serviceClient
+          .from("plan_tiers")
+          .select("id, plan_name, monthly_price, yearly_price, is_active")
+          .eq("id", tierIdInput)
+          .eq("is_active", true)
+          .maybeSingle();
+        tierRow = data;
+      } else {
+        const { data } = await serviceClient
+          .from("plan_tiers")
+          .select("id, plan_name, monthly_price, yearly_price, is_active")
+          .eq("plan_name", baseName)
+          .eq("is_base", true)
+          .eq("is_active", true)
+          .maybeSingle();
+        tierRow = data;
+      }
+      if (!tierRow) {
+        return jsonResponse({ valid: false, error: "Plan not found" }, 200);
+      }
+      const tierPrice = pickTierPrice(tierRow, billingInt);
+      const result = await validateCouponForCheckout(serviceClient, {
+        code,
+        plan_name: baseName,
+        tier_id: tierRow.id,
+        billing_interval: billingInt,
+        tier_price: tierPrice,
+        user_id: user.id,
+      });
+      if (!result.valid) return jsonResponse(result, 200);
+      return jsonResponse({
+        valid: true,
+        code: result.coupon.code,
+        original_price: result.original_price,
+        discounted_price: result.discounted_price,
+        discount_label: result.discount_label,
+      });
+    }
+
 
     if (action === "verify_payment") {
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan_key: verifyPlanKey } = body;
@@ -553,6 +740,18 @@ Deno.serve(async (req) => {
           selected_daily_views: tierRow.daily_views,
         }).eq("id", user.id);
       }
+
+      // Record coupon redemption (unique constraint enforces one-per-user)
+      const couponId = order.notes?.coupon_id;
+      if (couponId) {
+        await serviceClient.from("coupon_redemptions").insert({
+          coupon_id: couponId,
+          user_id: user.id,
+          razorpay_payment_id,
+        });
+      }
+
+
 
       await serviceClient.from("payment_audit_logs").insert({
         user_id: user.id,
