@@ -521,8 +521,70 @@ Deno.serve(async (req) => {
         price_difference: isPlanUpgrade ? priceDiff : null,
         days_remaining: isPlanUpgrade ? daysRemaining : null,
         target_price: isPlanUpgrade ? targetPlanPrice : null,
+        coupon: appliedCoupon ? {
+          code: appliedCoupon.coupon.code,
+          original_price: originalTierPrice,
+          discounted_price: appliedCoupon.discounted_price,
+          discount_label: appliedCoupon.discount_label,
+        } : null,
       });
     }
+
+    // ============================================================
+    // Validate coupon (preview discount before creating an order)
+    // ============================================================
+    if (action === "validate_coupon") {
+      const code = String(body.coupon_code || "").trim();
+      const planKey = String(body.plan_key || "");
+      const tierIdInput = body.tier_id ? String(body.tier_id) : null;
+      if (!code || !planKey) {
+        return jsonResponse({ valid: false, error: "Missing code or plan" }, 200);
+      }
+      const baseName = planKey.split("_")[0];
+      const billingInt = getBillingInterval(planKey, null);
+
+      // Resolve tier (use given tier_id or base tier for the plan)
+      let tierRow: any = null;
+      if (tierIdInput) {
+        const { data } = await serviceClient
+          .from("plan_tiers")
+          .select("id, plan_name, monthly_price, yearly_price, is_active")
+          .eq("id", tierIdInput)
+          .eq("is_active", true)
+          .maybeSingle();
+        tierRow = data;
+      } else {
+        const { data } = await serviceClient
+          .from("plan_tiers")
+          .select("id, plan_name, monthly_price, yearly_price, is_active")
+          .eq("plan_name", baseName)
+          .eq("is_base", true)
+          .eq("is_active", true)
+          .maybeSingle();
+        tierRow = data;
+      }
+      if (!tierRow) {
+        return jsonResponse({ valid: false, error: "Plan not found" }, 200);
+      }
+      const tierPrice = pickTierPrice(tierRow, billingInt);
+      const result = await validateCouponForCheckout(serviceClient, {
+        code,
+        plan_name: baseName,
+        tier_id: tierRow.id,
+        billing_interval: billingInt,
+        tier_price: tierPrice,
+        user_id: user.id,
+      });
+      if (!result.valid) return jsonResponse(result, 200);
+      return jsonResponse({
+        valid: true,
+        code: result.coupon.code,
+        original_price: result.original_price,
+        discounted_price: result.discounted_price,
+        discount_label: result.discount_label,
+      });
+    }
+
 
     if (action === "verify_payment") {
       const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan_key: verifyPlanKey } = body;
