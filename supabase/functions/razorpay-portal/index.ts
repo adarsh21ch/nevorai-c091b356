@@ -387,6 +387,34 @@ Deno.serve(async (req) => {
         }
       }
 
+      // ===== Coupon code (admin-managed discount) =====
+      // Coupons apply on top of tier price BEFORE any proration. We disallow
+      // mixing coupons with plan-upgrade proration to keep accounting clean.
+      let appliedCoupon: any = null;
+      let originalTierPrice = Math.round(targetPlanPrice);
+      const couponCodeRaw = typeof body.coupon_code === "string" ? body.coupon_code.trim() : "";
+      if (couponCodeRaw) {
+        if (isPlanUpgrade) {
+          return jsonResponse({
+            error: "Coupons can't be combined with a prorated plan upgrade. Please contact support to apply this coupon.",
+          }, 400);
+        }
+        const v = await validateCouponForCheckout(serviceClient, {
+          code: couponCodeRaw,
+          plan_name: baseTier,
+          tier_id: resolvedTierId,
+          billing_interval: targetBillingInterval,
+          tier_price: authoritativeAmount,
+          user_id: user.id,
+        });
+        if (!v.valid) return jsonResponse({ error: v.error }, 400);
+        appliedCoupon = v;
+        originalTierPrice = v.original_price;
+        authoritativeAmount = v.discounted_price;
+      }
+
+
+
       // Price-parity guard: if user passed display_price and no upgrade proration applies,
       // refuse the order if the displayed price doesn't match what we would charge.
       if (displayPriceProvided && !isPlanUpgrade) {
