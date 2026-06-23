@@ -461,6 +461,14 @@ Deno.serve(async (req) => {
         orderNotes.expires_at = activePaidSub!.expires_at as string;
       }
 
+      if (appliedCoupon) {
+        orderNotes.coupon_id = appliedCoupon.coupon.id;
+        orderNotes.coupon_code = appliedCoupon.coupon.code;
+        orderNotes.coupon_original_price = String(originalTierPrice);
+        orderNotes.coupon_discount_label = appliedCoupon.discount_label;
+      }
+
+
       const orderRes = await fetch(`${RAZORPAY_API}/orders`, {
         method: "POST",
         headers: rzpHeaders(),
