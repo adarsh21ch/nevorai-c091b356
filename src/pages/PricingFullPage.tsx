@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { getSupabaseFunctionErrorMessage } from "@/lib/supabase-function-error";
+import { CheckoutDialog } from "@/components/checkout/CheckoutDialog";
+
 
 declare global {
   interface Window { Razorpay: any; }
