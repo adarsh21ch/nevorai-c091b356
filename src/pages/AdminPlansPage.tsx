@@ -509,7 +509,14 @@ const AdminPlansPage = () => {
           Enterprise plan is managed separately in Subscriptions → Enterprise.
         </p>
 
+        <div className="pt-4 border-t border-border">
+          <Suspense fallback={fallback}>
+            <CouponsTab />
+          </Suspense>
+        </div>
+
         <TrialSettingsStrip />
+
       </div>
     </AdminLayout>
   );
