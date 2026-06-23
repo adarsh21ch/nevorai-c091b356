@@ -223,6 +223,8 @@ const PricingFullPage = () => {
     return config.monthly_price * 12 - config.yearly_price;
   };
 
+  // Step 1: open the checkout dialog. Coupon entry happens there, then we
+  // launch Razorpay via proceedPayment with the negotiated price + coupon code.
   const handlePayment = useCallback(async (planName: string) => {
     if (!user) {
       navigate(`/auth?tab=signup&redirect=/pricing&plan=${planName}`);
@@ -232,18 +234,31 @@ const PricingFullPage = () => {
     if (!config) return;
 
     const planKey = `${planName}_${billing}`;
+    const displayPrice = getPrice(config);
+    setCheckoutCtx({
+      planName,
+      planKey,
+      price: Number(displayPrice) || 0,
+      tierId: null,  // server resolves base tier when null
+    });
+  }, [user, navigate, billing, planConfigs]);
 
-    // Razorpay (INR) is the only payment gateway in use.
-
-    // Indian users → Razorpay (INR). Server reads authoritative price from plan_tiers.
+  // Step 2: actually charge via Razorpay, optionally with coupon.
+  const proceedPayment = useCallback(async (args: { couponCode: string | null; finalPrice: number }) => {
+    if (!checkoutCtx) return;
+    const { planName, planKey } = checkoutCtx;
     setLoading(planKey);
     try {
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) throw new Error("Failed to load payment gateway");
 
-      const displayPrice = getPrice(config);
       const { data, error } = await supabase.functions.invoke("razorpay-portal", {
-        body: { action: "create_order", plan_key: planKey, display_price: displayPrice },
+        body: {
+          action: "create_order",
+          plan_key: planKey,
+          display_price: args.finalPrice,
+          coupon_code: args.couponCode || undefined,
+        },
       });
       if (error || !data?.order_id) {
         const message = await getSupabaseFunctionErrorMessage(error, data?.error || "Failed to create order");
@@ -265,7 +280,9 @@ const PricingFullPage = () => {
         name: "Nevorai",
         description: data.is_plan_upgrade
           ? `Upgrade to ${planName.charAt(0).toUpperCase() + planName.slice(1)} — pay ₹${payableToday} today for ${data.days_remaining} day${data.days_remaining === 1 ? "" : "s"} left (renews at ₹${data.target_price}${renewalLabel})`
-          : `${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan — ${billing}`,
+          : data.coupon
+            ? `${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan — ${billing} (${data.coupon.code})`
+            : `${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan — ${billing}`,
         order_id: data.order_id,
         handler: async (response: any) => {
           try {
@@ -283,6 +300,7 @@ const PricingFullPage = () => {
               duration: 7000,
             });
             refreshPlan();
+            setCheckoutCtx(null);
             setTimeout(() => navigate("/billing"), 1500);
           } catch {
             toast.error("Payment received but verification pending. Contact support.");
@@ -291,7 +309,7 @@ const PricingFullPage = () => {
         },
         prefill: {
           name: profile?.full_name || "",
-          email: user.email,
+          email: user?.email,
           contact: profile?.phone || "",
         },
         theme: { color: "#2563EB" },
@@ -309,7 +327,9 @@ const PricingFullPage = () => {
     } finally {
       setLoading(null);
     }
-  }, [user, profile, navigate, openSupport, refreshPlan, billing, planConfigs, gateway]);
+  }, [checkoutCtx, user, profile, navigate, openSupport, refreshPlan, billing, plan]);
+
+
 
   // Auto-trigger checkout after returning from /auth with ?plan=basic|pro
   useEffect(() => {
