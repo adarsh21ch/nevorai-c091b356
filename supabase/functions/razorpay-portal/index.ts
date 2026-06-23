@@ -741,6 +741,18 @@ Deno.serve(async (req) => {
         }).eq("id", user.id);
       }
 
+      // Record coupon redemption (unique constraint enforces one-per-user)
+      const couponId = order.notes?.coupon_id;
+      if (couponId) {
+        await serviceClient.from("coupon_redemptions").insert({
+          coupon_id: couponId,
+          user_id: user.id,
+          razorpay_payment_id,
+        });
+      }
+
+
+
       await serviceClient.from("payment_audit_logs").insert({
         user_id: user.id,
         event_type: "payment_verified",
