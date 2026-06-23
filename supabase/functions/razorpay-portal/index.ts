@@ -108,6 +108,95 @@ function pickTierPrice(tierRow: any, interval: string) {
   return Number(tierRow?.monthly_price ?? tierRow?.yearly_price ?? 0);
 }
 
+// ============================================================
+// Coupon helpers (admin-managed discount codes for plans)
+// Validates a coupon code for a given plan/tier/billing/user.
+// Returns either { valid:false, error } or full discount preview.
+async function validateCouponForCheckout(
+  serviceClient: any,
+  args: {
+    code: string;
+    plan_name: string;        // 'basic' | 'pro' (base, not _monthly)
+    tier_id: string | null;
+    billing_interval: string; // 'monthly' | 'yearly'
+    tier_price: number;
+    user_id: string;
+  },
+): Promise<
+  | { valid: false; error: string }
+  | {
+      valid: true;
+      coupon: any;
+      original_price: number;
+      discounted_price: number;
+      discount_label: string;
+    }
+> {
+  const codeNorm = String(args.code || "").trim().toUpperCase();
+  if (!codeNorm) return { valid: false, error: "Coupon code is required" };
+
+  const { data: coupon, error } = await serviceClient
+    .from("plan_coupons")
+    .select("id, code, plan_name, tier_id, billing_cycle, discount_type, discount_value, expires_at, is_active")
+    .ilike("code", codeNorm)
+    .maybeSingle();
+
+  if (error || !coupon) return { valid: false, error: "Invalid coupon code" };
+  if (!coupon.is_active) return { valid: false, error: "This coupon is no longer active" };
+  if (coupon.expires_at && new Date(coupon.expires_at).getTime() < Date.now()) {
+    return { valid: false, error: "This coupon has expired" };
+  }
+  if (coupon.plan_name && coupon.plan_name !== args.plan_name) {
+    return { valid: false, error: "Coupon not valid for this plan" };
+  }
+  if (coupon.tier_id && coupon.tier_id !== args.tier_id) {
+    return { valid: false, error: "Coupon not valid for this tier" };
+  }
+  const bc = (coupon.billing_cycle || "both").toLowerCase();
+  if (bc !== "both" && bc !== args.billing_interval) {
+    return { valid: false, error: `Coupon valid only for ${bc} billing` };
+  }
+
+  const { data: existing } = await serviceClient
+    .from("coupon_redemptions")
+    .select("id")
+    .eq("coupon_id", coupon.id)
+    .eq("user_id", args.user_id)
+    .maybeSingle();
+  if (existing) return { valid: false, error: "You have already used this coupon" };
+
+  const tierPrice = Number(args.tier_price);
+  if (!tierPrice || tierPrice <= 0) return { valid: false, error: "Invalid plan price" };
+
+  let discounted = tierPrice;
+  let label = "";
+  if (coupon.discount_type === "percent") {
+    const pct = Number(coupon.discount_value);
+    if (pct <= 0 || pct >= 100) return { valid: false, error: "Coupon misconfigured" };
+    discounted = Math.max(1, Math.round(tierPrice * (1 - pct / 100)));
+    label = `${pct}% off`;
+  } else if (coupon.discount_type === "fixed_price") {
+    const fp = Number(coupon.discount_value);
+    if (fp <= 0 || fp >= tierPrice) {
+      return { valid: false, error: "Coupon price is not lower than the plan price" };
+    }
+    discounted = Math.max(1, Math.round(fp));
+    label = `Special price — save ₹${Math.round(tierPrice - discounted)}`;
+  } else {
+    return { valid: false, error: "Coupon misconfigured" };
+  }
+
+  return {
+    valid: true,
+    coupon,
+    original_price: Math.round(tierPrice),
+    discounted_price: discounted,
+    discount_label: label,
+  };
+}
+
+
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   await ensureRazorpayCreds();
