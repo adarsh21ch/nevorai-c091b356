@@ -27,6 +27,8 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 import { trackEntityView } from "@/lib/tracking";
+import { isYouTubeUrl } from "@/lib/youtube";
+import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 type ViewerState = "waiting" | "live" | "ended" | "replay";
 
