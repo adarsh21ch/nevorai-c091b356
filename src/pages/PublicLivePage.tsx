@@ -924,7 +924,18 @@ const PublicLivePage = () => {
         )}
 
         {/* ===== STATE 4 — REPLAY ===== */}
-        {stateData.state === "replay" && stateData.video_url && (() => {
+        {stateData.state === "replay" && stateData.video_url && isYouTubeUrl(stateData.video_url) && (
+          <div className="space-y-3">
+            <div className="rounded-xl overflow-hidden bg-black aspect-video shadow-2xl relative">
+              <YouTubeEmbed src={stateData.video_url} autoplay title={session.title} />
+              <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-[#F97316]/90 text-white text-[11px] font-bold shadow z-10">
+                REPLAY
+              </div>
+            </div>
+          </div>
+        )}
+
+        {stateData.state === "replay" && stateData.video_url && !isYouTubeUrl(stateData.video_url) && (() => {
           const replayAllowSeek = stateData.video_allow_seek !== false;
           const replayAllowSpeed = stateData.video_allow_playback_speed !== false;
           return (
