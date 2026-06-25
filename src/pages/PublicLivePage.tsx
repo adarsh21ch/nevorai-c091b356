@@ -27,6 +27,8 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
 import { trackEntityView } from "@/lib/tracking";
+import { isYouTubeUrl } from "@/lib/youtube";
+import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 type ViewerState = "waiting" | "live" | "ended" | "replay";
 
@@ -655,7 +657,23 @@ const PublicLivePage = () => {
           );
         })()}
 
-        {stateData.state === "live" && stateData.video_url && joined && (() => {
+        {stateData.state === "live" && stateData.video_url && joined && isYouTubeUrl(stateData.video_url) && (
+          <div className="space-y-2">
+            <div className="relative rounded-xl overflow-hidden bg-black aspect-video shadow-2xl">
+              <YouTubeEmbed src={stateData.video_url} autoplay title={session.title} />
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-red-600 text-white text-[11px] font-bold shadow-lg pointer-events-none z-10 animate-pulse">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white" />
+                </span>
+                LIVE
+              </div>
+            </div>
+            <p className="text-[11px] text-muted-foreground px-1">Live YouTube stream • seek &amp; speed controlled by YouTube</p>
+          </div>
+        )}
+
+        {stateData.state === "live" && stateData.video_url && joined && !isYouTubeUrl(stateData.video_url) && (() => {
           const liveEdge = Math.max(livePosition, progressNow, 1);
           const played = Math.max(0, Math.min(progressNow, liveEdge));
           const playedPct = Math.min(100, (played / liveEdge) * 100);
@@ -906,7 +924,18 @@ const PublicLivePage = () => {
         )}
 
         {/* ===== STATE 4 — REPLAY ===== */}
-        {stateData.state === "replay" && stateData.video_url && (() => {
+        {stateData.state === "replay" && stateData.video_url && isYouTubeUrl(stateData.video_url) && (
+          <div className="space-y-3">
+            <div className="rounded-xl overflow-hidden bg-black aspect-video shadow-2xl relative">
+              <YouTubeEmbed src={stateData.video_url} autoplay title={session.title} />
+              <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-[#F97316]/90 text-white text-[11px] font-bold shadow z-10">
+                REPLAY
+              </div>
+            </div>
+          </div>
+        )}
+
+        {stateData.state === "replay" && stateData.video_url && !isYouTubeUrl(stateData.video_url) && (() => {
           const replayAllowSeek = stateData.video_allow_seek !== false;
           const replayAllowSpeed = stateData.video_allow_playback_speed !== false;
           return (
