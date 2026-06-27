@@ -96,6 +96,7 @@ import { Route as ApiAdminWhatsappLeadsRouteImport } from './routes/api/admin/wh
 import { Route as ApiAdminWhatsappBroadcastsRouteImport } from './routes/api/admin/whatsapp-broadcasts'
 import { Route as ApiAdminWhatsappAutomationsRouteImport } from './routes/api/admin/whatsapp-automations'
 import { Route as ApiPublicPixelTrackRouteImport } from './routes/api/public/pixel/track'
+import { Route as ApiPublicPixelFireLogRouteImport } from './routes/api/public/pixel/fire-log'
 import { Route as ApiPublicEmailSendRouteImport } from './routes/api/public/email/send'
 import { Route as ApiAdminWhatsappMessagesLeadIdRouteImport } from './routes/api/admin/whatsapp-messages/$leadId'
 
@@ -578,6 +579,11 @@ const ApiPublicPixelTrackRoute = ApiPublicPixelTrackRouteImport.update({
   path: '/api/public/pixel/track',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPixelFireLogRoute = ApiPublicPixelFireLogRouteImport.update({
+  id: '/api/public/pixel/fire-log',
+  path: '/api/public/pixel/fire-log',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicEmailSendRoute = ApiPublicEmailSendRouteImport.update({
   id: '/api/public/email/send',
   path: '/api/public/email/send',
@@ -679,6 +685,7 @@ export interface FileRoutesByFullPath {
   '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
+  '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
 }
 export interface FileRoutesByTo {
@@ -768,6 +775,7 @@ export interface FileRoutesByTo {
   '/landing-pages/$id': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
+  '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
 }
 export interface FileRoutesById {
@@ -860,6 +868,7 @@ export interface FileRoutesById {
   '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
+  '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
 }
 export interface FileRouteTypes {
@@ -953,6 +962,7 @@ export interface FileRouteTypes {
     | '/landing-pages/$id/'
     | '/api/admin/whatsapp-messages/$leadId'
     | '/api/public/email/send'
+    | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1042,6 +1052,7 @@ export interface FileRouteTypes {
     | '/landing-pages/$id'
     | '/api/admin/whatsapp-messages/$leadId'
     | '/api/public/email/send'
+    | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
   id:
     | '__root__'
@@ -1133,6 +1144,7 @@ export interface FileRouteTypes {
     | '/landing-pages/$id/'
     | '/api/admin/whatsapp-messages/$leadId'
     | '/api/public/email/send'
+    | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
   fileRoutesById: FileRoutesById
 }
@@ -1211,6 +1223,7 @@ export interface RootRouteChildren {
   FSlugIndexRoute: typeof FSlugIndexRoute
   ApiAdminWhatsappMessagesLeadIdRoute: typeof ApiAdminWhatsappMessagesLeadIdRoute
   ApiPublicEmailSendRoute: typeof ApiPublicEmailSendRoute
+  ApiPublicPixelFireLogRoute: typeof ApiPublicPixelFireLogRoute
   ApiPublicPixelTrackRoute: typeof ApiPublicPixelTrackRoute
 }
 
@@ -1825,6 +1838,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPixelTrackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pixel/fire-log': {
+      id: '/api/public/pixel/fire-log'
+      path: '/api/public/pixel/fire-log'
+      fullPath: '/api/public/pixel/fire-log'
+      preLoaderRoute: typeof ApiPublicPixelFireLogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/email/send': {
       id: '/api/public/email/send'
       path: '/api/public/email/send'
@@ -2017,6 +2037,7 @@ const rootRouteChildren: RootRouteChildren = {
   FSlugIndexRoute: FSlugIndexRoute,
   ApiAdminWhatsappMessagesLeadIdRoute: ApiAdminWhatsappMessagesLeadIdRoute,
   ApiPublicEmailSendRoute: ApiPublicEmailSendRoute,
+  ApiPublicPixelFireLogRoute: ApiPublicPixelFireLogRoute,
   ApiPublicPixelTrackRoute: ApiPublicPixelTrackRoute,
 }
 export const routeTree = rootRouteImport

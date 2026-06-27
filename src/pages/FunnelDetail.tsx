@@ -15,6 +15,7 @@ import { Eye, Users, TrendingUp, IndianRupee, Edit, Copy, ExternalLink, Search, 
 import { LeadProgressTab } from "@/components/funnel/LeadProgressTab";
 import { ViewersAnalyticsTab } from "@/components/funnel/ViewersAnalyticsTab";
 import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
+import { PixelHealthCard } from "@/components/pixel/PixelHealthCard";
 
 const FunnelDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -182,20 +183,28 @@ const FunnelDetail = () => {
         </div>
 
         {tab === "overview" && (
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { icon: Eye, label: "Views", value: funnel.total_views || 0 },
-              { icon: Users, label: "Leads", value: leads.length },
-              { icon: TrendingUp, label: "Conversion", value: `${convRate}%` },
-              { icon: IndianRupee, label: "Revenue", value: `₹${totalRevenue.toLocaleString("en-IN")}` },
-            ].map((s) => (
-              <div key={s.label} className="glass-card p-5">
-                <div className="flex items-center gap-2 mb-2"><s.icon size={16} className="text-primary" /><span className="text-xs text-muted-foreground">{s.label}</span></div>
-                <div className="text-2xl font-heading font-bold">{s.value}</div>
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { icon: Eye, label: "Views", value: funnel.total_views || 0 },
+                { icon: Users, label: "Leads", value: leads.length },
+                { icon: TrendingUp, label: "Conversion", value: `${convRate}%` },
+                { icon: IndianRupee, label: "Revenue", value: `₹${totalRevenue.toLocaleString("en-IN")}` },
+              ].map((s) => (
+                <div key={s.label} className="glass-card p-5">
+                  <div className="flex items-center gap-2 mb-2"><s.icon size={16} className="text-primary" /><span className="text-xs text-muted-foreground">{s.label}</span></div>
+                  <div className="text-2xl font-heading font-bold">{s.value}</div>
+                </div>
+              ))}
+            </div>
+            <PixelHealthCard
+              scope="funnel"
+              resourceId={funnel.id}
+              publicUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/f/${funnel.slug}`}
+            />
+          </>
         )}
+
 
         {tab === "leads" && (
           <div className="space-y-4">

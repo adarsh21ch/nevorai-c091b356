@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { ShareWithTeamModal } from "@/components/landing-pages/ShareWithTeamModal";
+import { PixelHealthCard } from "@/components/pixel/PixelHealthCard";
 
 const LandingPageDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -122,6 +123,14 @@ const LandingPageDetail = () => {
             </Card>
           ))}
         </div>
+
+        <PixelHealthCard
+          scope="landing"
+          resourceId={(page as any).id}
+          publicUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/l/${(page as any).slug}`}
+        />
+
+
 
         <Card className="p-5 space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
