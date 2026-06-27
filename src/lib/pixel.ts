@@ -160,12 +160,18 @@ export async function trackPixel(
   }
 }
 
-export const trackLead = (userId: string, params: FbqEventParams = {}, pixelId?: string) =>
+export const trackLead = (
+  userId: string,
+  params: FbqEventParams = {},
+  pixelId?: string,
+  logScope?: PixelLogScope,
+) =>
   trackPixel(
     "Lead",
     { ...params, user_id: userId },
-    { dedupKey: `Lead:${userId}:${pixelId ?? "platform"}`, pixelId },
+    { dedupKey: `Lead:${userId}:${pixelId ?? "platform"}`, pixelId, logScope },
   );
+
 
 export const trackCompleteRegistration = (userId: string, params: FbqEventParams = {}) =>
   trackPixel(
