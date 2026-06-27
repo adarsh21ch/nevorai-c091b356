@@ -182,6 +182,16 @@ const PublicLandingPage = () => {
       );
       setSubmitted(true);
 
+      void trackLead(
+        `lp:${page.id}:${formData.phone || formData.email || Date.now()}`,
+        {
+          content_name: page.title,
+          email: formData.email || undefined,
+          phone: formData.phone || undefined,
+        },
+        (page as any).meta_pixel_id || undefined,
+      );
+
       // Optional post-registration redirect
       if ((page as any).redirect_url) {
         setTimeout(() => {
