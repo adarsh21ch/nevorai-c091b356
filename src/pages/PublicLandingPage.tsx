@@ -65,11 +65,29 @@ const PublicLandingPage = () => {
             } catch {}
           }
           setOwnerPixelId(effective);
+          const testRunId = typeof window !== "undefined"
+            ? new URLSearchParams(window.location.search).get("nev_pixel_test_run")
+            : null;
+          const logScope = {
+            scope: effective ? ("landing" as const) : ("platform" as const),
+            resourceId: data.id,
+            runId: testRunId,
+            isTest: !!testRunId,
+          };
           void trackPixel("PageView", {}, {
             pixelId: effective,
-            dedupKey: `PageView:lp:${data.id}:${effective ?? "platform"}`,
+            dedupKey: `PageView:lp:${data.id}:${effective ?? "platform"}:${testRunId ?? ""}`,
+            logScope,
           });
+          if (testRunId) {
+            void trackPixel("TestEvent", { test_run: testRunId, content_name: data.title }, {
+              pixelId: effective,
+              dedupKey: `TestEvent:${testRunId}`,
+              logScope,
+            });
+          }
         })();
+
         const saved = localStorage.getItem(`nf_registered_${data.id}`);
         if (saved) setSubmitted(true);
         if ((data as any).access_code_enabled) {
@@ -201,7 +219,9 @@ const PublicLandingPage = () => {
           phone: formData.phone || undefined,
         },
         ownerPixelId,
+        { scope: ownerPixelId ? "landing" : "platform", resourceId: page.id },
       );
+
 
       // Optional post-registration redirect
       if ((page as any).redirect_url) {

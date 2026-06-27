@@ -945,8 +945,17 @@ const PublicFunnel = () => {
     if (!funnel?.id) return;
     logFunnelEngagement({ funnel_id: funnel.id, event_type: "view_start" });
     const creatorPixelId = (funnel as any).meta_pixel_id || (creatorProfile as any)?.meta_pixel_id || undefined;
-    void trackPixel("ViewContent", { content_name: funnel.title, content_category: "funnel" }, { pixelId: creatorPixelId });
-    void trackPixel("PageView", {}, { pixelId: creatorPixelId, dedupKey: `PageView:funnel:${funnel.id}:${creatorPixelId ?? "platform"}` });
+    const testRunId = typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("nev_pixel_test_run")
+      : null;
+    const pixelScope = creatorPixelId ? "funnel" as const : "platform" as const;
+    const logScope = { scope: pixelScope, resourceId: funnel.id, runId: testRunId, isTest: !!testRunId };
+    void trackPixel("ViewContent", { content_name: funnel.title, content_category: "funnel" }, { pixelId: creatorPixelId, logScope });
+    void trackPixel("PageView", {}, { pixelId: creatorPixelId, dedupKey: `PageView:funnel:${funnel.id}:${creatorPixelId ?? "platform"}:${testRunId ?? ""}`, logScope });
+    if (testRunId) {
+      void trackPixel("TestEvent", { test_run: testRunId, content_name: funnel.title }, { pixelId: creatorPixelId, dedupKey: `TestEvent:${testRunId}`, logScope });
+    }
+
 
     const fireExit = () => {
       logFunnelEngagement({
@@ -1019,11 +1028,13 @@ const PublicFunnel = () => {
           viewer_phone: phone,
           viewer_email: leadForm.email || null,
         });
+        const leadPixel = (funnel as any).meta_pixel_id || (creatorProfile as any)?.meta_pixel_id || undefined;
         void trackLead(`${funnel.id}:${phone ?? leadForm.email ?? Date.now()}`, {
           content_name: funnel.title,
           email: leadForm.email || undefined,
           phone: phone ?? undefined,
-        }, (funnel as any).meta_pixel_id || (creatorProfile as any)?.meta_pixel_id || undefined);
+        }, leadPixel, { scope: leadPixel ? "funnel" : "platform", resourceId: funnel.id });
+
       }
       toast.success(
         hasEmail
