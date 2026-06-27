@@ -124,6 +124,14 @@ const LandingPageDetail = () => {
           ))}
         </div>
 
+        <PixelHealthCard
+          scope="landing"
+          resourceId={(page as any).id}
+          publicUrl={`${typeof window !== "undefined" ? window.location.origin : ""}/l/${(page as any).slug}`}
+        />
+
+
+
         <Card className="p-5 space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
             <h2 className="font-semibold">Insights ({(registrations as any[]).length})</h2>
