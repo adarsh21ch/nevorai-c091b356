@@ -55,6 +55,10 @@ const PublicLandingPage = () => {
         .eq("slug", slug).eq("status", "published").single();
       if (data) {
         setPage(data);
+        void trackPixel("PageView", {}, {
+          pixelId: (data as any).meta_pixel_id || undefined,
+          dedupKey: `PageView:lp:${data.id}:${(data as any).meta_pixel_id ?? "platform"}`,
+        });
         const saved = localStorage.getItem(`nf_registered_${data.id}`);
         if (saved) setSubmitted(true);
         if ((data as any).access_code_enabled) {
