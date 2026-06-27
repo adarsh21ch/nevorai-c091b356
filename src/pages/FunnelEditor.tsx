@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { MetaPixelIdField } from "@/components/pixel/MetaPixelIdField";
 import { useNavigate, useParams } from "@/lib/router-compat";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -121,7 +122,7 @@ const FunnelEditor = () => {
   const { id } = useParams();
   const isEdit = !!id;
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
+  const { user, profile, loading: authLoading } = useAuth();
   const { canUseMultiStep } = usePlan();
   const planLimits = usePlanLimits();
   const { features, planConfigs } = planLimits;

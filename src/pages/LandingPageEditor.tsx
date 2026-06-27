@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { MetaPixelIdField } from "@/components/pixel/MetaPixelIdField";
 import { useNavigate, useParams } from "@/lib/router-compat";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
