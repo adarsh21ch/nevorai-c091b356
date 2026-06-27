@@ -574,19 +574,13 @@ const FunnelEditor = () => {
           <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
           <Textarea value={funnel.description} onChange={(e) => update("description", e.target.value)} className="mt-1.5 bg-muted border-border" rows={3} placeholder="What is this funnel about?" />
         </div>
-        <div>
-          <Label>Meta Pixel ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
-          <Input
-            value={funnel.meta_pixel_id}
-            onChange={(e) => update("meta_pixel_id", e.target.value.replace(/\D/g, "").slice(0, 20))}
-            className="mt-1.5 bg-muted border-border"
-            placeholder="e.g. 1234567890123456"
-            inputMode="numeric"
-          />
-          <p className="text-xs text-muted-foreground mt-1.5">
-            Your own Facebook/Meta Pixel ID. PageView and Lead events on this funnel will fire to your pixel instead of the platform pixel.
-          </p>
-        </div>
+        <MetaPixelIdField
+          scope="funnel"
+          value={funnel.meta_pixel_id || ""}
+          onChange={(v) => update("meta_pixel_id", v)}
+          accountPixelId={(profile as any)?.meta_pixel_id}
+        />
+
       </div>
     </>
   );
