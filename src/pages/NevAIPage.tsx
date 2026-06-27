@@ -124,21 +124,29 @@ const NevAIPage = () => {
                     <Sparkles size={16} className="text-primary" />
                   </div>
                   <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 text-sm">
-                    Hi! I’m Nev AI. Ask me about your views, leads, funnels, or conversion.
-                    Try one of these to get started:
+                    Hi! I'm <span className="font-semibold">Nev AI</span> — your data co-pilot. Ask me about views, leads, conversion rates, drop-offs, or what to improve. I read from your real funnels and landing pages.
                   </div>
                 </div>
                 <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {SUGGESTIONS.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => sendMessage(s)}
-                      disabled={loading}
-                      className="rounded-xl border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {QUICK_PROMPTS.map((q) => {
+                    const Icon = q.icon;
+                    return (
+                      <button
+                        key={q.label}
+                        onClick={() => sendMessage(q.prompt)}
+                        disabled={loading}
+                        className="group flex items-start gap-2.5 rounded-xl border border-border bg-card p-3 text-left text-sm transition-all hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm disabled:opacity-50"
+                      >
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20">
+                          <Icon size={14} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium leading-tight">{q.label}</div>
+                          <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{q.prompt}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
