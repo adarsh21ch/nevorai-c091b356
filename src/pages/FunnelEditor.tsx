@@ -169,6 +169,7 @@ const FunnelEditor = () => {
     video_topics: [] as string[],
     speaker_scope: "global" as "global" | "per_step",
     video_topics_scope: "global" as "global" | "per_step",
+    meta_pixel_id: "",
   });
 
   const [leadForm, setLeadForm] = useState({
