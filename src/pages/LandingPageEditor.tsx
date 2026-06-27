@@ -879,6 +879,23 @@ const LandingPageEditor = () => {
           <div><Label>OG Description</Label><Textarea value={form.og_description || ""} onChange={(e) => updateField("og_description", e.target.value)} rows={2} className="mt-1.5 bg-muted border-border" /></div>
           <ImageUploadField label="Social Preview Image" value={form.og_image_url || ""} onChange={(url) => updateField("og_image_url", url)} folder="og-images" />
         </div>
+
+        <div className="p-4 bg-muted/50 rounded-xl space-y-3">
+          <h3 className="font-semibold">Meta Pixel</h3>
+          <div>
+            <Label>Meta Pixel ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
+            <Input
+              value={form.meta_pixel_id || ""}
+              onChange={(e) => updateField("meta_pixel_id", e.target.value.replace(/\D/g, "").slice(0, 20))}
+              placeholder="e.g. 1234567890123456"
+              inputMode="numeric"
+              className="mt-1.5 bg-muted border-border"
+            />
+            <p className="text-xs text-muted-foreground mt-1.5">
+              Your own Facebook/Meta Pixel ID. PageView and Lead events on this landing page will fire to your pixel instead of the platform pixel.
+            </p>
+          </div>
+        </div>
       </div>
     </>
   );
