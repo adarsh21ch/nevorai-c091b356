@@ -349,6 +349,7 @@ const FunnelEditor = () => {
       video_topics: funnel.video_topics.filter((t: string) => t.trim() !== "").map((t: string) => s(t)),
       speaker_scope: funnel.speaker_scope,
       video_topics_scope: funnel.video_topics_scope,
+      meta_pixel_id: funnel.meta_pixel_id.trim() || null,
     };
   }, [user, funnel, selectedVideo]);
 
