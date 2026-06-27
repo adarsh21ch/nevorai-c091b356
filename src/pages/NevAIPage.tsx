@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Sparkles, Send, Loader2, TrendingUp, BarChart3, Target, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
-const SUGGESTIONS = [
-  "How many views this week?",
-  "Which funnel is performing best?",
-  "How many leads did I get today?",
-  "What's my conversion rate?",
+const QUICK_PROMPTS: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; prompt: string }[] = [
+  { icon: BarChart3, label: "This week's numbers", prompt: "Give me a summary of my views, leads, and conversion rate this week." },
+  { icon: TrendingUp, label: "Best performing funnel", prompt: "Which funnel is performing best right now and why?" },
+  { icon: Target, label: "Where am I losing leads?", prompt: "Where are visitors dropping off in my funnels? Show me the biggest drop-off points." },
+  { icon: Lightbulb, label: "Suggest improvements", prompt: "Look at my data from the last 7 days and suggest 3 concrete improvements I can make today." },
 ];
 
 const NevAIPage = () => {
@@ -122,21 +124,29 @@ const NevAIPage = () => {
                     <Sparkles size={16} className="text-primary" />
                   </div>
                   <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 text-sm">
-                    Hi! I’m Nev AI. Ask me about your views, leads, funnels, or conversion.
-                    Try one of these to get started:
+                    Hi! I'm <span className="font-semibold">Nev AI</span> — your data co-pilot. Ask me about views, leads, conversion rates, drop-offs, or what to improve. I read from your real funnels and landing pages.
                   </div>
                 </div>
                 <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {SUGGESTIONS.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => sendMessage(s)}
-                      disabled={loading}
-                      className="rounded-xl border border-border bg-card px-3 py-2.5 text-left text-sm transition-colors hover:border-primary/50 hover:bg-primary/5 disabled:opacity-50"
-                    >
-                      {s}
-                    </button>
-                  ))}
+                  {QUICK_PROMPTS.map((q) => {
+                    const Icon = q.icon;
+                    return (
+                      <button
+                        key={q.label}
+                        onClick={() => sendMessage(q.prompt)}
+                        disabled={loading}
+                        className="group flex items-start gap-2.5 rounded-xl border border-border bg-card p-3 text-left text-sm transition-all hover:border-primary/50 hover:bg-primary/5 hover:shadow-sm disabled:opacity-50"
+                      >
+                        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20">
+                          <Icon size={14} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="font-medium leading-tight">{q.label}</div>
+                          <div className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">{q.prompt}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ) : (
@@ -207,13 +217,19 @@ function MessageBubble({ role, content }: { role: "user" | "assistant"; content:
       )}
       <div
         className={cn(
-          "max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm",
+          "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
           isUser
-            ? "rounded-tr-sm bg-primary text-primary-foreground"
+            ? "rounded-tr-sm bg-primary text-primary-foreground whitespace-pre-wrap"
             : "rounded-tl-sm bg-muted text-foreground",
         )}
       >
-        {content}
+        {isUser ? (
+          content
+        ) : (
+          <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-headings:mt-3 prose-headings:mb-1.5 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-code:px-1 prose-code:py-0.5 prose-code:bg-background/60 prose-code:rounded prose-code:text-[12px] prose-code:before:content-none prose-code:after:content-none prose-strong:text-foreground">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          </div>
+        )}
       </div>
     </div>
   );
