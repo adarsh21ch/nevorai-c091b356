@@ -56,10 +56,20 @@ const PublicLandingPage = () => {
         .eq("slug", slug).eq("status", "published").single();
       if (data) {
         setPage(data);
-        void trackPixel("PageView", {}, {
-          pixelId: (data as any).meta_pixel_id || undefined,
-          dedupKey: `PageView:lp:${data.id}:${(data as any).meta_pixel_id ?? "platform"}`,
-        });
+        (async () => {
+          let effective: string | undefined = (data as any).meta_pixel_id || undefined;
+          if (!effective && (data as any).owner_id) {
+            try {
+              const { data: rpcData } = await (supabase as any).rpc("get_profile_meta_pixel_id", { _owner_id: (data as any).owner_id });
+              if (rpcData) effective = String(rpcData);
+            } catch {}
+          }
+          setOwnerPixelId(effective);
+          void trackPixel("PageView", {}, {
+            pixelId: effective,
+            dedupKey: `PageView:lp:${data.id}:${effective ?? "platform"}`,
+          });
+        })();
         const saved = localStorage.getItem(`nf_registered_${data.id}`);
         if (saved) setSubmitted(true);
         if ((data as any).access_code_enabled) {
