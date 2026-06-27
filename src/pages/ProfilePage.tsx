@@ -51,6 +51,7 @@ const ProfilePage = () => {
     instagram_url: "", whatsapp_number: "",
     username: "", cta_label: "", cta_url: "",
     email: "",
+    meta_pixel_id: "",
   });
   const [emailSaving, setEmailSaving] = useState(false);
 
