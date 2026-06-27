@@ -1023,7 +1023,7 @@ const PublicFunnel = () => {
           content_name: funnel.title,
           email: leadForm.email || undefined,
           phone: phone ?? undefined,
-        }, (funnel as any).meta_pixel_id || undefined);
+        }, (funnel as any).meta_pixel_id || (creatorProfile as any)?.meta_pixel_id || undefined);
       }
       toast.success(
         hasEmail
