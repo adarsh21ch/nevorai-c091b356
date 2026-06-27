@@ -217,13 +217,19 @@ function MessageBubble({ role, content }: { role: "user" | "assistant"; content:
       )}
       <div
         className={cn(
-          "max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm",
+          "max-w-[85%] rounded-2xl px-4 py-3 text-sm",
           isUser
-            ? "rounded-tr-sm bg-primary text-primary-foreground"
+            ? "rounded-tr-sm bg-primary text-primary-foreground whitespace-pre-wrap"
             : "rounded-tl-sm bg-muted text-foreground",
         )}
       >
-        {content}
+        {isUser ? (
+          content
+        ) : (
+          <div className="prose prose-sm max-w-none dark:prose-invert prose-p:my-2 prose-headings:mt-3 prose-headings:mb-1.5 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-code:px-1 prose-code:py-0.5 prose-code:bg-background/60 prose-code:rounded prose-code:text-[12px] prose-code:before:content-none prose-code:after:content-none prose-strong:text-foreground">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+          </div>
+        )}
       </div>
     </div>
   );
