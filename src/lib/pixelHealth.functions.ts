@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
 
 const Scope = z.enum(["funnel", "landing"]);
 
@@ -24,8 +26,9 @@ export type PixelHealthResult = {
 };
 
 export const getPixelHealth = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => HealthInput.parse(input))
-  .handler(async ({ data }): Promise<PixelHealthResult> => {
+  .handler(async ({ data, context }): Promise<PixelHealthResult> => {
     const { scope, resourceId } = data;
     const table = scope === "funnel" ? "funnels" : "landing_pages";
 
@@ -35,6 +38,10 @@ export const getPixelHealth = createServerFn({ method: "POST" })
       .select("meta_pixel_id, owner_id")
       .eq("id", resourceId)
       .maybeSingle();
+    if (!row || (row as any).owner_id !== (context as any).userId) {
+      throw new Error("Not allowed");
+    }
+
     let resolvedPixelId: string | null = (row as any)?.meta_pixel_id ?? null;
     let resolvedSource: "this" | "account" | "platform" = resolvedPixelId ? "this" : "platform";
 
@@ -128,14 +135,18 @@ export type VerifyResult = {
 };
 
 export const checkPixelTestRun = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => VerifyInput.parse(input))
-  .handler(async ({ data }): Promise<VerifyResult> => {
+  .handler(async ({ data, context }): Promise<VerifyResult> => {
     const { data: rows } = await (supabaseAdmin as any)
       .from("pixel_fire_log")
-      .select("event_name, pixel_id, success, created_at")
+      .select("event_name, pixel_id, success, created_at, owner_id")
       .eq("run_id", data.runId)
       .order("created_at", { ascending: true });
-    const events = (rows as any[]) ?? [];
+    const events = ((rows as any[]) ?? []).filter(
+      (r) => !r.owner_id || r.owner_id === (context as any).userId,
+    );
+
     return {
       found: events.length > 0,
       events,
