@@ -1,19 +1,21 @@
 import { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2 } from "lucide-react";
+import { Sparkles, Send, Loader2, TrendingUp, BarChart3, Target, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
-const SUGGESTIONS = [
-  "How many views this week?",
-  "Which funnel is performing best?",
-  "How many leads did I get today?",
-  "What's my conversion rate?",
+const QUICK_PROMPTS: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; prompt: string }[] = [
+  { icon: BarChart3, label: "This week's numbers", prompt: "Give me a summary of my views, leads, and conversion rate this week." },
+  { icon: TrendingUp, label: "Best performing funnel", prompt: "Which funnel is performing best right now and why?" },
+  { icon: Target, label: "Where am I losing leads?", prompt: "Where are visitors dropping off in my funnels? Show me the biggest drop-off points." },
+  { icon: Lightbulb, label: "Suggest improvements", prompt: "Look at my data from the last 7 days and suggest 3 concrete improvements I can make today." },
 ];
 
 const NevAIPage = () => {
