@@ -190,6 +190,10 @@ export function MetaPixelIdField({ value, onChange, scope, accountPixelId, class
             Tip: keep the browser <span className="font-medium">Meta Pixel Helper</span> extension
             open on your published page to confirm events fire in real time.
           </p>
+          <p className="text-muted-foreground pt-1">
+            Note: events from your pixel are sent from the visitor's browser. If a visitor uses
+            an ad-blocker, that single event may be missed — Meta's own pixel has the same limit.
+          </p>
         </div>
       )}
     </div>
