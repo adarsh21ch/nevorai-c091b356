@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { ShareWithTeamModal } from "@/components/landing-pages/ShareWithTeamModal";
+import { PixelHealthCard } from "@/components/pixel/PixelHealthCard";
 
 const LandingPageDetail = () => {
   const { id } = useParams<{ id: string }>();
