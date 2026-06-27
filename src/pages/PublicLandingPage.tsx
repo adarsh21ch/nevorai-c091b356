@@ -120,6 +120,14 @@ const PublicLandingPage = () => {
 
   useEffect(() => {
     if (!page) return;
+    const ogTitle = (page as any).og_title?.trim() || page.title || "Nevorai";
+    const ogDesc = (page as any).og_description?.trim() || page.description || "";
+    // Fallback social image: explicit og_image → first image section → none
+    const firstSectionImage = Array.isArray(page.sections)
+      ? page.sections.find((s: any) => s?.type === "image" && s?.image_url)?.image_url
+      : undefined;
+    const ogImage = (page as any).og_image_url?.trim() || firstSectionImage;
+
     document.title = `${page.title || "Page"} | Nevorai`;
     const setMeta = (name: string, content: string, prop = false) => {
       const attr = prop ? "property" : "name";
@@ -128,7 +136,9 @@ const PublicLandingPage = () => {
       el.setAttribute("content", content);
     };
     setMeta("og:site_name", "Nevorai", true);
-    setMeta("og:title", page.title || "Nevorai", true);
+    setMeta("og:title", ogTitle, true);
+    if (ogDesc) { setMeta("description", ogDesc); setMeta("og:description", ogDesc, true); }
+    if (ogImage) { setMeta("og:image", ogImage, true); setMeta("twitter:image", ogImage); }
   }, [page]);
 
   useEffect(() => {
