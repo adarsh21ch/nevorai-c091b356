@@ -22,8 +22,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import {
   FileText, Palette, ClipboardList, Mail, Video, Link2, Rocket, Mic,
   Save, ArrowLeft, Check, X, Plus, Trash2, GripVertical, Eye, Edit3, Search, Star,
-  Lock as LockIcon,
+  Lock as LockIcon, ChevronDown, Sparkles,
 } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { InfoHint } from "@/components/ui/InfoHint";
 import { TestimonialsBuilderStep } from "@/components/funnel/TestimonialsBuilderStep";
 import { ShareWithTeamModal } from "@/components/landing-pages/ShareWithTeamModal";
 import { Users as UsersIcon } from "lucide-react";
