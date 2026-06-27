@@ -45,6 +45,7 @@ const PublicLandingPage = () => {
   const [honeypot, setHoneypot] = useState("");
   const [pageUnlocked, setPageUnlocked] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
+  const [ownerPixelId, setOwnerPixelId] = useState<string | undefined>(undefined);
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
 
   useEffect(() => {
