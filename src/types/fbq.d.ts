@@ -9,6 +9,7 @@ declare global {
     };
     _fbq?: any;
     _fbqEventIds?: Set<string>;
+    _fbqInitedPixels?: Set<string>;
     getFiredPixelEvents?: () => string[];
   }
 }

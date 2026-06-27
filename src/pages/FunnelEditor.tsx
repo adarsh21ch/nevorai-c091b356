@@ -169,6 +169,7 @@ const FunnelEditor = () => {
     video_topics: [] as string[],
     speaker_scope: "global" as "global" | "per_step",
     video_topics_scope: "global" as "global" | "per_step",
+    meta_pixel_id: "",
   });
 
   const [leadForm, setLeadForm] = useState({
@@ -240,6 +241,7 @@ const FunnelEditor = () => {
         video_topics: Array.isArray((f as any).video_topics) ? (f as any).video_topics : [],
         speaker_scope: (f as any).speaker_scope || "global",
         video_topics_scope: (f as any).video_topics_scope || "global",
+        meta_pixel_id: (f as any).meta_pixel_id || "",
       }));
       setModeChosen(true);
       if (f.audio_note_url) setAudioNoteEnabled(true);
@@ -347,6 +349,7 @@ const FunnelEditor = () => {
       video_topics: funnel.video_topics.filter((t: string) => t.trim() !== "").map((t: string) => s(t)),
       speaker_scope: funnel.speaker_scope,
       video_topics_scope: funnel.video_topics_scope,
+      meta_pixel_id: funnel.meta_pixel_id.trim() || null,
     };
   }, [user, funnel, selectedVideo]);
 
@@ -570,6 +573,19 @@ const FunnelEditor = () => {
         <div>
           <Label>Description <span className="text-muted-foreground font-normal">(optional)</span></Label>
           <Textarea value={funnel.description} onChange={(e) => update("description", e.target.value)} className="mt-1.5 bg-muted border-border" rows={3} placeholder="What is this funnel about?" />
+        </div>
+        <div>
+          <Label>Meta Pixel ID <span className="text-muted-foreground font-normal">(optional)</span></Label>
+          <Input
+            value={funnel.meta_pixel_id}
+            onChange={(e) => update("meta_pixel_id", e.target.value.replace(/\D/g, "").slice(0, 20))}
+            className="mt-1.5 bg-muted border-border"
+            placeholder="e.g. 1234567890123456"
+            inputMode="numeric"
+          />
+          <p className="text-xs text-muted-foreground mt-1.5">
+            Your own Facebook/Meta Pixel ID. PageView and Lead events on this funnel will fire to your pixel instead of the platform pixel.
+          </p>
         </div>
       </div>
     </>

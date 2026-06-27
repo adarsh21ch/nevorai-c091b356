@@ -63,12 +63,13 @@ function waitForFbq(maxAttempts = 30, delayMs = 100): Promise<boolean> {
 export async function trackPixel(
   event: StandardEvent | string,
   params: FbqEventParams = {},
-  options: { dedupKey?: string; serverSide?: boolean } = {},
+  options: { dedupKey?: string; serverSide?: boolean; pixelId?: string } = {},
 ): Promise<void> {
   if (typeof window === "undefined") return;
 
   const eventID = genId();
   const dedupKey = options.dedupKey ?? `${event}:${eventID}`;
+  const pixelId = options.pixelId;
 
   if (window._fbqEventIds?.has(dedupKey)) {
     console.log("[pixel] dedup hit, skipping", event, dedupKey);
@@ -78,9 +79,19 @@ export async function trackPixel(
 
   const ready = await waitForFbq();
   if (ready) {
-    console.log("[pixel] firing", event, "eventID", eventID, params);
     try {
-      window.fbq!("track", event, params, { eventID });
+      if (pixelId) {
+        if (!window._fbqInitedPixels) window._fbqInitedPixels = new Set<string>();
+        if (!window._fbqInitedPixels.has(pixelId)) {
+          window.fbq!("init", pixelId);
+          window._fbqInitedPixels.add(pixelId);
+        }
+        console.log("[pixel] firing via creator pixel", pixelId, event, "eventID", eventID, params);
+        window.fbq!("trackSingle", pixelId, event, params, { eventID });
+      } else {
+        console.log("[pixel] firing", event, "eventID", eventID, params);
+        window.fbq!("track", event, params, { eventID });
+      }
     } catch (err) {
       console.warn("[pixel] fbq call threw", err);
     }
@@ -88,7 +99,9 @@ export async function trackPixel(
     console.warn("[pixel] relying on CAPI only for", event);
   }
 
-  if (options.serverSide !== false) {
+  // CAPI mirror only works for the platform pixel — skip when targeting a creator pixel.
+  const mirrorToCapi = options.serverSide ?? !pixelId;
+  if (mirrorToCapi) {
     try {
       await fetch("/api/public/pixel/track", {
         method: "POST",
@@ -108,11 +121,11 @@ export async function trackPixel(
   }
 }
 
-export const trackLead = (userId: string, params: FbqEventParams = {}) =>
+export const trackLead = (userId: string, params: FbqEventParams = {}, pixelId?: string) =>
   trackPixel(
     "Lead",
     { ...params, user_id: userId },
-    { dedupKey: `Lead:${userId}` },
+    { dedupKey: `Lead:${userId}:${pixelId ?? "platform"}`, pixelId },
   );
 
 export const trackCompleteRegistration = (userId: string, params: FbqEventParams = {}) =>

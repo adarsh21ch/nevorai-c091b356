@@ -15,6 +15,7 @@ import { LandingPageCodeGate } from "@/components/funnel/LandingPageCodeGate";
 import { DateOfBirthInput } from "@/components/funnel/DateOfBirthInput";
 import { PostSubmitVideoPlayer } from "@/components/landing/PostSubmitVideoPlayer";
 import { trackEntityView, captureAttribution } from "@/lib/tracking";
+import { trackPixel, trackLead } from "@/lib/pixel";
 
 import {
   normalizePhone,
@@ -54,6 +55,10 @@ const PublicLandingPage = () => {
         .eq("slug", slug).eq("status", "published").single();
       if (data) {
         setPage(data);
+        void trackPixel("PageView", {}, {
+          pixelId: (data as any).meta_pixel_id || undefined,
+          dedupKey: `PageView:lp:${data.id}:${(data as any).meta_pixel_id ?? "platform"}`,
+        });
         const saved = localStorage.getItem(`nf_registered_${data.id}`);
         if (saved) setSubmitted(true);
         if ((data as any).access_code_enabled) {
@@ -176,6 +181,16 @@ const PublicLandingPage = () => {
         { duration: 5000 }
       );
       setSubmitted(true);
+
+      void trackLead(
+        `lp:${page.id}:${formData.phone || formData.email || Date.now()}`,
+        {
+          content_name: page.title,
+          email: formData.email || undefined,
+          phone: formData.phone || undefined,
+        },
+        (page as any).meta_pixel_id || undefined,
+      );
 
       // Optional post-registration redirect
       if ((page as any).redirect_url) {
