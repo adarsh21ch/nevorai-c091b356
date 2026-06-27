@@ -241,6 +241,7 @@ const FunnelEditor = () => {
         video_topics: Array.isArray((f as any).video_topics) ? (f as any).video_topics : [],
         speaker_scope: (f as any).speaker_scope || "global",
         video_topics_scope: (f as any).video_topics_scope || "global",
+        meta_pixel_id: (f as any).meta_pixel_id || "",
       }));
       setModeChosen(true);
       if (f.audio_note_url) setAudioNoteEnabled(true);
