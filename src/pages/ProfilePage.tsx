@@ -69,6 +69,7 @@ const ProfilePage = () => {
         instagram_url: profile.instagram_url || "", whatsapp_number: profile.whatsapp_number || "",
         username: p.username || "", cta_label: p.cta_label || "", cta_url: p.cta_url || "",
         email: profile.email || "",
+        meta_pixel_id: p.meta_pixel_id || "",
       });
       setAvatarUrl(profile.avatar_url || null);
     }
