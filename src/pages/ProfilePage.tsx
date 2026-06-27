@@ -51,6 +51,7 @@ const ProfilePage = () => {
     instagram_url: "", whatsapp_number: "",
     username: "", cta_label: "", cta_url: "",
     email: "",
+    meta_pixel_id: "",
   });
   const [emailSaving, setEmailSaving] = useState(false);
 
@@ -68,6 +69,7 @@ const ProfilePage = () => {
         instagram_url: profile.instagram_url || "", whatsapp_number: profile.whatsapp_number || "",
         username: p.username || "", cta_label: p.cta_label || "", cta_url: p.cta_url || "",
         email: profile.email || "",
+        meta_pixel_id: p.meta_pixel_id || "",
       });
       setAvatarUrl(profile.avatar_url || null);
     }
@@ -107,6 +109,7 @@ const ProfilePage = () => {
     cleanForm.username = form.username.trim().toLowerCase() || null;
     cleanForm.cta_url = form.cta_url.trim() || null;
     cleanForm.cta_label = (cleanForm.cta_label || "").slice(0, 30) || null;
+    cleanForm.meta_pixel_id = form.meta_pixel_id.replace(/\D/g, "").slice(0, 20) || null;
     setLoading(true);
     const { error } = await (supabase as any).from("profiles").update(cleanForm).eq("id", user.id);
     setLoading(false);
@@ -354,6 +357,19 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground -mt-2">Shown as a button on all your video previews.</p>
+                <div>
+                  <Label className="text-xs">Meta Pixel ID (optional)</Label>
+                  <Input
+                    value={form.meta_pixel_id}
+                    onChange={(e) => setForm({ ...form, meta_pixel_id: e.target.value.replace(/\D/g, "").slice(0, 20) })}
+                    placeholder="e.g. 1234567890123456"
+                    inputMode="numeric"
+                    className="mt-1 bg-muted border-border"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Applies to all your funnels &amp; landing pages by default. You can override it per funnel or landing page.
+                  </p>
+                </div>
                 <Button variant="hero" size="sm" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Profile"}</Button>
               </div>
             </CollapsibleContent>
