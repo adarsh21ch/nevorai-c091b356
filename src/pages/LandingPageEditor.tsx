@@ -90,6 +90,7 @@ const defaultFormState = {
   og_title: "",
   og_description: "",
   og_image_url: "",
+  meta_pixel_id: "",
   theme_color: "#22c55e",
   background_style: "dark",
   speaker_name: "",
