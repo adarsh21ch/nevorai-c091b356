@@ -60,16 +60,30 @@ function waitForFbq(maxAttempts = 30, delayMs = 100): Promise<boolean> {
   });
 }
 
+export type PixelLogScope = {
+  scope: "funnel" | "landing" | "platform";
+  resourceId?: string | null;
+  /** Verifier run id — set when this fire was triggered by the test flow. */
+  runId?: string | null;
+  isTest?: boolean;
+};
+
 export async function trackPixel(
   event: StandardEvent | string,
   params: FbqEventParams = {},
-  options: { dedupKey?: string; serverSide?: boolean; pixelId?: string } = {},
+  options: {
+    dedupKey?: string;
+    serverSide?: boolean;
+    pixelId?: string;
+    logScope?: PixelLogScope;
+  } = {},
 ): Promise<void> {
   if (typeof window === "undefined") return;
 
   const eventID = genId();
   const dedupKey = options.dedupKey ?? `${event}:${eventID}`;
   const pixelId = options.pixelId;
+  const logScope = options.logScope;
 
   if (window._fbqEventIds?.has(dedupKey)) {
     console.log("[pixel] dedup hit, skipping", event, dedupKey);
@@ -77,6 +91,7 @@ export async function trackPixel(
   }
   window._fbqEventIds?.add(dedupKey);
 
+  let fbqSuccess = false;
   const ready = await waitForFbq();
   if (ready) {
     try {
@@ -92,12 +107,36 @@ export async function trackPixel(
         console.log("[pixel] firing", event, "eventID", eventID, params);
         window.fbq!("track", event, params, { eventID });
       }
+      fbqSuccess = true;
     } catch (err) {
       console.warn("[pixel] fbq call threw", err);
     }
   } else {
     console.warn("[pixel] relying on CAPI only for", event);
   }
+
+  // Lightweight telemetry ping so creators can see "is my pixel firing?" in the dashboard.
+  if (logScope) {
+    try {
+      fetch("/api/public/pixel/fire-log", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scope: logScope.scope,
+          resource_id: logScope.resourceId ?? null,
+          pixel_id: pixelId ?? null,
+          event_name: event,
+          success: fbqSuccess,
+          run_id: logScope.runId ?? null,
+          is_test: !!logScope.isTest,
+        }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch {
+      /* non-blocking */
+    }
+  }
+
 
   // CAPI mirror only works for the platform pixel — skip when targeting a creator pixel.
   const mirrorToCapi = options.serverSide ?? !pixelId;
