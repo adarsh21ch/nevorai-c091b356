@@ -357,6 +357,19 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 <p className="text-[10px] text-muted-foreground -mt-2">Shown as a button on all your video previews.</p>
+                <div>
+                  <Label className="text-xs">Meta Pixel ID (optional)</Label>
+                  <Input
+                    value={form.meta_pixel_id}
+                    onChange={(e) => setForm({ ...form, meta_pixel_id: e.target.value.replace(/\D/g, "").slice(0, 20) })}
+                    placeholder="e.g. 1234567890123456"
+                    inputMode="numeric"
+                    className="mt-1 bg-muted border-border"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    Applies to all your funnels &amp; landing pages by default. You can override it per funnel or landing page.
+                  </p>
+                </div>
                 <Button variant="hero" size="sm" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Profile"}</Button>
               </div>
             </CollapsibleContent>
