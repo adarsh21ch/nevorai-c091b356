@@ -1,80 +1,79 @@
-# Build Plan — Pixel Health, Verifier & Nev AI Insights
+## Goal
+Before you announce "enter your Meta Pixel ID and track your business", make sure that for a creator who sets a pixel — either at Account (Profile) level or per Funnel/Landing Page — every event Meta needs actually fires to **their** pixel, the health dashboard reflects it, and the verifier confirms it.
 
-Three connected upgrades on top of the Meta Pixel feature. Built in priority order so each one ships value on its own.
+## What I found while auditing
 
----
+1. **Funnel public page** (`PublicFunnel.tsx`) — ✅ OK.
+   The `get-funnel-data` edge function already returns `funnel.meta_pixel_id` AND `creator.meta_pixel_id`. Resolution order `funnel → account → platform` works. PageView, ViewContent, and Lead all fire to the right pixel.
 
-## 1. Pixel Health Dashboard
+2. **Landing public page** (`PublicLandingPage.tsx`) — ⚠️ **Broken account-level fallback.**
+   Code path:
+   ```ts
+   let effective = data.meta_pixel_id;
+   if (!effective) {
+     const { data: rpcData } = await supabase.rpc("get_profile_meta_pixel_id", { _owner_id: data.owner_id });
+   }
+   ```
+   The RPC **`get_profile_meta_pixel_id` does not exist in any migration on disk.** Result: a creator who set their pixel once on the Profile page (the "account default" we tell them about in `MetaPixelIdField`) gets silently downgraded to the platform pixel on every landing page. Their PageView/Lead never reach their Meta Events Manager — they will (rightfully) call this broken.
 
-**Where:** New card at the top of Funnel Detail page and Landing Page Detail page. Plus a compact strip inside the editors next to the Pixel ID field.
+3. **`pixel_fire_log` telemetry table** — ⚠️ Migration file `pixel_fire_log_migration.sql` exists in the repo but is a manual SQL the user has to run. If it hasn't been run, the Health Dashboard is empty and the One-Click Verifier will always say "Not detected" even when the pixel actually fired. Need to confirm.
 
-**What the creator sees**
-- Big status badge: 🟢 Healthy / 🟡 Partial / 🔴 Not firing / ⚪ Using fallback
-- Which pixel is actually firing right now (this page → account default → platform)
-- Last 24h: PageViews, Leads, success rate
-- Last event timestamp ("2 minutes ago")
-- 7-day sparkline of events
-- Latest 5 events log (event, time, success)
-- "Open in Meta Events Manager" deep link
+4. **`profiles.meta_pixel_id` column** — referenced everywhere (Profile, Editors, edge function, public pages) but I cannot locate the migration that adds it. Likely added in-session via the migration tool; needs a live DB check before announcement.
 
-**Data source:** We already log to `meta_pixel_events_log`. Add a small server function `getPixelHealth({ scope: 'funnel'|'landing', id })` that aggregates last 24h/7d for that page's resolved pixel ID. No new tables.
+5. **CAPI server-side mirror** — by design, `/api/public/pixel/track` only mirrors when the platform pixel is used (creator pixels have no access token configured). This is correct, but means creator-pixel events are browser-only and will be lost to ad-blockers. Worth telling creators in the help text; not a blocker.
 
----
+6. **Lead event** on landing page — fires after submission with `effective` pixel, so once #2 is fixed, it inherits the fix.
 
-## 2. One-Click Pixel Verifier
+## Plan of action
 
-**Where:** Button on the Health Dashboard + inside the editor next to the Pixel ID field: **"Test my pixel now"**.
+### A. Fix the account-pixel fallback on landing pages (the only real bug)
 
-**Flow (≤10 seconds, no extensions needed)**
-1. Click → opens a hidden iframe of the public funnel/landing URL with a `?nev_pixel_test=1&run=<uuid>` flag.
-2. The public page reads the flag and fires a `TestEvent` with that `run` id to the resolved pixel.
-3. Backend listens for the matching event in `meta_pixel_events_log` (poll up to 15s).
-4. Result modal in plain Hinglish/English:
-   - ✓ "Working perfectly — events reaching pixel `123…`"
-   - ✗ "Pixel ID looks wrong" / "Browser blocked it (likely ad-blocker)" / "Page didn't load — check publish status"
-   - Specific fix suggestion for each failure.
+Two options — I'll go with **Option 1** because it removes a moving part and matches how funnels already do it:
 
----
+**Option 1 (recommended): resolve owner pixel via a tiny safe view, no RPC.**
+- Add a SECURITY DEFINER SQL function `public.get_profile_meta_pixel_id(_owner_id uuid) returns text` (idempotent `create or replace`) that returns ONLY `meta_pixel_id` from `profiles` for the given owner. No PII. Grant EXECUTE to `anon, authenticated`. This matches the call site already in the code, so no client edit needed.
+- Migration file: `landing_owner_pixel_rpc_migration.sql`.
 
-## 3. Nev AI Insights Assistant
+**Option 2 (alt): denormalize `owner_pixel_id` into `landing_pages` and keep it in sync with a trigger.** More moving parts; skipped unless you prefer it.
 
-**Where:** New floating "Ask Nev AI" button on Funnel Detail, Landing Detail, and main Insights page. Opens a chat side-panel scoped to that resource (or "all my funnels" on the main page).
+### B. Verify required DB objects are live
 
-**Conversation shape:** Threads, persisted in DB (so creators can revisit past Q&A). One thread per funnel/landing + a global one.
+Run a quick check (read-only SQL via the migration tool) on the live DB to confirm:
+- `profiles.meta_pixel_id` column exists.
+- `landing_pages.meta_pixel_id` column exists.
+- `funnels.meta_pixel_id` column exists.
+- `pixel_fire_log` table exists with the policies from `pixel_fire_log_migration.sql`.
 
-**What it can do (all 4 capabilities you picked)**
+If any are missing, ship the appropriate migration in the same wave.
 
-| Capability | Example |
-|---|---|
-| **Answer data Qs** | "kitne leads aaye is week?", "best converting hour?", "kaunsa funnel sabse better hai?" |
-| **Suggest improvements** | "Drop-off at 0:15 is 68% — shorten your intro", "Mobile conversion 3× lower than desktop — your form is too long" |
-| **Take actions (with approval)** | "Rewrite my CTA to be punchier" → AI drafts → creator clicks **Apply** or **Discard**. Same for headline, description, lead form copy. |
-| **WhatsApp summaries** | Toggle in Profile → "Daily summary" or "Weekly summary". Sent via existing WhatsApp pipeline at 9 AM IST. |
+### C. End-to-end runtime verification with Playwright
 
-**How it works**
-- TanStack server function `chatWithNevAI` using `streamText` from AI SDK + Lovable AI Gateway (`google/gemini-3-flash-preview`).
-- Tools the AI can call: `getFunnelStats`, `getLeadsBreakdown`, `getVideoEngagement`, `getPixelHealth`, `getDropOffPoints`, `proposeContentEdit` (returns a draft, never writes), `applyContentEdit` (requires `needsApproval`).
-- Conversation history stored in `nev_ai_threads` + `nev_ai_messages` tables (scoped to `auth.uid()` via RLS).
-- Scheduled WhatsApp summary: pg_cron job → server route → fetches user's daily numbers → AI generates 3-line summary → posts to existing WhatsApp send endpoint.
+For each surface, against the live preview:
+1. Open a published landing page with `?nev_pixel_test_run=<uuid>` in URL.
+2. Read browser console — confirm `[pixel] firing via creator pixel <id> PageView eventID …`.
+3. Poll `pixel_fire_log` via the existing `/api/public/pixel/fire-log` write + the `checkPixelTestRun` server fn — confirm rows land with `scope=landing`, correct `pixel_id`, `success=true`.
+4. Submit the lead form, confirm `Lead` event also fires to creator pixel.
+5. Repeat for a funnel public URL.
+6. Confirm the Pixel Health card on the dashboard then shows the fresh events, status badge flips to "Healthy", sparkline updates.
 
-**UI:** AI Elements (Conversation, Message, Composer) — markdown rendering, tool-call cards (e.g. "Read top 10 leads"), Apply/Discard buttons on action proposals.
+### D. Help-text polish (small UX, no logic)
 
----
+Add one line to the `MetaPixelIdField` help disclosure: "Events from your pixel are sent from the visitor's browser. If a visitor uses an ad-blocker, that single event may be missed — Meta's own pixel has the same limitation."
 
-## Ship Order
-1. **Pixel Health Dashboard** (1 server fn + 1 card component, reuses existing log table) — fastest win
-2. **Pixel Verifier** (small public-page listener + result modal)
-3. **Nev AI Insights** — bigger; ships in two waves:
-   - Wave A: chat + data Q&A + improvement suggestions
-   - Wave B: approval-gated content edits + WhatsApp daily/weekly summaries
+### E. Re-test verifier flow
 
----
+Run the "Test now" button on one funnel and one landing page after A+B, confirm it returns ✅ within the polling window.
 
-## Technical Notes
-- New tables: `nev_ai_threads`, `nev_ai_messages` (RLS scoped to owner). Pixel Health reuses existing `meta_pixel_events_log`.
-- WhatsApp summary opt-in lives on `profiles` (`ai_summary_frequency`: `off|daily|weekly`).
-- All AI calls server-side via Lovable AI Gateway; no keys in browser. Errors (429/402) surfaced with clear messages.
-- Mobile-first cards, semantic tokens only, matches your existing glass-card style.
-- Quotas: AI usage tracked in existing `nev_ai_usage` table — gated per plan (free/basic limited, pro unlimited).
+## Out of scope for this turn
+- Per-creator CAPI access tokens (would solve ad-blocker loss but needs Meta app + token storage — separate feature).
+- Custom events beyond PageView / ViewContent / Lead.
 
-Reply **"go"** to start with Pixel Health Dashboard, or tell me to reorder.
+## Files I expect to touch (build mode)
+- `landing_owner_pixel_rpc_migration.sql` — new migration (if needed, also add any missing column / `pixel_fire_log`).
+- `src/components/pixel/MetaPixelIdField.tsx` — one-line help text addition.
+- No other code changes anticipated; the rest is verification.
+
+## Deliverable
+A short go/no-go report you can copy into your announcement: which surfaces fire to creator pixels, which events, what the verifier confirms, and the one ad-blocker caveat to mention.
+
+Reply **approve** to switch to build mode and execute.
