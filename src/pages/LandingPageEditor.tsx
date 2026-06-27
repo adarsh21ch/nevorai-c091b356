@@ -877,10 +877,54 @@ const LandingPageEditor = () => {
         </div>
 
         <div className="p-4 bg-muted/50 rounded-xl space-y-3">
-          <h3 className="font-semibold">SEO / Social Preview</h3>
-          <div><Label>OG Title</Label><Input value={form.og_title || ""} onChange={(e) => updateField("og_title", e.target.value)} placeholder={form.title} className="mt-1.5 bg-muted border-border" /></div>
-          <div><Label>OG Description</Label><Textarea value={form.og_description || ""} onChange={(e) => updateField("og_description", e.target.value)} rows={2} className="mt-1.5 bg-muted border-border" /></div>
-          <ImageUploadField label="Social Preview Image" value={form.og_image_url || ""} onChange={(url) => updateField("og_image_url", url)} folder="og-images" />
+          <div className="flex items-start gap-2">
+            <Sparkles size={16} className="text-primary mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <h3 className="font-semibold text-sm">Social Preview — auto-filled</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                When someone shares your link on WhatsApp, Facebook, or X, we use your <span className="font-medium text-foreground">Page Title</span>,
+                <span className="font-medium text-foreground"> Description</span>, and your first uploaded image automatically.
+                Most creators don't need to change anything here.
+              </p>
+            </div>
+          </div>
+
+          <Collapsible>
+            <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-primary hover:underline w-full justify-start">
+              <ChevronDown size={12} className="transition-transform data-[state=open]:rotate-180" />
+              Advanced — override social preview
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-3 pt-3">
+              <div>
+                <Label className="flex items-center gap-1.5">
+                  Custom OG Title
+                  <InfoHint title="When to use this">
+                    Only set this if you want the social-share headline to be different from your page title.
+                    Leave blank to use your Page Title automatically.
+                  </InfoHint>
+                </Label>
+                <Input value={form.og_title || ""} onChange={(e) => updateField("og_title", e.target.value)} placeholder={form.title || "Uses Page Title"} className="mt-1.5 bg-muted border-border" />
+              </div>
+              <div>
+                <Label className="flex items-center gap-1.5">
+                  Custom OG Description
+                  <InfoHint>
+                    Override the preview text shown when your link is shared. Leave blank to use your Short Description.
+                  </InfoHint>
+                </Label>
+                <Textarea value={form.og_description || ""} onChange={(e) => updateField("og_description", e.target.value)} rows={2} placeholder={form.description || "Uses Short Description"} className="mt-1.5 bg-muted border-border" />
+              </div>
+              <div>
+                <Label className="flex items-center gap-1.5 mb-1.5">
+                  Custom Social Image
+                  <InfoHint>
+                    Recommended size 1200×630. If left empty, we'll use the first image from your page sections.
+                  </InfoHint>
+                </Label>
+                <ImageUploadField label="" value={form.og_image_url || ""} onChange={(url) => updateField("og_image_url", url)} folder="og-images" />
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         <div className="p-4 bg-muted/50 rounded-xl">
