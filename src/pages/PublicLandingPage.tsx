@@ -200,7 +200,7 @@ const PublicLandingPage = () => {
           email: formData.email || undefined,
           phone: formData.phone || undefined,
         },
-        (page as any).meta_pixel_id || undefined,
+        ownerPixelId,
       );
 
       // Optional post-registration redirect
