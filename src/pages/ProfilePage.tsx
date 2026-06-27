@@ -109,6 +109,7 @@ const ProfilePage = () => {
     cleanForm.username = form.username.trim().toLowerCase() || null;
     cleanForm.cta_url = form.cta_url.trim() || null;
     cleanForm.cta_label = (cleanForm.cta_label || "").slice(0, 30) || null;
+    cleanForm.meta_pixel_id = form.meta_pixel_id.replace(/\D/g, "").slice(0, 20) || null;
     setLoading(true);
     const { error } = await (supabase as any).from("profiles").update(cleanForm).eq("id", user.id);
     setLoading(false);
