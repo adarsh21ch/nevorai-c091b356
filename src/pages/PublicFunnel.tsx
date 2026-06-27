@@ -944,7 +944,7 @@ const PublicFunnel = () => {
   useEffect(() => {
     if (!funnel?.id) return;
     logFunnelEngagement({ funnel_id: funnel.id, event_type: "view_start" });
-    const creatorPixelId = (funnel as any).meta_pixel_id || undefined;
+    const creatorPixelId = (funnel as any).meta_pixel_id || (creatorProfile as any)?.meta_pixel_id || undefined;
     void trackPixel("ViewContent", { content_name: funnel.title, content_category: "funnel" }, { pixelId: creatorPixelId });
     void trackPixel("PageView", {}, { pixelId: creatorPixelId, dedupKey: `PageView:funnel:${funnel.id}:${creatorPixelId ?? "platform"}` });
 
