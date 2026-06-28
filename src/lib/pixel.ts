@@ -68,6 +68,14 @@ export type PixelLogScope = {
   isTest?: boolean;
 };
 
+/** Read a cookie value or return null. */
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const m = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()\[\]\\\/\+^]/g, "\\$&") + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+
 export async function trackPixel(
   event: StandardEvent | string,
   params: FbqEventParams = {},
@@ -138,7 +146,40 @@ export async function trackPixel(
   }
 
 
-  // CAPI mirror only works for the platform pixel — skip when targeting a creator pixel.
+  // Creator CAPI mirror: when a pixelId + funnel/landing scope are present,
+  // POST the same event_id to /api/public/capi/fire. The server resolves the
+  // owner's saved access_token and forwards to Meta with the same event_id
+  // for browser+server dedupe. No-op when the owner hasn't enabled CAPI.
+  if (
+    pixelId &&
+    logScope &&
+    logScope.resourceId &&
+    (logScope.scope === "funnel" || logScope.scope === "landing")
+  ) {
+    try {
+      void fetch("/api/public/capi/fire", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scope: logScope.scope,
+          resource_id: logScope.resourceId,
+          event_name: event,
+          event_id: eventID,
+          event_source_url: window.location.href,
+          fbp: readCookie("_fbp"),
+          fbc: readCookie("_fbc"),
+          params,
+          run_id: logScope.runId ?? null,
+          is_test: !!logScope.isTest,
+        }),
+        keepalive: true,
+      });
+    } catch (err) {
+      console.warn("[pixel] creator CAPI mirror failed (non-blocking)", err);
+    }
+  }
+
+  // Platform CAPI mirror only works for the platform pixel — skip when targeting a creator pixel.
   const mirrorToCapi = options.serverSide ?? !pixelId;
   if (mirrorToCapi) {
     try {

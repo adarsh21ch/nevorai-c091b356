@@ -13,6 +13,7 @@ import { Route as WhatsappTestRouteImport } from './routes/whatsapp-test'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as VerifyWhatsappRouteImport } from './routes/verify-whatsapp'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
+import { Route as TrackingRouteImport } from './routes/tracking'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TeamRouteImport } from './routes/team'
@@ -98,6 +99,7 @@ import { Route as ApiAdminWhatsappAutomationsRouteImport } from './routes/api/ad
 import { Route as ApiPublicPixelTrackRouteImport } from './routes/api/public/pixel/track'
 import { Route as ApiPublicPixelFireLogRouteImport } from './routes/api/public/pixel/fire-log'
 import { Route as ApiPublicEmailSendRouteImport } from './routes/api/public/email/send'
+import { Route as ApiPublicCapiFireRouteImport } from './routes/api/public/capi/fire'
 import { Route as ApiAdminWhatsappMessagesLeadIdRouteImport } from './routes/api/admin/whatsapp-messages/$leadId'
 
 const WhatsappTestRoute = WhatsappTestRouteImport.update({
@@ -122,6 +124,11 @@ const UpgradeRoute = UpgradeRouteImport.update({
   path: '/upgrade',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/upgrade.lazy').then((d) => d.Route))
+const TrackingRoute = TrackingRouteImport.update({
+  id: '/tracking',
+  path: '/tracking',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/tracking.lazy').then((d) => d.Route))
 const ToolsRoute = ToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
@@ -589,6 +596,11 @@ const ApiPublicEmailSendRoute = ApiPublicEmailSendRouteImport.update({
   path: '/api/public/email/send',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCapiFireRoute = ApiPublicCapiFireRouteImport.update({
+  id: '/api/public/capi/fire',
+  path: '/api/public/capi/fire',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminWhatsappMessagesLeadIdRoute =
   ApiAdminWhatsappMessagesLeadIdRouteImport.update({
     id: '/api/admin/whatsapp-messages/$leadId',
@@ -631,6 +643,7 @@ export interface FileRoutesByFullPath {
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
+  '/tracking': typeof TrackingRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -684,6 +697,7 @@ export interface FileRoutesByFullPath {
   '/funnels/$id/': typeof FunnelsIdIndexRoute
   '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
+  '/api/public/capi/fire': typeof ApiPublicCapiFireRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
@@ -723,6 +737,7 @@ export interface FileRoutesByTo {
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
+  '/tracking': typeof TrackingRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -774,6 +789,7 @@ export interface FileRoutesByTo {
   '/funnels/$id': typeof FunnelsIdIndexRoute
   '/landing-pages/$id': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
+  '/api/public/capi/fire': typeof ApiPublicCapiFireRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
@@ -814,6 +830,7 @@ export interface FileRoutesById {
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
+  '/tracking': typeof TrackingRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -867,6 +884,7 @@ export interface FileRoutesById {
   '/funnels/$id/': typeof FunnelsIdIndexRoute
   '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
+  '/api/public/capi/fire': typeof ApiPublicCapiFireRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
@@ -908,6 +926,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/tools'
+    | '/tracking'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -961,6 +980,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/'
     | '/landing-pages/$id/'
     | '/api/admin/whatsapp-messages/$leadId'
+    | '/api/public/capi/fire'
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
@@ -1000,6 +1020,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/tools'
+    | '/tracking'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -1051,6 +1072,7 @@ export interface FileRouteTypes {
     | '/funnels/$id'
     | '/landing-pages/$id'
     | '/api/admin/whatsapp-messages/$leadId'
+    | '/api/public/capi/fire'
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
@@ -1090,6 +1112,7 @@ export interface FileRouteTypes {
     | '/team'
     | '/terms'
     | '/tools'
+    | '/tracking'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -1143,6 +1166,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/'
     | '/landing-pages/$id/'
     | '/api/admin/whatsapp-messages/$leadId'
+    | '/api/public/capi/fire'
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
@@ -1183,6 +1207,7 @@ export interface RootRouteChildren {
   TeamRoute: typeof TeamRouteWithChildren
   TermsRoute: typeof TermsRoute
   ToolsRoute: typeof ToolsRoute
+  TrackingRoute: typeof TrackingRoute
   UpgradeRoute: typeof UpgradeRoute
   VerifyWhatsappRoute: typeof VerifyWhatsappRoute
   VideosRoute: typeof VideosRouteWithChildren
@@ -1222,6 +1247,7 @@ export interface RootRouteChildren {
   FSlugMemberRoute: typeof FSlugMemberRoute
   FSlugIndexRoute: typeof FSlugIndexRoute
   ApiAdminWhatsappMessagesLeadIdRoute: typeof ApiAdminWhatsappMessagesLeadIdRoute
+  ApiPublicCapiFireRoute: typeof ApiPublicCapiFireRoute
   ApiPublicEmailSendRoute: typeof ApiPublicEmailSendRoute
   ApiPublicPixelFireLogRoute: typeof ApiPublicPixelFireLogRoute
   ApiPublicPixelTrackRoute: typeof ApiPublicPixelTrackRoute
@@ -1255,6 +1281,13 @@ declare module '@tanstack/react-router' {
       path: '/upgrade'
       fullPath: '/upgrade'
       preLoaderRoute: typeof UpgradeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tracking': {
+      id: '/tracking'
+      path: '/tracking'
+      fullPath: '/tracking'
+      preLoaderRoute: typeof TrackingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tools': {
@@ -1852,6 +1885,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicEmailSendRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/capi/fire': {
+      id: '/api/public/capi/fire'
+      path: '/api/public/capi/fire'
+      fullPath: '/api/public/capi/fire'
+      preLoaderRoute: typeof ApiPublicCapiFireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/whatsapp-messages/$leadId': {
       id: '/api/admin/whatsapp-messages/$leadId'
       path: '/api/admin/whatsapp-messages/$leadId'
@@ -1997,6 +2037,7 @@ const rootRouteChildren: RootRouteChildren = {
   TeamRoute: TeamRouteWithChildren,
   TermsRoute: TermsRoute,
   ToolsRoute: ToolsRoute,
+  TrackingRoute: TrackingRoute,
   UpgradeRoute: UpgradeRoute,
   VerifyWhatsappRoute: VerifyWhatsappRoute,
   VideosRoute: VideosRouteWithChildren,
@@ -2036,6 +2077,7 @@ const rootRouteChildren: RootRouteChildren = {
   FSlugMemberRoute: FSlugMemberRoute,
   FSlugIndexRoute: FSlugIndexRoute,
   ApiAdminWhatsappMessagesLeadIdRoute: ApiAdminWhatsappMessagesLeadIdRoute,
+  ApiPublicCapiFireRoute: ApiPublicCapiFireRoute,
   ApiPublicEmailSendRoute: ApiPublicEmailSendRoute,
   ApiPublicPixelFireLogRoute: ApiPublicPixelFireLogRoute,
   ApiPublicPixelTrackRoute: ApiPublicPixelTrackRoute,
