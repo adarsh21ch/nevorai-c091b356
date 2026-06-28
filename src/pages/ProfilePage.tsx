@@ -248,7 +248,34 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* NEVORAI ACADEMY HIGHLIGHT */}
+        {/* MOBILE-ONLY: features that aren't in the bottom nav. Keeps mobile users
+            in sync with the desktop sidebar (Nev AI, My Team, Tracking, Billing). */}
+        <div className="lg:hidden premium-card p-4">
+          <h3 className="font-heading font-bold text-sm uppercase tracking-wide text-muted-foreground mb-3">
+            More features
+          </h3>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { to: "/nev-ai", label: "Nev AI", icon: Sparkles },
+              { to: "/team", label: "My Team", icon: Users },
+              { to: "/tracking", label: "Tracking", icon: Target },
+              { to: "/billing", label: "Upgrade", icon: Crown },
+              { to: "/payments", label: "Payments", icon: IndianRupee },
+              { to: "/help", label: "Academy", icon: GraduationCap },
+            ].map((it) => (
+              <Link
+                key={it.to}
+                to={it.to}
+                className="flex items-center gap-2.5 rounded-xl border border-border bg-card px-3 py-2.5 text-sm font-medium hover:border-primary/50 hover:bg-muted/40 transition-colors min-w-0"
+              >
+                <it.icon size={16} className="shrink-0 text-primary" />
+                <span className="truncate">{it.label}</span>
+                <ChevronRight size={14} className="ml-auto shrink-0 text-muted-foreground" />
+              </Link>
+            ))}
+          </div>
+        </div>
+
         <Link
           to="/help"
           className="group block rounded-xl border border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card p-4 transition-all hover:border-primary/70 hover:shadow-lg"
