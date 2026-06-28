@@ -32,6 +32,7 @@ const baseNavItems = [
   { icon: Users, label: "My Team", path: "/team" },
   { icon: Activity, label: "Activity", path: "/insights" },
   { icon: Layers, label: "Tools", path: "/tools" },
+  { icon: Target, label: "Tracking", path: "/tracking" },
 ];
 const tailNavItems = [
   { icon: Crown, label: "Upgrade to Pro", path: "/billing" },
