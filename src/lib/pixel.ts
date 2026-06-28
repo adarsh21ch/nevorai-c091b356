@@ -68,6 +68,14 @@ export type PixelLogScope = {
   isTest?: boolean;
 };
 
+/** Read a cookie value or return null. */
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const m = document.cookie.match(new RegExp("(?:^|; )" + name.replace(/[.$?*|{}()\[\]\\\/\+^]/g, "\\$&") + "=([^;]*)"));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+
 export async function trackPixel(
   event: StandardEvent | string,
   params: FbqEventParams = {},
