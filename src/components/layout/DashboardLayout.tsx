@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
   User, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Crown, GraduationCap, Home, Wrench, Activity,
-  GitBranch, Layout, Sparkles, Users,
+  GitBranch, Layout, Sparkles, Users, Target,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,7 @@ const baseNavItems = [
   { icon: Users, label: "My Team", path: "/team" },
   { icon: Activity, label: "Activity", path: "/insights" },
   { icon: Layers, label: "Tools", path: "/tools" },
+  { icon: Target, label: "Tracking", path: "/tracking" },
 ];
 const tailNavItems = [
   { icon: Crown, label: "Upgrade to Pro", path: "/billing" },
