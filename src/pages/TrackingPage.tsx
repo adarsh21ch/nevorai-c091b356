@@ -25,6 +25,8 @@ import {
   Shield,
   Zap,
   AlertTriangle,
+  Copy,
+  RotateCw,
 } from "lucide-react";
 
 type TestResult = Awaited<ReturnType<typeof sendCapiTestEvent>>;
