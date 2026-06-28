@@ -100,6 +100,7 @@ import { Route as ApiPublicPixelTrackRouteImport } from './routes/api/public/pix
 import { Route as ApiPublicPixelFireLogRouteImport } from './routes/api/public/pixel/fire-log'
 import { Route as ApiPublicEmailSendRouteImport } from './routes/api/public/email/send'
 import { Route as ApiPublicCapiFireRouteImport } from './routes/api/public/capi/fire'
+import { Route as ApiPublicCapiDrainRouteImport } from './routes/api/public/capi/drain'
 import { Route as ApiAdminWhatsappMessagesLeadIdRouteImport } from './routes/api/admin/whatsapp-messages/$leadId'
 
 const WhatsappTestRoute = WhatsappTestRouteImport.update({
@@ -601,6 +602,11 @@ const ApiPublicCapiFireRoute = ApiPublicCapiFireRouteImport.update({
   path: '/api/public/capi/fire',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCapiDrainRoute = ApiPublicCapiDrainRouteImport.update({
+  id: '/api/public/capi/drain',
+  path: '/api/public/capi/drain',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminWhatsappMessagesLeadIdRoute =
   ApiAdminWhatsappMessagesLeadIdRouteImport.update({
     id: '/api/admin/whatsapp-messages/$leadId',
@@ -697,6 +703,7 @@ export interface FileRoutesByFullPath {
   '/funnels/$id/': typeof FunnelsIdIndexRoute
   '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
+  '/api/public/capi/drain': typeof ApiPublicCapiDrainRoute
   '/api/public/capi/fire': typeof ApiPublicCapiFireRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
@@ -789,6 +796,7 @@ export interface FileRoutesByTo {
   '/funnels/$id': typeof FunnelsIdIndexRoute
   '/landing-pages/$id': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
+  '/api/public/capi/drain': typeof ApiPublicCapiDrainRoute
   '/api/public/capi/fire': typeof ApiPublicCapiFireRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
@@ -884,6 +892,7 @@ export interface FileRoutesById {
   '/funnels/$id/': typeof FunnelsIdIndexRoute
   '/landing-pages/$id/': typeof LandingPagesIdIndexRoute
   '/api/admin/whatsapp-messages/$leadId': typeof ApiAdminWhatsappMessagesLeadIdRoute
+  '/api/public/capi/drain': typeof ApiPublicCapiDrainRoute
   '/api/public/capi/fire': typeof ApiPublicCapiFireRoute
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
@@ -980,6 +989,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/'
     | '/landing-pages/$id/'
     | '/api/admin/whatsapp-messages/$leadId'
+    | '/api/public/capi/drain'
     | '/api/public/capi/fire'
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
@@ -1072,6 +1082,7 @@ export interface FileRouteTypes {
     | '/funnels/$id'
     | '/landing-pages/$id'
     | '/api/admin/whatsapp-messages/$leadId'
+    | '/api/public/capi/drain'
     | '/api/public/capi/fire'
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
@@ -1166,6 +1177,7 @@ export interface FileRouteTypes {
     | '/funnels/$id/'
     | '/landing-pages/$id/'
     | '/api/admin/whatsapp-messages/$leadId'
+    | '/api/public/capi/drain'
     | '/api/public/capi/fire'
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
@@ -1247,6 +1259,7 @@ export interface RootRouteChildren {
   FSlugMemberRoute: typeof FSlugMemberRoute
   FSlugIndexRoute: typeof FSlugIndexRoute
   ApiAdminWhatsappMessagesLeadIdRoute: typeof ApiAdminWhatsappMessagesLeadIdRoute
+  ApiPublicCapiDrainRoute: typeof ApiPublicCapiDrainRoute
   ApiPublicCapiFireRoute: typeof ApiPublicCapiFireRoute
   ApiPublicEmailSendRoute: typeof ApiPublicEmailSendRoute
   ApiPublicPixelFireLogRoute: typeof ApiPublicPixelFireLogRoute
@@ -1892,6 +1905,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCapiFireRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/capi/drain': {
+      id: '/api/public/capi/drain'
+      path: '/api/public/capi/drain'
+      fullPath: '/api/public/capi/drain'
+      preLoaderRoute: typeof ApiPublicCapiDrainRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/whatsapp-messages/$leadId': {
       id: '/api/admin/whatsapp-messages/$leadId'
       path: '/api/admin/whatsapp-messages/$leadId'
@@ -2077,6 +2097,7 @@ const rootRouteChildren: RootRouteChildren = {
   FSlugMemberRoute: FSlugMemberRoute,
   FSlugIndexRoute: FSlugIndexRoute,
   ApiAdminWhatsappMessagesLeadIdRoute: ApiAdminWhatsappMessagesLeadIdRoute,
+  ApiPublicCapiDrainRoute: ApiPublicCapiDrainRoute,
   ApiPublicCapiFireRoute: ApiPublicCapiFireRoute,
   ApiPublicEmailSendRoute: ApiPublicEmailSendRoute,
   ApiPublicPixelFireLogRoute: ApiPublicPixelFireLogRoute,
