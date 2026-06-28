@@ -55,8 +55,12 @@ export default function TrackingPage() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await fetchAccount();
+      const [data, d] = await Promise.all([
+        fetchAccount(),
+        fetchDiag().catch(() => null),
+      ]);
       setAccount(data);
+      setDiag(d);
       if (data) {
         setPixelId(data.pixel_id ?? "");
         setTestEventCode(data.test_event_code ?? "");
@@ -68,11 +72,20 @@ export default function TrackingPage() {
     } finally {
       setLoading(false);
     }
-  }, [fetchAccount]);
+  }, [fetchAccount, fetchDiag]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  const copyJson = (obj: unknown) => {
+    try {
+      navigator.clipboard.writeText(JSON.stringify(obj, null, 2));
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
 
   const onSave = async () => {
     setSaving(true);
