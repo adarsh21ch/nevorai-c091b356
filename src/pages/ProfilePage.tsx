@@ -13,6 +13,7 @@ import {
   Crown, CreditCard, FileCheck, IndianRupee,
   Bell, Settings, Download, ChevronRight, ChevronDown, Pencil,
   Sun, Moon, HelpCircle, LogOut, Shield, Infinity as InfinityIcon, GraduationCap,
+  Sparkles, Users, Target,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { Switch } from "@/components/ui/switch";
