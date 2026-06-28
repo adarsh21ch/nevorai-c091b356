@@ -437,7 +437,7 @@ function Stat({
   tone,
 }: {
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
   tone?: "warn";
 }) {
   return (
