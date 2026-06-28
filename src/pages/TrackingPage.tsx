@@ -430,3 +430,26 @@ export default function TrackingPage() {
     </DashboardLayout>
   );
 }
+
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: React.ReactNode;
+  tone?: "warn";
+}) {
+  return (
+    <div
+      className={`p-2.5 rounded-md border bg-muted/30 ${
+        tone === "warn" ? "border-amber-500/40" : "border-border"
+      }`}
+    >
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`mt-0.5 font-mono text-xs ${tone === "warn" ? "text-amber-500" : ""}`}>
+        {value}
+      </div>
+    </div>
+  );
+}
