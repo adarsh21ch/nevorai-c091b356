@@ -80,6 +80,7 @@ import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
 import { Route as AcademyIdRouteImport } from './routes/academy.$id'
+import { Route as AuthenticatedTrackingRouteImport } from './routes/_authenticated/tracking'
 import { Route as LandingPagesIdIndexRouteImport } from './routes/landing-pages.$id.index'
 import { Route as FunnelsIdIndexRouteImport } from './routes/funnels.$id.index'
 import { Route as FSlugIndexRouteImport } from './routes/f.$slug.index'
@@ -478,6 +479,13 @@ const AcademyIdRoute = AcademyIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => AcademyRoute,
 } as any).lazy(() => import('./routes/academy.$id.lazy').then((d) => d.Route))
+const AuthenticatedTrackingRoute = AuthenticatedTrackingRouteImport.update({
+  id: '/_authenticated/tracking',
+  path: '/tracking',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/_authenticated/tracking.lazy').then((d) => d.Route),
+)
 const LandingPagesIdIndexRoute = LandingPagesIdIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -641,6 +649,7 @@ export interface FileRoutesByFullPath {
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
+  '/tracking': typeof AuthenticatedTrackingRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -734,6 +743,7 @@ export interface FileRoutesByTo {
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
+  '/tracking': typeof AuthenticatedTrackingRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -826,6 +836,7 @@ export interface FileRoutesById {
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
+  '/_authenticated/tracking': typeof AuthenticatedTrackingRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -921,6 +932,7 @@ export interface FileRouteTypes {
     | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
+    | '/tracking'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1014,6 +1026,7 @@ export interface FileRouteTypes {
     | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
+    | '/tracking'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1105,6 +1118,7 @@ export interface FileRouteTypes {
     | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
+    | '/_authenticated/tracking'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1199,6 +1213,7 @@ export interface RootRouteChildren {
   VerifyWhatsappRoute: typeof VerifyWhatsappRoute
   VideosRoute: typeof VideosRouteWithChildren
   WhatsappTestRoute: typeof WhatsappTestRoute
+  AuthenticatedTrackingRoute: typeof AuthenticatedTrackingRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
@@ -1739,6 +1754,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademyIdRouteImport
       parentRoute: typeof AcademyRoute
     }
+    '/_authenticated/tracking': {
+      id: '/_authenticated/tracking'
+      path: '/tracking'
+      fullPath: '/tracking'
+      preLoaderRoute: typeof AuthenticatedTrackingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/landing-pages/$id/': {
       id: '/landing-pages/$id/'
       path: '/'
@@ -2021,6 +2043,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyWhatsappRoute: VerifyWhatsappRoute,
   VideosRoute: VideosRouteWithChildren,
   WhatsappTestRoute: WhatsappTestRoute,
+  AuthenticatedTrackingRoute: AuthenticatedTrackingRoute,
   AdminKycRoute: AdminKycRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminRevenueRoute: AdminRevenueRoute,
