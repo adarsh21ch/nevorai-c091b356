@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useServerFn } from "@tanstack/react-start";
@@ -6,7 +6,9 @@ import {
   getMyTrackingAccount,
   saveMyTrackingAccount,
   sendCapiTestEvent,
+  getMyCapiDiagnostics,
   type TrackingAccountView,
+  type CapiDiagnostics,
 } from "@/lib/trackingAccount.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +25,8 @@ import {
   Shield,
   Zap,
   AlertTriangle,
+  Copy,
+  RotateCw,
 } from "lucide-react";
 
 type TestResult = Awaited<ReturnType<typeof sendCapiTestEvent>>;
@@ -33,12 +37,14 @@ export default function TrackingPage() {
   const fetchAccount = useServerFn(getMyTrackingAccount);
   const saveAccount = useServerFn(saveMyTrackingAccount);
   const testEvent = useServerFn(sendCapiTestEvent);
+  const fetchDiag = useServerFn(getMyCapiDiagnostics);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [account, setAccount] = useState<TrackingAccountView | null>(null);
   const [lastTest, setLastTest] = useState<TestResult | null>(null);
+  const [diag, setDiag] = useState<CapiDiagnostics | null>(null);
 
   // Form state — `accessToken === ""` means "no change". User must explicitly type a value to update.
   const [pixelId, setPixelId] = useState("");
@@ -49,8 +55,12 @@ export default function TrackingPage() {
 
   const reload = useCallback(async () => {
     try {
-      const data = await fetchAccount();
+      const [data, d] = await Promise.all([
+        fetchAccount(),
+        fetchDiag().catch(() => null),
+      ]);
       setAccount(data);
+      setDiag(d);
       if (data) {
         setPixelId(data.pixel_id ?? "");
         setTestEventCode(data.test_event_code ?? "");
@@ -62,11 +72,20 @@ export default function TrackingPage() {
     } finally {
       setLoading(false);
     }
-  }, [fetchAccount]);
+  }, [fetchAccount, fetchDiag]);
 
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  const copyJson = (obj: unknown) => {
+    try {
+      navigator.clipboard.writeText(JSON.stringify(obj, null, 2));
+      toast.success("Copied to clipboard");
+    } catch {
+      toast.error("Copy failed");
+    }
+  };
 
   const onSave = async () => {
     setSaving(true);
@@ -295,14 +314,33 @@ export default function TrackingPage() {
             {/* Last test result */}
             {(lastTest || account?.last_test_at) && (
               <div className="glass-card p-5">
-                <h2 className="text-base font-heading font-semibold flex items-center gap-2 mb-3">
-                  {((lastTest?.ok ?? false) || account?.last_test_status === "ok") ? (
-                    <CheckCircle2 size={16} className="text-green-500" />
-                  ) : (
-                    <XCircle size={16} className="text-red-500" />
-                  )}
-                  Last test result
-                </h2>
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-heading font-semibold flex items-center gap-2">
+                    {((lastTest?.ok ?? false) || account?.last_test_status === "ok") ? (
+                      <CheckCircle2 size={16} className="text-green-500" />
+                    ) : (
+                      <XCircle size={16} className="text-red-500" />
+                    )}
+                    Last test result
+                  </h2>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => copyJson(lastTest ?? account?.last_test_response)}
+                  >
+                    <Copy size={12} className="mr-1.5" /> Copy JSON
+                  </Button>
+                </div>
+
+                {lastTest && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3 text-xs">
+                    <Stat label="events_received" value={lastTest.events_received ?? "—"} />
+                    <Stat label="http_status" value={lastTest.http_status ?? "—"} />
+                    <Stat label="latency" value={`${lastTest.latency_ms ?? 0}ms`} />
+                    <Stat label="test_event_code" value={lastTest.test_event_code_used ?? "—"} />
+                  </div>
+                )}
+
                 <pre className="text-[11px] bg-muted p-3 rounded-lg overflow-x-auto max-h-72">
 {JSON.stringify(lastTest ?? account?.last_test_response, null, 2)}
                 </pre>
@@ -321,9 +359,97 @@ export default function TrackingPage() {
                 )}
               </div>
             )}
+
+            {/* CAPI diagnostics — recent fires + retry queue */}
+            {diag && (
+              <div className="glass-card p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-base font-heading font-semibold flex items-center gap-2">
+                    <Activity size={16} className="text-primary" /> CAPI health
+                  </h2>
+                  <Button size="sm" variant="ghost" onClick={() => void reload()}>
+                    <RotateCw size={12} className="mr-1.5" /> Refresh
+                  </Button>
+                </div>
+                <div className="grid grid-cols-3 gap-3 mb-4 text-xs">
+                  <Stat label="Queue pending" value={diag.queue_pending} />
+                  <Stat
+                    label="Queue dead"
+                    value={diag.queue_dead}
+                    tone={diag.queue_dead > 0 ? "warn" : undefined}
+                  />
+                  <Stat
+                    label="Last fire"
+                    value={diag.last_fire_at ? new Date(diag.last_fire_at).toLocaleString() : "—"}
+                  />
+                </div>
+                {diag.recent.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">No fires logged yet.</p>
+                ) : (
+                  <div className="space-y-1.5">
+                    {diag.recent.map((r, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between text-[11px] px-3 py-2 rounded-md border border-border bg-muted/30"
+                      >
+                        <div className="flex items-center gap-2">
+                          {r.success ? (
+                            <CheckCircle2 size={12} className="text-green-500" />
+                          ) : (
+                            <XCircle size={12} className="text-red-500" />
+                          )}
+                          <span className="font-mono">{r.event_name}</span>
+                          <span className="text-muted-foreground">· {r.scope}</span>
+                          {r.is_test && (
+                            <span className="text-amber-500">· test</span>
+                          )}
+                        </div>
+                        <span className="text-muted-foreground">
+                          {new Date(r.created_at).toLocaleTimeString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <details className="mt-4 text-[11px] text-muted-foreground">
+                  <summary className="cursor-pointer hover:text-foreground">
+                    How to verify in Meta Events Manager
+                  </summary>
+                  <ol className="list-decimal ml-5 mt-2 space-y-1">
+                    <li>Open Events Manager → your Pixel → <b>Test Events</b> tab.</li>
+                    <li>Make sure the <b>Test event code</b> shown above matches the box on that page.</li>
+                    <li>Click <b>Send test event</b> here, then watch the Meta page — the event appears within ~30s.</li>
+                  </ol>
+                </details>
+              </div>
+            )}
           </>
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+function Stat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: ReactNode;
+  tone?: "warn";
+}) {
+  return (
+    <div
+      className={`p-2.5 rounded-md border bg-muted/30 ${
+        tone === "warn" ? "border-amber-500/40" : "border-border"
+      }`}
+    >
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</div>
+      <div className={`mt-0.5 font-mono text-xs ${tone === "warn" ? "text-amber-500" : ""}`}>
+        {value}
+      </div>
+    </div>
   );
 }

@@ -138,6 +138,24 @@ export const Route = createFileRoute("/api/public/capi/fire")({
             graphErr = err?.message ?? "fetch_failed";
           }
 
+          // On failure: enqueue for retry (non-blocking, best-effort).
+          if (!success) {
+            try {
+              await (supabaseAdmin as any).rpc("enqueue_capi_fire", {
+                _owner_id: config.owner_id,
+                _pixel_id: config.pixel_id,
+                _scope: scope,
+                _resource_id: resource_id,
+                _event_name: eventName,
+                _event_id: eventId,
+                _payload: payload,
+                _last_error: graphErr ?? `http_${httpStatus}`,
+              });
+            } catch (qErr: any) {
+              console.warn("[capi/fire] enqueue failed", qErr?.message);
+            }
+          }
+
           // Mirror to pixel_fire_log so the Health Dashboard sees CAPI fires.
           await (supabaseAdmin as any).from("pixel_fire_log").insert({
             pixel_id: config.pixel_id,

@@ -33,6 +33,34 @@ export const getMyTrackingAccount = createServerFn({ method: "POST" })
     return row as TrackingAccountView;
   });
 
+export type CapiDiagnostics = {
+  queue_pending: number;
+  queue_dead: number;
+  last_fire_at: string | null;
+  recent: Array<{
+    created_at: string;
+    event_name: string;
+    success: boolean;
+    is_test: boolean;
+    scope: string;
+  }>;
+};
+
+export const getMyCapiDiagnostics = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<CapiDiagnostics> => {
+    const supabase = (context as any).supabase;
+    const { data, error } = await supabase.rpc("get_my_capi_diagnostics");
+    if (error) throw new Error(error.message);
+    const row = Array.isArray(data) ? data[0] : data;
+    return {
+      queue_pending: Number(row?.queue_pending ?? 0),
+      queue_dead: Number(row?.queue_dead ?? 0),
+      last_fire_at: row?.last_fire_at ?? null,
+      recent: Array.isArray(row?.recent) ? row.recent : [],
+    };
+  });
+
 const SaveInput = z.object({
   pixel_id: z.string().trim().max(32).nullable().optional(),
   // undefined = keep, '' = clear, string = replace
