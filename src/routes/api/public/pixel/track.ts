@@ -42,12 +42,22 @@ export const Route = createFileRoute("/api/public/pixel/track")({
           });
         }
 
-        const { event, eventID, params = {}, eventSourceUrl, userAgent } = body ?? {};
+        const { event, eventID, params = {}, eventSourceUrl, userAgent, pixel_id: callerPixel } = body ?? {};
         if (!event || !eventID) {
           return new Response(JSON.stringify({ ok: false, reason: "bad_payload" }), {
             status: 400,
             headers: { "Content-Type": "application/json", ...CORS_HEADERS },
           });
+        }
+        // Reconciled CAPI model (Phase 3): creator-pixel events must go through
+        // /api/public/capi/fire (per-creator token, dedupe via shared event_id).
+        // /api/public/pixel/track is reserved for platform-pixel events fired
+        // against the Nevorai pixel only. Reject anything claiming a creator pixel.
+        if (callerPixel && String(callerPixel) !== PIXEL_ID) {
+          return new Response(
+            JSON.stringify({ ok: false, reason: "wrong_endpoint", hint: "use /api/public/capi/fire for creator pixels" }),
+            { status: 400, headers: { "Content-Type": "application/json", ...CORS_HEADERS } },
+          );
         }
 
         const ip =
