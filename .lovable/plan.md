@@ -1,91 +1,74 @@
-## Reality check first
+# Tracking system hardening — Phase 3
 
-You asked for an enterprise-grade Meta Conversions API + analytics + AI marketing OS, **end-to-end, production-ready, manually tested with real data, no placeholders**. I have to be honest with you before I touch code:
+You picked all four. I'll ship them in one consolidated migration + a focused code pass. Order matters: encryption first (so the retry queue stores ciphertext from day one), then dedupe reconciliation, then queue, then verification UI.
 
-This is not one build. Done properly it is **4–6 weeks of focused work**, ~30–50 files, 8–12 DB migrations, multiple server functions, a real job queue, encryption infra, an analytics aggregation pipeline, NavAI grounded on that pipeline, and an admin monitoring surface. If I try to ship all of it in a single pass you will get exactly what you told me not to build: half-wired UI, mocked stats, fake "health scores", and broken CAPI. That would set your paying users back, not forward.
+## 1. New migration: `tracking_phase3_migration.sql`
 
-So I'm proposing we do this in **phases**, each one fully production-grade before moving on. You approve each phase before I start the next. Nothing gets called "done" until it's tested against your real Meta pixel with real events visible in Events Manager.
+Single file you paste into Supabase SQL editor. Idempotent. Contains:
 
----
+**a) Encrypt `tracking_accounts.access_token` at rest (pgsodium)**
+- Enable `pgsodium` extension.
+- Add `access_token_encrypted bytea` + `access_token_key_id uuid`.
+- Backfill: encrypt existing plaintext rows, then `access_token = NULL`.
+- Rewrite `upsert_my_tracking_account` to encrypt on write.
+- Rewrite `resolve_capi_config_for_resource` + add `read_my_capi_token_for_test` to decrypt only inside SECURITY DEFINER, returning plaintext to the server caller (never to the browser).
+- Drop the raw `access_token` column at the end (kept during backfill for safety).
 
-## Phase 1 — Audit & Stabilize (this phase, ~1 day)
+**b) `capi_fire_queue` retry table**
+- Columns: `id, owner_id, pixel_id, scope, resource_id, event_name, event_id, payload jsonb, attempts int, next_attempt_at timestamptz, last_error text, status ('pending'|'sent'|'dead'), created_at`.
+- Index on `(status, next_attempt_at)` for the worker.
+- RPC `enqueue_capi_fire(...)` and `claim_capi_fires(_limit int)` for the worker (FOR UPDATE SKIP LOCKED).
+- GRANTs: writes via service_role only; no anon/authenticated.
 
-Goal: know exactly what works today, fix what's broken in the existing pixel infra, no new features.
+**c) Mark platform CAPI deprecated**
+- Comment on `pixel_fire_log` describing the reconciled model (see §2).
 
-1. Full read-only audit of:
-   - `src/lib/pixel.ts`, `MetaPixelIdField`, `PublicLandingPage.tsx`, `PublicFunnel.tsx`, `PublicVideoPage.tsx`
-   - `pixel_fire_log`, `meta_pixel_settings`, `meta_pixel_events_log`, `engagement_payments_pixel_migration.sql`
-   - `supabase/functions/meta-pixel-fire` (existing CAPI to platform pixel only)
-   - `/api/public/pixel/track`, `/api/public/pixel/fire-log`
-   - `pixelHealth.functions.ts`, `PixelHealthCard`
-   - Existing analytics: `AnalyticsPage`, `InsightsPage`, `useUniquePeople`, `unified_tracking_engine_migration.sql`, `record_view` RPC, `entityTracking.functions.ts`
-   - Lead capture path → `funnel_leads`, attribution capture
-2. Deliver written audit: ✅ working / 🟡 partial / 🔴 broken / ⬜ missing, with file refs.
-3. Fix only the **already-broken** items found in audit (e.g. the account-pixel RPC was missing — same class of bugs). No new tables, no new UI.
-4. Run Playwright against a real funnel + landing page with your pixel ID, confirm `PageView` + `Lead` land in `pixel_fire_log` AND in Meta Events Manager Test Events.
+## 2. Reconcile the two CAPI paths
 
-Deliverable: audit report + a short list of repairs already merged. Then you decide whether to greenlight Phase 2.
+**Decision: creator-CAPI (`/api/public/capi/fire`) is canonical for funnel/landing events.** Platform CAPI (`/api/public/pixel/track`) stays ONLY for platform-app events (signup, Purchase on billing, etc.) fired against the Nevorai pixel — never against creator pixels.
 
----
+Code changes:
+- `src/lib/pixel.ts`: when `pixelId` is set, NEVER mirror to platform `/track` (today it skips, but the comment is ambiguous — tighten the condition + add a guard log).
+- `src/routes/api/public/pixel/track.ts`: reject requests that include a `pixel_id` field with 400 `wrong_endpoint`.
+- Document the split at the top of both route files.
 
-## Phase 2 — Creator Conversions API (~3–5 days)
+Result: every event has exactly one server fire, sharing `event_id` with the browser for Meta dedupe.
 
-Per-creator CAPI, not just platform pixel. This is the biggest real gap today.
+## 3. Retry queue worker
 
-- New table `tracking_accounts` (owner_id, pixel_id, encrypted access_token via pgsodium, test_event_code, capi_enabled, advanced_matching_enabled, created_at). RLS: owner-only read/write; tokens never selectable from client.
-- Server function `saveTrackingAccount` (encrypts token server-side).
-- Server route `/api/public/capi/fire` — receives browser fbq event id + payload, looks up creator's token via `supabaseAdmin`, hashes em/ph/external_id, forwards to Graph API with same `event_id` as browser for dedupe.
-- Update `pixel.ts` to fire browser pixel AND fire-and-forget POST to `/api/public/capi/fire` with shared event_id, fbp, fbc.
-- Retry queue table `capi_retry_queue` + pg_cron worker (`/api/public/cron/capi-retry`) with exponential backoff, max 5 attempts, dead-letter after.
-- Tracking Wizard UI (5 steps): Pixel → CAPI token → Verify → Test Event → Live. Each step calls a real server fn and shows real Meta response.
-- "Send Test Event" tool surfacing actual Graph API response + latency + `events_received`/`messages`.
+- New server route `src/routes/api/public/capi/drain.ts` (POST, secret-gated via `CAPI_DRAIN_SECRET`) — claims up to 50 pending rows, re-POSTs to Meta, marks sent/failed. Exponential backoff: 1m, 5m, 30m, 2h, 12h, then `dead`.
+- Modify `capi/fire.ts`: on non-2xx or fetch error, `enqueue_capi_fire(...)` instead of swallowing.
+- Provide a `pg_cron` snippet at the bottom of the migration to hit `/api/public/capi/drain` every minute (commented — user copies into Supabase Dashboard → Database → Cron).
 
-Deliverable: a creator can paste pixel + token, run the wizard, see their test event in their own Events Manager within 60s, with browser + server dedupe confirmed.
+## 4. /tracking verification panel
 
----
+Upgrade the existing test-event card on `TrackingPage.tsx`:
+- Show the last 5 fires from `pixel_fire_log` (filtered to the user) with: time, event_name, success/✗, `fbtrace_id`, latency.
+- Show queue depth from `capi_fire_queue` (pending / dead counts).
+- "Send test event" already exists — extend response panel to show `events_received`, `fbtrace_id`, `test_event_code` status, and a copy-to-clipboard button for the full Graph response.
+- Add a "How to verify in Meta Events Manager" inline help (3 steps).
 
-## Phase 3 — Analytics Engine (~5–7 days)
+New server fn `getMyCapiDiagnostics` in `trackingAccount.functions.ts` returns `{ recent_fires, queue_pending, queue_dead, has_test_code }`.
 
-Stop calculating on every dashboard load. Pre-aggregate.
+## 5. Files I will touch
 
-- New tables: `analytics_events` (raw, partitioned by day), `analytics_daily` (pre-aggregated per owner per resource per day), `traffic_sources_daily`, `campaign_daily`, `video_engagement_daily`.
-- pg_cron job aggregates the prior day's raw → daily tables nightly + a "today so far" rollup every 15 min.
-- Dashboard reads only from `*_daily` tables. p95 query under 200ms.
-- Funnel visualization (Visitors → Reg → Video 25/50/75/100 → CTA → Purchase) from real events.
-- Video drop-off heatmap from existing `video_progress` data.
-- Lead timeline view per lead from `analytics_events`.
+Create:
+- `tracking_phase3_migration.sql`
+- `src/routes/api/public/capi/drain.ts`
 
-Deliverable: new `/tracking` section with real numbers, no mocks, mobile + desktop responsive.
+Edit:
+- `src/lib/trackingAccount.functions.ts` — use new RPCs, add `getMyCapiDiagnostics`
+- `src/routes/api/public/capi/fire.ts` — decrypt via RPC, enqueue on failure
+- `src/routes/api/public/pixel/track.ts` — reject creator-pixel requests
+- `src/lib/pixel.ts` — tighten platform-mirror guard
+- `src/pages/TrackingPage.tsx` — verification panel
 
----
+Secrets I'll request via `add_secret` after the migration: `CAPI_DRAIN_SECRET` (random, for the cron hitting `/api/public/capi/drain`).
 
-## Phase 4 — NavAI Marketing Intelligence (~3–4 days)
+## 6. What you do
 
-NavAI grounded on Phase 3 tables only. No hallucinated insights.
+1. Open Supabase SQL editor → paste `tracking_phase3_migration.sql` → run. It's idempotent so re-running is safe.
+2. After I land the code, I'll prompt for `CAPI_DRAIN_SECRET` (random 32-char) and give you the one-line `pg_cron` snippet.
+3. Paste a real Meta access token + `test_event_code` into `/tracking`, click Send test event, confirm `events_received: 1` in the panel and a hit in Meta Events Manager → Test Events.
 
-- New server fn `askNavAI({ question, scope })` that fetches the relevant slice of `analytics_daily` and passes it as structured context to Lovable AI Gateway (`google/gemini-3-flash-preview`).
-- Recommendation engine: nightly job scans daily tables for anomalies (conversion drop >20% WoW, traffic spike >3σ, CAPI failure rate >5%, video drop-off cliff) → writes to `ai_recommendations` table → shown as proactive cards on dashboard.
-- Tracking Health Score computed from real signals (pixel connected, CAPI connected, last successful event <24h, retry queue depth, dedupe rate, advanced matching coverage).
-
-Deliverable: a creator asks "why did leads drop this week" and gets an answer grounded in their own data with cited numbers.
-
----
-
-## Phase 5 — Admin Monitoring + Hardening (~2–3 days)
-
-- Admin pages: Tracking Accounts, Failed Events, Retry Queue depth, System Health, per-user diagnostics.
-- Security pass: token encryption verified, RLS coverage tested with a second account, secrets audit, rate limiting on `/api/public/capi/fire`.
-- Load test the aggregation pipeline at 100k events/day.
-- Feature flags table for future Heatmaps / A/B / Google Ads / TikTok pixel — schema-ready, not built.
-
-Deliverable: implementation report listing every file, migration, endpoint, test performed, and any limitations.
-
----
-
-## What I need from you to proceed
-
-1. **Approval to do Phase 1 only right now.** I will not start Phase 2 until you've read the audit and said go.
-2. Confirmation you accept the realistic timeline (~4–6 weeks across phases). If you need it faster, we cut scope — not quality.
-3. A **real Meta Pixel ID + a CAPI access token + test_event_code** I can use against a sandbox/test pixel for Phase 2 verification. Without this I cannot honestly verify CAPI works; I will not fake it.
-
-Reply "go phase 1" and I start the audit immediately. If you want to change scope or order, tell me now.
+Want me to execute this plan now?
