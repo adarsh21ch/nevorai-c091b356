@@ -6,7 +6,9 @@ import {
   getMyTrackingAccount,
   saveMyTrackingAccount,
   sendCapiTestEvent,
+  getMyCapiDiagnostics,
   type TrackingAccountView,
+  type CapiDiagnostics,
 } from "@/lib/trackingAccount.functions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
