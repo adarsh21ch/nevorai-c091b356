@@ -37,12 +37,14 @@ export default function TrackingPage() {
   const fetchAccount = useServerFn(getMyTrackingAccount);
   const saveAccount = useServerFn(saveMyTrackingAccount);
   const testEvent = useServerFn(sendCapiTestEvent);
+  const fetchDiag = useServerFn(getMyCapiDiagnostics);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [testing, setTesting] = useState(false);
   const [account, setAccount] = useState<TrackingAccountView | null>(null);
   const [lastTest, setLastTest] = useState<TestResult | null>(null);
+  const [diag, setDiag] = useState<CapiDiagnostics | null>(null);
 
   // Form state — `accessToken === ""` means "no change". User must explicitly type a value to update.
   const [pixelId, setPixelId] = useState("");
