@@ -1,74 +1,147 @@
-# Tracking system hardening — Phase 3
 
-You picked all four. I'll ship them in one consolidated migration + a focused code pass. Order matters: encryption first (so the retry queue stores ciphertext from day one), then dedupe reconciliation, then queue, then verification UI.
+# NevorAI White-Label Multi-Tenant Refactor — Master Plan
 
-## 1. New migration: `tracking_phase3_migration.sql`
+## Decisions Locked In (from your answers + written rules)
 
-Single file you paste into Supabase SQL editor. Idempotent. Contains:
+| Decision | Choice |
+|---|---|
+| Tenancy scope | Every user lives in a workspace from day 1 (full SaaS isolation) |
+| Workspace vs team | Workspace sits **above** teams (1 workspace → many teams → many users) |
+| Session scope | Subdomain-isolated Supabase sessions |
+| Wildcard hosting | Cloudflare Worker proxy in front of `nevorai.lovable.app` |
+| Tenant resolver | `Host` header → `workspaces.slug` lookup (cached) |
+| Reserved subdomain | `nevorai.com` / `flow.nevorai.com` / `www` → "marketing/legacy" workspace |
 
-**a) Encrypt `tracking_accounts.access_token` at rest (pgsodium)**
-- Enable `pgsodium` extension.
-- Add `access_token_encrypted bytea` + `access_token_key_id uuid`.
-- Backfill: encrypt existing plaintext rows, then `access_token = NULL`.
-- Rewrite `upsert_my_tracking_account` to encrypt on write.
-- Rewrite `resolve_capi_config_for_resource` + add `read_my_capi_token_for_test` to decrypt only inside SECURITY DEFINER, returning plaintext to the server caller (never to the browser).
-- Drop the raw `access_token` column at the end (kept during backfill for safety).
+## Non-Negotiable Invariants (carried through every phase)
 
-**b) `capi_fire_queue` retry table**
-- Columns: `id, owner_id, pixel_id, scope, resource_id, event_name, event_id, payload jsonb, attempts int, next_attempt_at timestamptz, last_error text, status ('pending'|'sent'|'dead'), created_at`.
-- Index on `(status, next_attempt_at)` for the worker.
-- RPC `enqueue_capi_fire(...)` and `claim_capi_fires(_limit int)` for the worker (FOR UPDATE SKIP LOCKED).
-- GRANTs: writes via service_role only; no anon/authenticated.
+1. Every existing module (Auth, CRM, Calling, Follow-ups, Landing Pages, Funnels, Videos, Live, Tracking, Analytics, Dashboard, Notifications, AI, Admin) keeps working at the end of each phase.
+2. Every migration is reversible. Every new column is `nullable` in the migration that adds it; flipped to `NOT NULL` only in a later migration once backfill is verified.
+3. RLS is never weakened. A policy can only be replaced by an equal-or-stricter one, in the same migration, behind a feature flag.
+4. No phase merges until: build green, RLS smoke tests pass, manual spot-check on 5 existing flows.
+5. One codebase, one deployment, one Supabase project.
 
-**c) Mark platform CAPI deprecated**
-- Comment on `pixel_fire_log` describing the reconciled model (see §2).
+## Phases (each phase = one delivery + one stop-and-verify cycle)
 
-## 2. Reconcile the two CAPI paths
+### Phase 0 — Foundation (no behaviour change) ← START HERE
 
-**Decision: creator-CAPI (`/api/public/capi/fire`) is canonical for funnel/landing events.** Platform CAPI (`/api/public/pixel/track`) stays ONLY for platform-app events (signup, Purchase on billing, etc.) fired against the Nevorai pixel — never against creator pixels.
+Goal: introduce the `workspaces` concept in the DB and a `TenantProvider` in the app, **without changing any existing query or RLS policy yet**. After this phase the app behaves identically; we've only added scaffolding.
 
-Code changes:
-- `src/lib/pixel.ts`: when `pixelId` is set, NEVER mirror to platform `/track` (today it skips, but the comment is ambiguous — tighten the condition + add a guard log).
-- `src/routes/api/public/pixel/track.ts`: reject requests that include a `pixel_id` field with 400 `wrong_endpoint`.
-- Document the split at the top of both route files.
+Deliverables:
+- Migration: `workspaces`, `workspace_members`, `workspace_branding` tables + indexes + GRANTs + RLS (members-can-read-own-workspace).
+- Migration: `reserved_subdomains` table seeded with `www, app, admin, api, mail, static, cdn, flow, nflow, ncall, nevorai, support, help, docs, blog, status, auth, login, signup, billing, public, assets, internal`.
+- Security-definer fn `public.is_workspace_member(_ws uuid)` and `public.current_workspace_id()` (reads a request-scoped GUC; returns NULL for now).
+- Server fn `resolveTenant({ host })` → `{ workspace, branding } | null`, with in-memory LRU + 60s TTL.
+- React `TenantProvider` reading from a public TanStack server route `/api/public/tenant/resolve` (host-based, no auth required, anon RLS).
+- `useTenant()` hook returning `{ workspace, branding, isFallback }`. Returns the "legacy" workspace on `nevorai.com` / `flow.nevorai.com` / `lovable.app` so existing code paths see a stable workspace_id from day one.
+- Backfill migration: create one "legacy" workspace (slug = `legacy`, status = `active`) and one `workspace_members` row for every existing `auth.users` user (role = `owner` or `member` depending on existing team role).
+- No table outside of the four new ones is touched. No existing query changes. No RLS on any existing table is modified.
 
-Result: every event has exactly one server fire, sharing `event_id` with the browser for Meta dedupe.
+End-of-phase verification (I run, you confirm):
+- `select count(*) from workspaces` = 1 (`legacy`)
+- `select count(*) from workspace_members` = `count(*) from auth.users`
+- All existing pages load, login works, funnel viewer works, tracking still fires, admin still loads.
+- New `/api/public/tenant/resolve?host=flow.nevorai.com` returns the legacy workspace.
 
-## 3. Retry queue worker
+Risks: low. Worst case: drop the 4 new tables, no rollback complexity.
 
-- New server route `src/routes/api/public/capi/drain.ts` (POST, secret-gated via `CAPI_DRAIN_SECRET`) — claims up to 50 pending rows, re-POSTs to Meta, marks sent/failed. Exponential backoff: 1m, 5m, 30m, 2h, 12h, then `dead`.
-- Modify `capi/fire.ts`: on non-2xx or fetch error, `enqueue_capi_fire(...)` instead of swallowing.
-- Provide a `pg_cron` snippet at the bottom of the migration to hit `/api/public/capi/drain` every minute (commented — user copies into Supabase Dashboard → Database → Cron).
+### Phase 1 — Tenant column rollout (additive, dual-read)
 
-## 4. /tracking verification panel
+For every tenant table (funnels, landing_pages, video_assets, live_sessions, leads, crm_*, follow_ups, tracking_*, notifications_*, nev_ai_usage, academy_*, team_*, etc. — exhaustive list compiled from a schema scan in Phase 0):
 
-Upgrade the existing test-event card on `TrackingPage.tsx`:
-- Show the last 5 fires from `pixel_fire_log` (filtered to the user) with: time, event_name, success/✗, `fbtrace_id`, latency.
-- Show queue depth from `capi_fire_queue` (pending / dead counts).
-- "Send test event" already exists — extend response panel to show `events_received`, `fbtrace_id`, `test_event_code` status, and a copy-to-clipboard button for the full Graph response.
-- Add a "How to verify in Meta Events Manager" inline help (3 steps).
+- Add `workspace_id uuid` (nullable) with FK to `workspaces(id)`.
+- Backfill: every existing row → `legacy` workspace.
+- Add composite indexes `(workspace_id, <existing hot column>)` for every hot path.
+- Add a **shadow RLS policy** (additive, not replacing) that allows access when `workspace_id` matches `current_workspace_id()` GUC OR existing policy passes. This is a temporary OR-bridge; lets us deploy without breaking anything.
+- Add a Postgres trigger that auto-fills `workspace_id` from `auth.uid()`'s default workspace on INSERT if NULL.
+- App layer: `supabase` client wrapper injects `set_config('app.workspace_id', ...)` per request via PostgREST `headers` (uses Supabase's `request.jwt.claims`-style GUC pattern through a custom JWT claim added at sign-in).
 
-New server fn `getMyCapiDiagnostics` in `trackingAccount.functions.ts` returns `{ recent_fires, queue_pending, queue_dead, has_test_code }`.
+Verification: same regression suite as Phase 0 + cross-tenant probe test (create workspace B, prove user from A cannot see B's rows even though RLS isn't yet strict).
 
-## 5. Files I will touch
+### Phase 2 — RLS hardening (strict mode, behind feature flag)
 
-Create:
-- `tracking_phase3_migration.sql`
-- `src/routes/api/public/capi/drain.ts`
+- Per-tenant table: replace shadow policies with strict `is_workspace_member(workspace_id)` policies.
+- Flip `workspace_id` to `NOT NULL` (now safe — backfill done in Phase 1).
+- Drop the OR-bridge. Old per-user policies remain only where they're correct intersections (e.g., `auth.uid() = owner_id AND is_workspace_member(workspace_id)`).
+- All server functions audited: any `supabaseAdmin` write that touches a tenant table must now pass `workspace_id` explicitly.
+- Admin Panel gets a workspace switcher (admin role bypasses `is_workspace_member` via a separate `is_platform_admin()` predicate).
 
-Edit:
-- `src/lib/trackingAccount.functions.ts` — use new RPCs, add `getMyCapiDiagnostics`
-- `src/routes/api/public/capi/fire.ts` — decrypt via RPC, enqueue on failure
-- `src/routes/api/public/pixel/track.ts` — reject creator-pixel requests
-- `src/lib/pixel.ts` — tighten platform-mirror guard
-- `src/pages/TrackingPage.tsx` — verification panel
+Verification: automated RLS test suite (one Vitest file per tenant table) that signs in as user_A in workspace_A and asserts 0 rows visible from workspace_B.
 
-Secrets I'll request via `add_secret` after the migration: `CAPI_DRAIN_SECRET` (random, for the cron hitting `/api/public/capi/drain`).
+### Phase 3 — Tenant routing & branding UI
 
-## 6. What you do
+- Cloudflare Worker script (delivered as a file + step-by-step deploy runbook you run in your CF dashboard — I cannot deploy it for you):
+  - Matches `*.nevorai.com`
+  - Sets `x-forwarded-host: <subdomain>.nevorai.com`
+  - Proxies to `nevorai.lovable.app`
+  - Strips/rewrites cookies so each subdomain has its own jar
+- DNS: wildcard `*.nevorai.com` CNAME → Worker (you do this in CF).
+- App: `resolveTenant` switches from "always legacy" to actual host → workspace lookup. Legacy hosts still resolve to legacy workspace.
+- Dynamic favicon, page title, theme color, primary/secondary CSS variables driven by `workspace_branding`.
+- Landing pages, funnel public viewer, lead form, all email templates pick up workspace branding.
+- Local dev: `?tenant=missionmanager` query param overrides host for testing without DNS.
 
-1. Open Supabase SQL editor → paste `tracking_phase3_migration.sql` → run. It's idempotent so re-running is safe.
-2. After I land the code, I'll prompt for `CAPI_DRAIN_SECRET` (random 32-char) and give you the one-line `pg_cron` snippet.
-3. Paste a real Meta access token + `test_event_code` into `/tracking`, click Send test event, confirm `events_received: 1` in the panel and a hit in Meta Events Manager → Test Events.
+Verification: deploy a test workspace `mm.nevorai.com`, confirm full visual swap end-to-end; legacy `flow.nevorai.com` unchanged.
 
-Want me to execute this plan now?
+### Phase 4 — PWA & installability per workspace
+
+- `/manifest.webmanifest` becomes a server route, returns workspace-specific JSON.
+- Per-workspace icon set generated on logo upload (R2, 192/256/384/512 + maskable + apple-touch).
+- `<link rel="manifest">`, `<meta name="theme-color">`, `<link rel="apple-touch-icon">` all driven by tenant.
+- Document install-time caching caveat in admin UI ("renaming subdomain requires reinstall").
+
+### Phase 5 — Admin & customer workspace management
+
+- Admin panel: create / approve / suspend / delete workspace, upload branding, assign plan, assign features, impersonate.
+- Customer: workspace settings page — name, logo, primary/secondary colors, favicon, subdomain availability check (Postgres unique + reserved-list check), email-from name.
+- Subdomain takeover guard: deleting a workspace marks `slug` as tombstoned for 90 days.
+- Graceful error pages for: unknown host, suspended workspace, expired subscription, deleted workspace.
+
+### Phase 6 — Hardening, observability, decommissioning bridges
+
+- Drop any remaining OR-bridge policies left for safety.
+- Add audit log `workspace_audit_events`.
+- Add per-workspace rate limiting on public endpoints.
+- Cross-tenant leak fuzz tests in CI.
+- Performance pass: `EXPLAIN ANALYZE` on top 20 queries, add missing indexes.
+- Update `.lovable/plan.md` with final architecture diagram.
+
+## Technical Section (for engineering reference)
+
+**Tenant resolution flow**
+```text
+Browser → CF Worker (*.nevorai.com)
+       → sets x-forwarded-host
+       → nevorai.lovable.app (Lovable origin)
+       → __root.tsx server-side loader calls /api/public/tenant/resolve
+       → returns { workspace_id, slug, branding }
+       → TenantProvider hydrates client
+       → Supabase client wrapper attaches workspace_id to JWT claim on sign-in
+       → Postgres RLS reads claim via current_workspace_id()
+```
+
+**Tables added in Phase 0**
+- `workspaces (id, slug unique, name, status, plan, owner_user_id, created_at, deleted_at)`
+- `workspace_branding (workspace_id pk/fk, logo_url, favicon_url, primary_color, secondary_color, theme_color, app_name, email_from_name, updated_at)`
+- `workspace_members (workspace_id, user_id, role enum[owner|admin|member|viewer], pk(workspace_id,user_id))`
+- `reserved_subdomains (slug pk, reason)`
+
+**Files added in Phase 0**
+- `supabase/migrations/<ts>_phase0_workspaces.sql`
+- `src/lib/tenant.functions.ts` (`resolveTenant`)
+- `src/routes/api/public/tenant/resolve.ts`
+- `src/contexts/TenantProvider.tsx`
+- `src/hooks/useTenant.ts`
+
+**No files modified in Phase 0** except `src/routes/__root.tsx` (wrap children in `<TenantProvider>`).
+
+## What I need from you to start Phase 0
+
+Just say "go phase 0". I'll execute it, run the verification queries, post the diff summary, and stop. We do not start Phase 1 until you confirm Phase 0 is stable in production.
+
+## What you will need to do yourself (cannot be done from inside Lovable)
+
+- **Phase 3**: Deploy the Cloudflare Worker + add wildcard DNS in your CF dashboard. I'll give you the exact Worker script + click-by-click runbook.
+- **Phase 3**: Issue/confirm Universal SSL covers `*.nevorai.com` (free, automatic in CF; just need to verify).
+- **Phase 4**: Approve the per-workspace icon storage bucket policy on first run.
+
+Everything else (DB, app, RLS, server functions, UI) I handle inside Lovable.
