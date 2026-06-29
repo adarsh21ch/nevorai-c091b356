@@ -92,12 +92,20 @@ function cacheSet(key: string, value: ResolvedTenant | null) {
 }
 
 function publicClient() {
-  return createClient<Database>(
+  // Untyped client until Supabase types regenerate to include the new
+  // workspaces tables (the Phase 0 migration adds them).
+  return createClient(
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_PUBLISHABLE_KEY!,
     { auth: { storage: undefined, persistSession: false, autoRefreshToken: false } },
   );
 }
+
+type WorkspaceRow = {
+  id: string; slug: string; name: string;
+  status: ResolvedTenant["status"]; plan: string;
+};
+type BrandingRow = TenantBranding;
 
 async function fetchWorkspaceBySlug(slug: string): Promise<ResolvedTenant | null> {
   const supabase = publicClient();
@@ -108,23 +116,25 @@ async function fetchWorkspaceBySlug(slug: string): Promise<ResolvedTenant | null
     .is("deleted_at", null)
     .eq("status", "active")
     .maybeSingle();
-  if (!ws) return null;
+  const wsRow = ws as WorkspaceRow | null;
+  if (!wsRow) return null;
 
   const { data: branding } = await supabase
     .from("workspace_branding")
     .select("app_name, logo_url, favicon_url, primary_color, secondary_color, theme_color, email_from_name")
-    .eq("workspace_id", ws.id)
+    .eq("workspace_id", wsRow.id)
     .maybeSingle();
+  const brandingRow = branding as BrandingRow | null;
 
   return {
-    workspace_id: ws.id,
-    slug: ws.slug,
-    name: ws.name,
-    status: ws.status as ResolvedTenant["status"],
-    plan: ws.plan,
-    is_legacy: ws.slug === "legacy",
-    branding: branding ?? {
-      app_name: ws.name, logo_url: null, favicon_url: null,
+    workspace_id: wsRow.id,
+    slug: wsRow.slug,
+    name: wsRow.name,
+    status: wsRow.status,
+    plan: wsRow.plan,
+    is_legacy: wsRow.slug === "legacy",
+    branding: brandingRow ?? {
+      app_name: wsRow.name, logo_url: null, favicon_url: null,
       primary_color: null, secondary_color: null, theme_color: null,
       email_from_name: null,
     },
