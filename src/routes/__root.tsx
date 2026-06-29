@@ -168,6 +168,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { tenant } = Route.useLoaderData();
+
 
   // Force-unregister stale Service Workers from a previous app version.
   // Old SWs intercept navigation and serve a cached shell that doesn't know
@@ -239,18 +241,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <CurrencyProvider>
-            <ConfirmDialogProvider>
-              <ErrorBoundary>
-                <Outlet />
-              </ErrorBoundary>
-              <Toaster />
-            </ConfirmDialogProvider>
-          </CurrencyProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <TenantProvider tenant={tenant}>
+        <ThemeProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              <ConfirmDialogProvider>
+                <ErrorBoundary>
+                  <Outlet />
+                </ErrorBoundary>
+                <Toaster />
+              </ConfirmDialogProvider>
+            </CurrencyProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </TenantProvider>
     </QueryClientProvider>
   );
 }
