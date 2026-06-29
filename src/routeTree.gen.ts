@@ -96,6 +96,7 @@ import { Route as ApiAdminWhatsappSendRouteImport } from './routes/api/admin/wha
 import { Route as ApiAdminWhatsappLeadsRouteImport } from './routes/api/admin/whatsapp-leads'
 import { Route as ApiAdminWhatsappBroadcastsRouteImport } from './routes/api/admin/whatsapp-broadcasts'
 import { Route as ApiAdminWhatsappAutomationsRouteImport } from './routes/api/admin/whatsapp-automations'
+import { Route as ApiPublicTenantResolveRouteImport } from './routes/api/public/tenant/resolve'
 import { Route as ApiPublicPixelTrackRouteImport } from './routes/api/public/pixel/track'
 import { Route as ApiPublicPixelFireLogRouteImport } from './routes/api/public/pixel/fire-log'
 import { Route as ApiPublicEmailSendRouteImport } from './routes/api/public/email/send'
@@ -582,6 +583,11 @@ const ApiAdminWhatsappAutomationsRoute =
     path: '/api/admin/whatsapp-automations',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicTenantResolveRoute = ApiPublicTenantResolveRouteImport.update({
+  id: '/api/public/tenant/resolve',
+  path: '/api/public/tenant/resolve',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPixelTrackRoute = ApiPublicPixelTrackRouteImport.update({
   id: '/api/public/pixel/track',
   path: '/api/public/pixel/track',
@@ -708,6 +714,7 @@ export interface FileRoutesByFullPath {
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
+  '/api/public/tenant/resolve': typeof ApiPublicTenantResolveRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -801,6 +808,7 @@ export interface FileRoutesByTo {
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
+  '/api/public/tenant/resolve': typeof ApiPublicTenantResolveRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -897,6 +905,7 @@ export interface FileRoutesById {
   '/api/public/email/send': typeof ApiPublicEmailSendRoute
   '/api/public/pixel/fire-log': typeof ApiPublicPixelFireLogRoute
   '/api/public/pixel/track': typeof ApiPublicPixelTrackRoute
+  '/api/public/tenant/resolve': typeof ApiPublicTenantResolveRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -994,6 +1003,7 @@ export interface FileRouteTypes {
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
+    | '/api/public/tenant/resolve'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1087,6 +1097,7 @@ export interface FileRouteTypes {
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
+    | '/api/public/tenant/resolve'
   id:
     | '__root__'
     | '/'
@@ -1182,6 +1193,7 @@ export interface FileRouteTypes {
     | '/api/public/email/send'
     | '/api/public/pixel/fire-log'
     | '/api/public/pixel/track'
+    | '/api/public/tenant/resolve'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1264,6 +1276,7 @@ export interface RootRouteChildren {
   ApiPublicEmailSendRoute: typeof ApiPublicEmailSendRoute
   ApiPublicPixelFireLogRoute: typeof ApiPublicPixelFireLogRoute
   ApiPublicPixelTrackRoute: typeof ApiPublicPixelTrackRoute
+  ApiPublicTenantResolveRoute: typeof ApiPublicTenantResolveRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1877,6 +1890,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminWhatsappAutomationsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/tenant/resolve': {
+      id: '/api/public/tenant/resolve'
+      path: '/api/public/tenant/resolve'
+      fullPath: '/api/public/tenant/resolve'
+      preLoaderRoute: typeof ApiPublicTenantResolveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pixel/track': {
       id: '/api/public/pixel/track'
       path: '/api/public/pixel/track'
@@ -2102,17 +2122,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicEmailSendRoute: ApiPublicEmailSendRoute,
   ApiPublicPixelFireLogRoute: ApiPublicPixelFireLogRoute,
   ApiPublicPixelTrackRoute: ApiPublicPixelTrackRoute,
+  ApiPublicTenantResolveRoute: ApiPublicTenantResolveRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
