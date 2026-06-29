@@ -169,3 +169,35 @@ export const resolveTenant = createServerFn({ method: "GET" })
     cacheSet(host, finalValue);
     return finalValue;
   });
+
+// Server-runtime helper: read the request host and resolve the tenant in one
+// call. Used by __root.tsx loader so the SSR/CSR boundary doesn't need to
+// pass `host` around. Returns null on any failure — Phase 0 must never
+// break the app if the migration hasn't been applied.
+export const getCurrentTenant = createServerFn({ method: "GET" }).handler(
+  async () => {
+    try {
+      const { getRequestHeader, getRequestHost } = await import(
+        "@tanstack/react-start/server"
+      );
+      const host =
+        getRequestHeader("x-forwarded-host") ??
+        getRequestHeader("host") ??
+        getRequestHost() ??
+        "";
+      if (!host) return null;
+      const normalized = normalizeHost(host);
+      const cached = cacheGet(normalized);
+      if (cached !== undefined) return cached;
+      const { slug, legacy } = extractWorkspaceSlug(normalized);
+      const targetSlug = legacy ? "legacy" : slug!;
+      const resolved = await fetchWorkspaceBySlug(targetSlug);
+      const finalValue =
+        resolved ?? (legacy ? null : await fetchWorkspaceBySlug("legacy"));
+      cacheSet(normalized, finalValue);
+      return finalValue;
+    } catch {
+      return null;
+    }
+  },
+);
