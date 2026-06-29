@@ -190,7 +190,7 @@ ALTER TABLE public.landing_page_registrations ADD COLUMN IF NOT EXISTS workspace
 UPDATE public.landing_page_registrations SET workspace_id = public.resolve_user_workspace(owner_id) WHERE workspace_id IS NULL AND owner_id IS NOT NULL;
 UPDATE public.landing_page_registrations SET workspace_id = public.legacy_workspace_id() WHERE workspace_id IS NULL;
 CREATE INDEX IF NOT EXISTS landing_page_registrations_ws_owner_idx ON public.landing_page_registrations(workspace_id, owner_id);
-CREATE INDEX IF NOT EXISTS landing_page_registrations_ws_created_idx ON public.landing_page_registrations(workspace_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS landing_page_registrations_ws_submitted_idx ON public.landing_page_registrations(workspace_id, submitted_at DESC);
 
 -- 3.16 pixel_fire_log (owner_id)
 ALTER TABLE public.pixel_fire_log ADD COLUMN IF NOT EXISTS workspace_id uuid REFERENCES public.workspaces(id) ON DELETE RESTRICT;
