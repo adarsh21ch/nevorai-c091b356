@@ -107,37 +107,43 @@ type WorkspaceRow = {
 type BrandingRow = TenantBranding;
 
 async function fetchWorkspaceBySlug(slug: string): Promise<ResolvedTenant | null> {
-  const supabase = publicClient();
-  const { data: ws } = await supabase
-    .from("workspaces")
-    .select("id, slug, name, status, plan")
-    .eq("slug", slug.toLowerCase())
-    .is("deleted_at", null)
-    .eq("status", "active")
-    .maybeSingle();
-  const wsRow = ws as WorkspaceRow | null;
-  if (!wsRow) return null;
+  try {
+    const supabase = publicClient();
+    const { data: ws, error } = await supabase
+      .from("workspaces")
+      .select("id, slug, name, status, plan")
+      .eq("slug", slug.toLowerCase())
+      .is("deleted_at", null)
+      .eq("status", "active")
+      .maybeSingle();
+    // Table may not exist yet (Phase 0 migration not applied) — fail soft.
+    if (error) return null;
+    const wsRow = ws as WorkspaceRow | null;
+    if (!wsRow) return null;
 
-  const { data: branding } = await supabase
-    .from("workspace_branding")
-    .select("app_name, logo_url, favicon_url, primary_color, secondary_color, theme_color, email_from_name")
-    .eq("workspace_id", wsRow.id)
-    .maybeSingle();
-  const brandingRow = branding as BrandingRow | null;
+    const { data: branding } = await supabase
+      .from("workspace_branding")
+      .select("app_name, logo_url, favicon_url, primary_color, secondary_color, theme_color, email_from_name")
+      .eq("workspace_id", wsRow.id)
+      .maybeSingle();
+    const brandingRow = branding as BrandingRow | null;
 
-  return {
-    workspace_id: wsRow.id,
-    slug: wsRow.slug,
-    name: wsRow.name,
-    status: wsRow.status,
-    plan: wsRow.plan,
-    is_legacy: wsRow.slug === "legacy",
-    branding: brandingRow ?? {
-      app_name: wsRow.name, logo_url: null, favicon_url: null,
-      primary_color: null, secondary_color: null, theme_color: null,
-      email_from_name: null,
-    },
-  };
+    return {
+      workspace_id: wsRow.id,
+      slug: wsRow.slug,
+      name: wsRow.name,
+      status: wsRow.status,
+      plan: wsRow.plan,
+      is_legacy: wsRow.slug === "legacy",
+      branding: brandingRow ?? {
+        app_name: wsRow.name, logo_url: null, favicon_url: null,
+        primary_color: null, secondary_color: null, theme_color: null,
+        email_from_name: null,
+      },
+    };
+  } catch {
+    return null;
+  }
 }
 
 export const resolveTenant = createServerFn({ method: "GET" })
