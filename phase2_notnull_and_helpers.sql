@@ -40,8 +40,67 @@
 BEGIN;
 
 ------------------------------------------------------------------------
--- 0. Sanity checks
+-- 0a. Re-backfill any rows inserted between Phase 1 and Phase 2
 ------------------------------------------------------------------------
+-- Phase 1's trigger only honoured current_workspace_id() GUC; app code
+-- that didn't set the GUC produced NULL workspace_id rows in the window
+-- between Phase 1 and this script. Re-apply the Phase 1 backfill chain
+-- (owner_id → user_id → parent FK → legacy) before the sanity check.
+DO $$
+DECLARE
+  r record;
+  v_parent record;
+  v_cols  text[];
+BEGIN
+  FOR r IN
+    SELECT c.table_name
+      FROM information_schema.columns c
+     WHERE c.table_schema='public'
+       AND c.column_name='workspace_id'
+       AND c.table_name NOT IN ('workspaces','workspace_members','workspace_branding')
+  LOOP
+    -- columns present on this table
+    SELECT array_agg(column_name) INTO v_cols
+      FROM information_schema.columns
+     WHERE table_schema='public' AND table_name=r.table_name;
+
+    -- (a) owner_id → resolve
+    IF 'owner_id' = ANY(v_cols) THEN
+      EXECUTE format(
+        'UPDATE public.%I SET workspace_id = public.resolve_user_workspace(owner_id)
+           WHERE workspace_id IS NULL AND owner_id IS NOT NULL', r.table_name);
+    END IF;
+    -- (b) user_id → resolve
+    IF 'user_id' = ANY(v_cols) THEN
+      EXECUTE format(
+        'UPDATE public.%I SET workspace_id = public.resolve_user_workspace(user_id)
+           WHERE workspace_id IS NULL AND user_id IS NOT NULL', r.table_name);
+    END IF;
+    -- (c) parent FK derivation (best-effort: try common parent columns)
+    FOR v_parent IN
+      SELECT 'funnels'::text AS parent_table, 'funnel_id'::text AS fk WHERE 'funnel_id' = ANY(v_cols)
+      UNION ALL SELECT 'landing_pages','landing_page_id' WHERE 'landing_page_id' = ANY(v_cols)
+      UNION ALL SELECT 'live_sessions','session_id'      WHERE 'session_id'      = ANY(v_cols) AND r.table_name LIKE 'live_%'
+      UNION ALL SELECT 'live_sessions','live_session_id' WHERE 'live_session_id' = ANY(v_cols)
+      UNION ALL SELECT 'video_assets','video_id'         WHERE 'video_id'        = ANY(v_cols)
+      UNION ALL SELECT 'whatsapp_automations','automation_id' WHERE 'automation_id' = ANY(v_cols)
+    LOOP
+      EXECUTE format(
+        'UPDATE public.%I c SET workspace_id = p.workspace_id
+           FROM public.%I p WHERE c.%I = p.id AND c.workspace_id IS NULL',
+        r.table_name, v_parent.parent_table, v_parent.fk);
+    END LOOP;
+    -- (d) legacy safety net
+    EXECUTE format(
+      'UPDATE public.%I SET workspace_id = public.legacy_workspace_id() WHERE workspace_id IS NULL',
+      r.table_name);
+  END LOOP;
+END $$;
+
+------------------------------------------------------------------------
+-- 0b. Sanity checks
+------------------------------------------------------------------------
+
 DO $$
 DECLARE
   _legacy uuid;
