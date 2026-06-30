@@ -3,6 +3,7 @@ import { DashboardLayout } from "./DashboardLayout";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { LayoutDashboard, Video, Users, UserCheck, CreditCard, Cog, MessageSquare, Layers, IndianRupee, Globe } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SafeIcon } from "@/components/SafeIcon";
 
 const adminTabs = [
   { icon: LayoutDashboard, label: "Overview", path: "/admin" },
@@ -43,8 +44,8 @@ export const AdminLayout = ({ children }: { children: React.ReactNode }) => {
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <tab.icon size={16} className="shrink-0 sm:hidden" />
-                  <tab.icon size={18} className="hidden shrink-0 sm:block" />
+                  <SafeIcon icon={tab.icon} size={16} className="shrink-0 sm:hidden" />
+                  <SafeIcon icon={tab.icon} size={18} className="hidden shrink-0 sm:block" />
                   <span>{tab.label}</span>
                 </Link>
               );

@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useLocation,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
@@ -169,6 +170,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const { tenant } = Route.useLoaderData();
+  const location = useLocation();
 
 
   // Force-unregister stale Service Workers from a previous app version.
@@ -246,7 +248,7 @@ function RootComponent() {
           <AuthProvider>
             <CurrencyProvider>
               <ConfirmDialogProvider>
-                <ErrorBoundary>
+                <ErrorBoundary resetKey={`${location.pathname}${location.searchStr}`}>
                   <Outlet />
                 </ErrorBoundary>
                 <Toaster />

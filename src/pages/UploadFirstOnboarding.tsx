@@ -6,6 +6,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { Upload, Link2, BarChart3, Play, Sparkles, ArrowRight } from "lucide-react";
+import { SafeIcon } from "@/components/SafeIcon";
 
 const UploadFirstOnboarding = () => {
   useDocumentTitle("Upload your first video");
@@ -59,7 +60,7 @@ const UploadFirstOnboarding = () => {
             <div key={s.title} className="rounded-2xl border border-border bg-card/40 p-4">
               <div className="mb-2 flex items-center gap-2">
                 <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <s.icon size={14} />
+                  <SafeIcon icon={s.icon} size={14} />
                 </div>
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Step {i + 1}
