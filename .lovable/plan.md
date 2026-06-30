@@ -1,147 +1,116 @@
+## Goal
 
-# NevorAI White-Label Multi-Tenant Refactor — Master Plan
+Two things in one production-ready pass:
 
-## Decisions Locked In (from your answers + written rules)
+1. Stop the **"Something went wrong"** card from appearing on every page in production.
+2. Replace the self-serve **Workspace** concept with admin-managed **Applications** — only you (admin) can create one, assign it to a single user, and give it a subdomain like `client-name.nevorai.com`. The assigned user only sees their own Application.
 
-| Decision | Choice |
-|---|---|
-| Tenancy scope | Every user lives in a workspace from day 1 (full SaaS isolation) |
-| Workspace vs team | Workspace sits **above** teams (1 workspace → many teams → many users) |
-| Session scope | Subdomain-isolated Supabase sessions |
-| Wildcard hosting | Cloudflare Worker proxy in front of `nevorai.lovable.app` |
-| Tenant resolver | `Host` header → `workspaces.slug` lookup (cached) |
-| Reserved subdomain | `nevorai.com` / `flow.nevorai.com` / `www` → "marketing/legacy" workspace |
+---
 
-## Non-Negotiable Invariants (carried through every phase)
+## Part 1 — Why every page is currently broken (root cause)
 
-1. Every existing module (Auth, CRM, Calling, Follow-ups, Landing Pages, Funnels, Videos, Live, Tracking, Analytics, Dashboard, Notifications, AI, Admin) keeps working at the end of each phase.
-2. Every migration is reversible. Every new column is `nullable` in the migration that adds it; flipped to `NOT NULL` only in a later migration once backfill is verified.
-3. RLS is never weakened. A policy can only be replaced by an equal-or-stricter one, in the same migration, behind a feature flag.
-4. No phase merges until: build green, RLS smoke tests pass, manual spot-check on 5 existing flows.
-5. One codebase, one deployment, one Supabase project.
+What happened after the migrations:
 
-## Phases (each phase = one delivery + one stop-and-verify cycle)
+- `phase3_split_and_swap.sql` **dropped every owner-only RLS policy** on every table that has a `workspace_id` column (this includes `profiles`, `user_subscriptions`, `funnels`, `videos`, `notifications`, etc.) and replaced them with **`same_workspace_as(workspace_id)`** policies.
+- Those policies only return rows where the row's `workspace_id` matches one of the caller's `workspace_members` rows.
+- Phase 3 also created a per-owner workspace for every user and backfilled their data. In theory this should keep everything working.
+- In practice the failure mode is one of three things — all caused by Phase 3 + the new client code, and all fixable in one migration + one client patch:
+  1. Some users / rows ended up with `workspace_id = legacy` (the splitter logs but does not fix this) → `same_workspace_as(legacy)` returns `false` → reads come back empty AND certain `.single()` callers in the app treat "no row" as an exception.
+  2. The new `WorkspaceBrandingApplier` and `WorkspaceSwitcher` mount on every dashboard page and call `workspace_branding` / `workspace_members` queries that throw if the user has no membership row (e.g. brand-new signups where the membership trigger missed).
+  3. The current `ErrorBoundary` swallows the real message, so every distinct cause shows the same generic card — masking the actual issue from us and from you.
 
-### Phase 0 — Foundation (no behaviour change) ← START HERE
+**Fix strategy for Part 1**
 
-Goal: introduce the `workspaces` concept in the DB and a `TenantProvider` in the app, **without changing any existing query or RLS policy yet**. After this phase the app behaves identically; we've only added scaffolding.
+1. **Diagnostic boundary already added** — surfaces the real error message in dev so we never have to guess again. Already in code; will be deployed.
+2. **One repair migration** (`phaseR_repair.sql`) — idempotent:
+   - Sweep every `workspace_id` column and re-point any rows still on `legacy` to the owner/user's primary workspace (or, when that fails, to a freshly minted workspace for them).
+   - Guarantee every `auth.users` row has a `workspaces` row AND a `workspace_members` row with role `owner`. Use a backfill + a trigger on `auth.users` insert so future signups can't end up without a workspace.
+   - Ensure the `same_workspace_as` function returns `true` for service-role calls (it already does via `SECURITY DEFINER`, but verify the GRANTs explicitly).
+   - Grants double-checked on `workspaces`, `workspace_members`, `workspace_branding`.
+3. **Client guards** (no behavior change for working users):
+   - `useWorkspaces`, `useActiveWorkspace`, `useWorkspaceBranding` already return safe empties on error — verify nothing throws synchronously when `workspace_members` is empty.
+   - `WorkspaceBrandingApplier` and `WorkspaceSwitcher` short-circuit when there's no active workspace (already true; will add a defensive `try/catch` around the `document.title` mutation just to be safe).
+   - `useAuth.fetchProfile` will tolerate `null` / RLS-blocked profile rows instead of leaving `profile` undefined in a way that downstream code assumes.
+4. **Verification**: after the migration, visit Dashboard, Funnels, Funnel Detail, Videos, Insights, Billing, Profile, Workspace Members, Branding, Settings — all must render without the error card. I'll run Playwright against the preview as smoke-test.
 
-Deliverables:
-- Migration: `workspaces`, `workspace_members`, `workspace_branding` tables + indexes + GRANTs + RLS (members-can-read-own-workspace).
-- Migration: `reserved_subdomains` table seeded with `www, app, admin, api, mail, static, cdn, flow, nflow, ncall, nevorai, support, help, docs, blog, status, auth, login, signup, billing, public, assets, internal`.
-- Security-definer fn `public.is_workspace_member(_ws uuid)` and `public.current_workspace_id()` (reads a request-scoped GUC; returns NULL for now).
-- Server fn `resolveTenant({ host })` → `{ workspace, branding } | null`, with in-memory LRU + 60s TTL.
-- React `TenantProvider` reading from a public TanStack server route `/api/public/tenant/resolve` (host-based, no auth required, anon RLS).
-- `useTenant()` hook returning `{ workspace, branding, isFallback }`. Returns the "legacy" workspace on `nevorai.com` / `flow.nevorai.com` / `lovable.app` so existing code paths see a stable workspace_id from day one.
-- Backfill migration: create one "legacy" workspace (slug = `legacy`, status = `active`) and one `workspace_members` row for every existing `auth.users` user (role = `owner` or `member` depending on existing team role).
-- No table outside of the four new ones is touched. No existing query changes. No RLS on any existing table is modified.
+---
 
-End-of-phase verification (I run, you confirm):
-- `select count(*) from workspaces` = 1 (`legacy`)
-- `select count(*) from workspace_members` = `count(*) from auth.users`
-- All existing pages load, login works, funnel viewer works, tracking still fires, admin still loads.
-- New `/api/public/tenant/resolve?host=flow.nevorai.com` returns the legacy workspace.
+## Part 2 — Restructure into admin-managed Applications
 
-Risks: low. Worst case: drop the 4 new tables, no rollback complexity.
+Your model in plain terms:
 
-### Phase 1 — Tenant column rollout (additive, dual-read)
+- One "Application" = one client's dedicated website (their own subdomain, branding, content silo).
+- **Only the platform admin (you) creates an Application** from the Admin Panel.
+- An Application is assigned to exactly one user (the "owner client"). That user logs in and only sees their Application — no switcher, no "create new workspace" button.
+- The Application's URL is `<slug>.nevorai.com` (plus optional custom domain later).
 
-For every tenant table (funnels, landing_pages, video_assets, live_sessions, leads, crm_*, follow_ups, tracking_*, notifications_*, nev_ai_usage, academy_*, team_*, etc. — exhaustive list compiled from a schema scan in Phase 0):
+Concretely:
 
-- Add `workspace_id uuid` (nullable) with FK to `workspaces(id)`.
-- Backfill: every existing row → `legacy` workspace.
-- Add composite indexes `(workspace_id, <existing hot column>)` for every hot path.
-- Add a **shadow RLS policy** (additive, not replacing) that allows access when `workspace_id` matches `current_workspace_id()` GUC OR existing policy passes. This is a temporary OR-bridge; lets us deploy without breaking anything.
-- Add a Postgres trigger that auto-fills `workspace_id` from `auth.uid()`'s default workspace on INSERT if NULL.
-- App layer: `supabase` client wrapper injects `set_config('app.workspace_id', ...)` per request via PostgREST `headers` (uses Supabase's `request.jwt.claims`-style GUC pattern through a custom JWT claim added at sign-in).
+### Data model changes
 
-Verification: same regression suite as Phase 0 + cross-tenant probe test (create workspace B, prove user from A cannot see B's rows even though RLS isn't yet strict).
+- Reuse the existing `workspaces` table but treat it as the Applications table. No table rename (rename would break every existing query); we rename in the UI only.
+- Lock down `workspaces` policies:
+  - Regular users: **cannot INSERT/UPDATE/DELETE** workspaces (read-only to ones they're a member of).
+  - Only `service_role` and users with `has_role(auth.uid(),'admin')` can INSERT/UPDATE/DELETE.
+- `workspace_members`: admin-only INSERT/DELETE. Owner of an Application can still view the membership row.
+- Remove "invite teammate" flow from regular users (the `workspace_invitations` table stays in the schema but the UI is hidden — admin manages assignment instead).
 
-### Phase 2 — RLS hardening (strict mode, behind feature flag)
+### Admin Panel — new "Applications" section
 
-- Per-tenant table: replace shadow policies with strict `is_workspace_member(workspace_id)` policies.
-- Flip `workspace_id` to `NOT NULL` (now safe — backfill done in Phase 1).
-- Drop the OR-bridge. Old per-user policies remain only where they're correct intersections (e.g., `auth.uid() = owner_id AND is_workspace_member(workspace_id)`).
-- All server functions audited: any `supabaseAdmin` write that touches a tenant table must now pass `workspace_id` explicitly.
-- Admin Panel gets a workspace switcher (admin role bypasses `is_workspace_member` via a separate `is_platform_admin()` predicate).
+Route: `/admin/applications` (gated by `useAdmin`).
 
-Verification: automated RLS test suite (one Vitest file per tenant table) that signs in as user_A in workspace_A and asserts 0 rows visible from workspace_B.
+Features:
+- **List**: name, slug (subdomain), assigned user (email + name), plan, status, created.
+- **Create Application** modal:
+  - Name
+  - Slug (validated — lowercase, 3–40 chars, regex, not in reserved list `["admin","api","app","auth","www","nevorai","flow","nflow","launchpad","ncall"]`, unique).
+  - Assign to user (searchable user picker — searches `profiles` by email/full_name).
+  - Plan (free / basic / pro).
+  - Optional initial branding (app name, primary color).
+- **Edit Application**: rename, change slug, change plan, change status (active/suspended), transfer to another user.
+- **Delete Application** (soft-delete via `deleted_at`).
+- After Create: the assigned user, on next login, sees only that Application. Their app loads at `<slug>.nevorai.com` (already supported by `getCurrentTenant` host resolution in `tenant.functions.ts`).
 
-### Phase 3 — Tenant routing & branding UI
+### Regular user experience changes
 
-- Cloudflare Worker script (delivered as a file + step-by-step deploy runbook you run in your CF dashboard — I cannot deploy it for you):
-  - Matches `*.nevorai.com`
-  - Sets `x-forwarded-host: <subdomain>.nevorai.com`
-  - Proxies to `nevorai.lovable.app`
-  - Strips/rewrites cookies so each subdomain has its own jar
-- DNS: wildcard `*.nevorai.com` CNAME → Worker (you do this in CF).
-- App: `resolveTenant` switches from "always legacy" to actual host → workspace lookup. Legacy hosts still resolve to legacy workspace.
-- Dynamic favicon, page title, theme color, primary/secondary CSS variables driven by `workspace_branding`.
-- Landing pages, funnel public viewer, lead form, all email templates pick up workspace branding.
-- Local dev: `?tenant=missionmanager` query param overrides host for testing without DNS.
+- **Sidebar**: remove "Workspace Settings", "Members", "Branding" links for non-admin users. They auto-belong to one Application and don't manage it.
+- **Workspace Switcher**: hidden for users with exactly one Application (already the case). For users with more than one (rare — multi-app clients), keep the switcher but rename the chip to "Application".
+- **Branding** stays editable by the owner client on their own Application via a single "Branding" page inside their app (kept, just relabeled "Site Branding").
+- **Invite/members** UI removed for non-admins. Admins manage assignment from `/admin/applications`.
 
-Verification: deploy a test workspace `mm.nevorai.com`, confirm full visual swap end-to-end; legacy `flow.nevorai.com` unchanged.
+### Wording
 
-### Phase 4 — PWA & installability per workspace
+- "Workspace" → "Application" everywhere in user-facing copy.
+- "Workspace Settings" → "Site Settings".
+- "Workspace Members" page → removed from user nav (admins use `/admin/applications`).
+- "Workspace Branding" → "Site Branding".
 
-- `/manifest.webmanifest` becomes a server route, returns workspace-specific JSON.
-- Per-workspace icon set generated on logo upload (R2, 192/256/384/512 + maskable + apple-touch).
-- `<link rel="manifest">`, `<meta name="theme-color">`, `<link rel="apple-touch-icon">` all driven by tenant.
-- Document install-time caching caveat in admin UI ("renaming subdomain requires reinstall").
+### Subdomain wiring
 
-### Phase 5 — Admin & customer workspace management
+- Already handled server-side: `getCurrentTenant` resolves `<slug>.nevorai.com` to the workspace row. We just have to make sure:
+  - The admin Create flow writes the slug correctly.
+  - The DNS wildcard `*.nevorai.com` is pointed at the app (one-time Cloudflare task on your side — I'll surface this as a checklist item in the admin panel, not auto-configure DNS).
+  - The "Open site" button in the Admin list copies/opens `https://<slug>.nevorai.com`.
 
-- Admin panel: create / approve / suspend / delete workspace, upload branding, assign plan, assign features, impersonate.
-- Customer: workspace settings page — name, logo, primary/secondary colors, favicon, subdomain availability check (Postgres unique + reserved-list check), email-from name.
-- Subdomain takeover guard: deleting a workspace marks `slug` as tombstoned for 90 days.
-- Graceful error pages for: unknown host, suspended workspace, expired subscription, deleted workspace.
+---
 
-### Phase 6 — Hardening, observability, decommissioning bridges
+## Part 3 — Order of work
 
-- Drop any remaining OR-bridge policies left for safety.
-- Add audit log `workspace_audit_events`.
-- Add per-workspace rate limiting on public endpoints.
-- Cross-tenant leak fuzz tests in CI.
-- Performance pass: `EXPLAIN ANALYZE` on top 20 queries, add missing indexes.
-- Update `.lovable/plan.md` with final architecture diagram.
+1. Ship the diagnostic ErrorBoundary (already in code) + this plan.
+2. Write `phaseR_repair.sql` — you run it in Supabase SQL editor. I'll output the exact SQL and a verify query you can paste to confirm zero broken rows.
+3. After you confirm the repair migration succeeds, harden the client guards and remove the legacy "Workspace Members / Settings / Branding" links from the user sidebar.
+4. Write `phaseA_applications.sql` — admin-only RLS lockdown on `workspaces` / `workspace_members`, reserved-slug enforcement, trigger to ensure every new `auth.users` row gets a workspace.
+5. Build the Admin Panel "Applications" page (list / create / edit / delete / transfer).
+6. Rename UI strings ("Workspace" → "Application" / "Site").
+7. Playwright smoke test across all major pages + admin panel.
+8. Single closing message with what to run, what changed, and how to test.
 
-## Technical Section (for engineering reference)
+---
 
-**Tenant resolution flow**
-```text
-Browser → CF Worker (*.nevorai.com)
-       → sets x-forwarded-host
-       → nevorai.lovable.app (Lovable origin)
-       → __root.tsx server-side loader calls /api/public/tenant/resolve
-       → returns { workspace_id, slug, branding }
-       → TenantProvider hydrates client
-       → Supabase client wrapper attaches workspace_id to JWT claim on sign-in
-       → Postgres RLS reads claim via current_workspace_id()
-```
+## What I need from you to start
 
-**Tables added in Phase 0**
-- `workspaces (id, slug unique, name, status, plan, owner_user_id, created_at, deleted_at)`
-- `workspace_branding (workspace_id pk/fk, logo_url, favicon_url, primary_color, secondary_color, theme_color, app_name, email_from_name, updated_at)`
-- `workspace_members (workspace_id, user_id, role enum[owner|admin|member|viewer], pk(workspace_id,user_id))`
-- `reserved_subdomains (slug pk, reason)`
+Just one yes/no:
 
-**Files added in Phase 0**
-- `supabase/migrations/<ts>_phase0_workspaces.sql`
-- `src/lib/tenant.functions.ts` (`resolveTenant`)
-- `src/routes/api/public/tenant/resolve.ts`
-- `src/contexts/TenantProvider.tsx`
-- `src/hooks/useTenant.ts`
+- **Confirm the model**: each Application has exactly **one** owner client (not "1 owner + many members"). If you want owner + optional teammates in the future, say so now and I'll keep the `workspace_members` table as the join (just hide invites from the regular UI).
 
-**No files modified in Phase 0** except `src/routes/__root.tsx` (wrap children in `<TenantProvider>`).
-
-## What I need from you to start Phase 0
-
-Just say "go phase 0". I'll execute it, run the verification queries, post the diff summary, and stop. We do not start Phase 1 until you confirm Phase 0 is stable in production.
-
-## What you will need to do yourself (cannot be done from inside Lovable)
-
-- **Phase 3**: Deploy the Cloudflare Worker + add wildcard DNS in your CF dashboard. I'll give you the exact Worker script + click-by-click runbook.
-- **Phase 3**: Issue/confirm Universal SSL covers `*.nevorai.com` (free, automatic in CF; just need to verify).
-- **Phase 4**: Approve the per-workspace icon storage bucket policy on first run.
-
-Everything else (DB, app, RLS, server functions, UI) I handle inside Lovable.
+Reply "go" and I will start with Step 2 (the repair migration). Reply with the answer to the question above if you want owner+team rather than strictly one-user-per-app.
