@@ -67,51 +67,9 @@ $$;
 ------------------------------------------------------------------------
 -- 2. Create per-owner workspaces + membership
 ------------------------------------------------------------------------
--- Collect every user that owns at least one tenant row.
-DO $$
-DECLARE
-  r          record;
-  v_owners   uuid[] := ARRAY[]::uuid[];
-  v_uid      uuid;
-  v_slug     text;
-  v_base     text;
-  v_name     text;
-  v_n        int;
-  v_ws_id    uuid;
-  v_legacy   uuid := public.legacy_workspace_id();
-BEGIN
-  -- Gather distinct owner_id / user_id across every tenant table
-  FOR r IN
-    SELECT c.table_name, c.column_name
-      FROM information_schema.columns c
-     WHERE c.table_schema='public'
-       AND c.column_name IN ('owner_id','user_id')
-       AND EXISTS (
-         SELECT 1 FROM information_schema.columns c2
-          WHERE c2.table_schema='public' AND c2.table_name=c.table_name
-            AND c2.column_name='workspace_id')
-       AND c.table_name NOT IN ('workspaces','workspace_members','workspace_branding','user_roles')
-  LOOP
-    EXECUTE format(
-      'SELECT array_agg(DISTINCT %I) FROM public.%I WHERE %I IS NOT NULL',
-      r.column_name, r.table_name, r.column_name)
-      INTO v_owners
-      USING;  -- no params
-    -- merge into running set by re-querying; simpler: union into temp table
-    IF v_owners IS NOT NULL THEN
-      INSERT INTO pg_temp._owners(uid)
-      SELECT unnest(v_owners) ON CONFLICT DO NOTHING;
-    END IF;
-  END LOOP;
-EXCEPTION WHEN undefined_table THEN
-  -- first iteration: create temp table and retry
-  CREATE TEMP TABLE _owners(uid uuid PRIMARY KEY);
-  -- re-run by recursive call (simplest: raise notice and re-execute block)
-  RAISE NOTICE 'retrying owner collection with temp table';
-END $$;
-
--- Robust second pass (temp table guaranteed to exist now)
+-- Collect every user that owns at least one tenant row into a temp table.
 CREATE TEMP TABLE IF NOT EXISTS _owners(uid uuid PRIMARY KEY);
+
 
 DO $$
 DECLARE r record; v_owners uuid[];
