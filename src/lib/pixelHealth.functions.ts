@@ -137,6 +137,11 @@ export const getPixelHealth = createServerFn({ method: "POST" })
         is_test: r.is_test,
       })),
     };
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[getPixelHealth] failed:", err);
+      return EMPTY_HEALTH();
+    }
   });
 
 // ===== Verifier: poll for a test run's events =====
