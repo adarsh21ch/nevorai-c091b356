@@ -252,9 +252,9 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
 
       {/* Sparkline */}
       <div>
-        <div className="text-[10px] text-muted-foreground mb-1">Last 7 days · {data.last7d.total} events</div>
+        <div className="text-[10px] text-muted-foreground mb-1">Last 7 days · {last7d.total} events</div>
         <div className="flex items-end gap-1 h-10">
-          {data.sparkline.map((d) => (
+          {sparkline.map((d) => (
             <div key={d.day} className="flex-1 flex flex-col items-center gap-0.5">
               <div
                 className="w-full bg-primary/60 rounded-sm transition-all"
