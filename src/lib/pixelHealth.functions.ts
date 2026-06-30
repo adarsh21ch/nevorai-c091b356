@@ -25,10 +25,26 @@ export type PixelHealthResult = {
   recent: Array<{ event_name: string; success: boolean; created_at: string; pixel_id: string | null; is_test: boolean }>;
 };
 
+const EMPTY_HEALTH = (): PixelHealthResult => ({
+  status: "unknown",
+  resolvedPixelId: null,
+  resolvedSource: "platform",
+  last24h: { pageViews: 0, leads: 0, total: 0, successRate: 0 },
+  last7d: { total: 0 },
+  lastEventAt: null,
+  lastEventName: null,
+  sparkline: Array.from({ length: 7 }, (_, i) => ({
+    day: new Date(Date.now() - (6 - i) * 86_400_000).toISOString().slice(0, 10),
+    count: 0,
+  })),
+  recent: [],
+});
+
 export const getPixelHealth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => HealthInput.parse(input))
   .handler(async ({ data, context }): Promise<PixelHealthResult> => {
+    try {
     const { scope, resourceId } = data;
     const table = scope === "funnel" ? "funnels" : "landing_pages";
 
