@@ -24,6 +24,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { PlanFeatureBadge } from "@/components/PlanFeatureBadge";
 // SupportFAB removed from global mount — moved to Profile page
 import { useRouter } from "@tanstack/react-router";
+import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
