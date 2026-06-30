@@ -157,9 +157,18 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
     );
   }
 
-  const meta = STATUS_META[data.status];
+  // Defensive: if the server ever returns a status string the client bundle
+  // doesn't know about (e.g. an older cached query result after a deploy, or
+  // a new status added on the server but not yet shipped to this client),
+  // fall back to "unknown" instead of crashing the entire page.
+  const meta = STATUS_META[data.status] ?? STATUS_META.unknown;
+  if (!STATUS_META[data.status]) {
+    // Log so we can spot the unexpected status in production console.
+    // eslint-disable-next-line no-console
+    console.warn("[PixelHealthCard] Unknown pixel health status:", data.status, data);
+  }
   const StatusIcon = meta.icon;
-  const sparkMax = Math.max(1, ...data.sparkline.map((d) => d.count));
+  const sparkMax = Math.max(1, ...(data.sparkline ?? []).map((d) => d.count));
 
   return (
     <div className="glass-card p-5 space-y-4">
