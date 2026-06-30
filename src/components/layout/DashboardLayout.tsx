@@ -25,6 +25,7 @@ import { PlanFeatureBadge } from "@/components/PlanFeatureBadge";
 // SupportFAB removed from global mount — moved to Profile page
 import { useRouter } from "@tanstack/react-router";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
+import { WorkspaceBrandingApplier } from "@/components/WorkspaceBrandingApplier";
 
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -135,6 +136,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
 
   return (
     <div className="h-screen w-full max-w-full overflow-hidden bg-background">
+      <WorkspaceBrandingApplier />
       <div className="flex h-full w-full max-w-full overflow-hidden">
         <aside className={cn(
           "hidden h-full flex-col border-r border-border bg-sidebar transition-all duration-200 lg:flex",

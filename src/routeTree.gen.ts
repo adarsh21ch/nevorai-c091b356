@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkspaceBrandingRouteImport } from './routes/workspace-branding'
 import { Route as WhatsappTestRouteImport } from './routes/whatsapp-test'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as VerifyWhatsappRouteImport } from './routes/verify-whatsapp'
@@ -104,6 +105,11 @@ import { Route as ApiPublicCapiFireRouteImport } from './routes/api/public/capi/
 import { Route as ApiPublicCapiDrainRouteImport } from './routes/api/public/capi/drain'
 import { Route as ApiAdminWhatsappMessagesLeadIdRouteImport } from './routes/api/admin/whatsapp-messages/$leadId'
 
+const WorkspaceBrandingRoute = WorkspaceBrandingRouteImport.update({
+  id: '/workspace-branding',
+  path: '/workspace-branding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WhatsappTestRoute = WhatsappTestRouteImport.update({
   id: '/whatsapp-test',
   path: '/whatsapp-test',
@@ -660,6 +666,7 @@ export interface FileRoutesByFullPath {
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
+  '/workspace-branding': typeof WorkspaceBrandingRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -756,6 +763,7 @@ export interface FileRoutesByTo {
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
+  '/workspace-branding': typeof WorkspaceBrandingRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -851,6 +859,7 @@ export interface FileRoutesById {
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
+  '/workspace-branding': typeof WorkspaceBrandingRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -949,6 +958,7 @@ export interface FileRouteTypes {
     | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
+    | '/workspace-branding'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1045,6 +1055,7 @@ export interface FileRouteTypes {
     | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
+    | '/workspace-branding'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1139,6 +1150,7 @@ export interface FileRouteTypes {
     | '/verify-whatsapp'
     | '/videos'
     | '/whatsapp-test'
+    | '/workspace-branding'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1236,6 +1248,7 @@ export interface RootRouteChildren {
   VerifyWhatsappRoute: typeof VerifyWhatsappRoute
   VideosRoute: typeof VideosRouteWithChildren
   WhatsappTestRoute: typeof WhatsappTestRoute
+  WorkspaceBrandingRoute: typeof WorkspaceBrandingRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
@@ -1281,6 +1294,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workspace-branding': {
+      id: '/workspace-branding'
+      path: '/workspace-branding'
+      fullPath: '/workspace-branding'
+      preLoaderRoute: typeof WorkspaceBrandingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/whatsapp-test': {
       id: '/whatsapp-test'
       path: '/whatsapp-test'
@@ -2082,6 +2102,7 @@ const rootRouteChildren: RootRouteChildren = {
   VerifyWhatsappRoute: VerifyWhatsappRoute,
   VideosRoute: VideosRouteWithChildren,
   WhatsappTestRoute: WhatsappTestRoute,
+  WorkspaceBrandingRoute: WorkspaceBrandingRoute,
   AdminKycRoute: AdminKycRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminRevenueRoute: AdminRevenueRoute,
