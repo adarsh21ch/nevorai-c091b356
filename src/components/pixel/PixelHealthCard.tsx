@@ -267,10 +267,10 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
       </div>
 
       {/* Recent events */}
-      {data.recent.length > 0 ? (
+      {recent.length > 0 ? (
         <div className="space-y-1 border-t border-border pt-3">
           <div className="text-[10px] text-muted-foreground mb-1">Recent events</div>
-          {data.recent.map((r, i) => (
+          {recent.map((r, i) => (
             <div key={i} className="flex items-center justify-between text-[11px] gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
                 {r.success ? (
