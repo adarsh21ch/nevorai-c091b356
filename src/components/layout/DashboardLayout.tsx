@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
   User, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Crown, GraduationCap, Home, Wrench, Activity,
-  GitBranch, Layout, Sparkles, Users, Target,
+  GitBranch, Layout, Sparkles, Users, Target, Palette, Settings, UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -228,6 +228,9 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
 
           <div className="shrink-0 space-y-1 border-t border-border px-2 py-4">
             <WorkspaceSwitcher collapsed={collapsed} />
+            {renderNavItem({ icon: Settings, label: "Workspace Settings", path: "/workspace-settings" })}
+            {renderNavItem({ icon: UserPlus, label: "Members", path: "/workspace-members" })}
+            {renderNavItem({ icon: Palette, label: "Branding", path: "/workspace-branding" })}
             {bottomItems.map((item) => renderNavItem(item))}
             <button
               onClick={handleLogout}
