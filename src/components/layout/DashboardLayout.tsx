@@ -26,6 +26,7 @@ import { PlanFeatureBadge } from "@/components/PlanFeatureBadge";
 import { useRouter } from "@tanstack/react-router";
 import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { WorkspaceBrandingApplier } from "@/components/WorkspaceBrandingApplier";
+import { SafeIcon } from "@/components/SafeIcon";
 
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -103,7 +104,8 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
   // on hover/focus which is sufficient and avoids hammering the network.
 
 
-  const renderNavItem = (item: typeof navItems[0], matchExact = false) => {
+  const renderNavItem = (item: typeof navItems[0] | undefined, matchExact = false) => {
+    if (!item) return null;
     const active = matchExact ? location.pathname === item.path : location.pathname.startsWith(item.path);
     const isNotif = item.path === "/notifications";
     return (
@@ -120,7 +122,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
         )}
         style={active ? { borderLeftColor: "var(--accent-saffron)" } : undefined}
       >
-        <item.icon size={18} />
+        <SafeIcon icon={item.icon} size={18} />
         {!collapsed && <span>{item.label}</span>}
         {isNotif && unreadCount > 0 && (
           <span className={cn(
@@ -193,7 +195,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
                               )}
                               style={subActive ? { color: "var(--accent-saffron)" } : undefined}
                             >
-                              <sub.icon size={14} />
+                              <SafeIcon icon={sub.icon} size={14} />
                               <span className="flex-1">{sub.label}</span>
                               <PlanFeatureBadge feature={sub.feature} />
                             </Link>
@@ -306,7 +308,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
                     active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <item.icon size={20} strokeWidth={active ? 2.5 : 1.8} />
+                  <SafeIcon icon={item.icon} size={20} strokeWidth={active ? 2.5 : 1.8} />
                   <span className="truncate">{item.label}</span>
                 </TLink>
               );
