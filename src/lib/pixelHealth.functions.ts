@@ -25,10 +25,26 @@ export type PixelHealthResult = {
   recent: Array<{ event_name: string; success: boolean; created_at: string; pixel_id: string | null; is_test: boolean }>;
 };
 
+const EMPTY_HEALTH = (): PixelHealthResult => ({
+  status: "unknown",
+  resolvedPixelId: null,
+  resolvedSource: "platform",
+  last24h: { pageViews: 0, leads: 0, total: 0, successRate: 0 },
+  last7d: { total: 0 },
+  lastEventAt: null,
+  lastEventName: null,
+  sparkline: Array.from({ length: 7 }, (_, i) => ({
+    day: new Date(Date.now() - (6 - i) * 86_400_000).toISOString().slice(0, 10),
+    count: 0,
+  })),
+  recent: [],
+});
+
 export const getPixelHealth = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => HealthInput.parse(input))
   .handler(async ({ data, context }): Promise<PixelHealthResult> => {
+    try {
     const { scope, resourceId } = data;
     const table = scope === "funnel" ? "funnels" : "landing_pages";
 
@@ -39,7 +55,8 @@ export const getPixelHealth = createServerFn({ method: "POST" })
       .eq("id", resourceId)
       .maybeSingle();
     if (!row || (row as any).owner_id !== (context as any).userId) {
-      throw new Error("Not allowed");
+      // Not the owner (or row missing) — return empty rather than 500ing.
+      return EMPTY_HEALTH();
     }
 
     let resolvedPixelId: string | null = (row as any)?.meta_pixel_id ?? null;
@@ -120,6 +137,11 @@ export const getPixelHealth = createServerFn({ method: "POST" })
         is_test: r.is_test,
       })),
     };
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[getPixelHealth] failed:", err);
+      return EMPTY_HEALTH();
+    }
   });
 
 // ===== Verifier: poll for a test run's events =====
