@@ -55,7 +55,8 @@ export const getPixelHealth = createServerFn({ method: "POST" })
       .eq("id", resourceId)
       .maybeSingle();
     if (!row || (row as any).owner_id !== (context as any).userId) {
-      throw new Error("Not allowed");
+      // Not the owner (or row missing) — return empty rather than 500ing.
+      return EMPTY_HEALTH();
     }
 
     let resolvedPixelId: string | null = (row as any)?.meta_pixel_id ?? null;
