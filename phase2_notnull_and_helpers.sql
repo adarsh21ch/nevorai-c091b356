@@ -80,7 +80,7 @@ BEGIN
     FOR v_parent IN
       SELECT 'funnels'::text AS parent_table, 'funnel_id'::text AS fk WHERE 'funnel_id' = ANY(v_cols)
       UNION ALL SELECT 'landing_pages','landing_page_id' WHERE 'landing_page_id' = ANY(v_cols)
-      UNION ALL SELECT 'live_sessions','session_id'      WHERE 'session_id'      = ANY(v_cols) AND r.table_name LIKE 'live_%'
+      UNION ALL SELECT 'live_sessions','session_id'      WHERE 'session_id'      = ANY(v_cols) AND r.table_name LIKE 'live_%' AND NOT ('live_session_id' = ANY(v_cols))
       UNION ALL SELECT 'live_sessions','live_session_id' WHERE 'live_session_id' = ANY(v_cols)
       UNION ALL SELECT 'video_assets','video_id'         WHERE 'video_id'        = ANY(v_cols)
       UNION ALL SELECT 'whatsapp_automations','automation_id' WHERE 'automation_id' = ANY(v_cols)
