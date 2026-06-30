@@ -238,10 +238,10 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-2">
         {[
-          { label: "PageViews", value: data.last24h.pageViews },
-          { label: "Leads", value: data.last24h.leads },
-          { label: "Success", value: `${data.last24h.successRate}%` },
-          { label: "Total 24h", value: data.last24h.total },
+          { label: "PageViews", value: last24h.pageViews },
+          { label: "Leads", value: last24h.leads },
+          { label: "Success", value: `${last24h.successRate}%` },
+          { label: "Total 24h", value: last24h.total },
         ].map((k) => (
           <div key={k.label} className="bg-muted/40 rounded-lg p-2.5 text-center">
             <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{k.label}</div>
