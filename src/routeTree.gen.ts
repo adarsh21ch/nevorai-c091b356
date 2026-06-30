@@ -9,6 +9,8 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WorkspaceSettingsRouteImport } from './routes/workspace-settings'
+import { Route as WorkspaceMembersRouteImport } from './routes/workspace-members'
 import { Route as WorkspaceBrandingRouteImport } from './routes/workspace-branding'
 import { Route as WhatsappTestRouteImport } from './routes/whatsapp-test'
 import { Route as VideosRouteImport } from './routes/videos'
@@ -52,6 +54,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as LandingPagesIndexRouteImport } from './routes/landing-pages.index'
 import { Route as FunnelsIndexRouteImport } from './routes/funnels.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as WorkspaceInviteTokenRouteImport } from './routes/workspace-invite.$token'
 import { Route as VideosIdRouteImport } from './routes/videos.$id'
 import { Route as VIdRouteImport } from './routes/v.$id'
 import { Route as UseCasesRealEstateRouteImport } from './routes/use-cases.real-estate'
@@ -105,6 +108,16 @@ import { Route as ApiPublicCapiFireRouteImport } from './routes/api/public/capi/
 import { Route as ApiPublicCapiDrainRouteImport } from './routes/api/public/capi/drain'
 import { Route as ApiAdminWhatsappMessagesLeadIdRouteImport } from './routes/api/admin/whatsapp-messages/$leadId'
 
+const WorkspaceSettingsRoute = WorkspaceSettingsRouteImport.update({
+  id: '/workspace-settings',
+  path: '/workspace-settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WorkspaceMembersRoute = WorkspaceMembersRouteImport.update({
+  id: '/workspace-members',
+  path: '/workspace-members',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const WorkspaceBrandingRoute = WorkspaceBrandingRouteImport.update({
   id: '/workspace-branding',
   path: '/workspace-branding',
@@ -326,6 +339,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/admin.index.lazy').then((d) => d.Route))
+const WorkspaceInviteTokenRoute = WorkspaceInviteTokenRouteImport.update({
+  id: '/workspace-invite/$token',
+  path: '/workspace-invite/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const VideosIdRoute = VideosIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -667,6 +685,8 @@ export interface FileRoutesByFullPath {
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
   '/workspace-branding': typeof WorkspaceBrandingRoute
+  '/workspace-members': typeof WorkspaceMembersRoute
+  '/workspace-settings': typeof WorkspaceSettingsRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -697,6 +717,7 @@ export interface FileRoutesByFullPath {
   '/use-cases/real-estate': typeof UseCasesRealEstateRoute
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
+  '/workspace-invite/$token': typeof WorkspaceInviteTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/funnels/': typeof FunnelsIndexRoute
   '/landing-pages/': typeof LandingPagesIndexRoute
@@ -764,6 +785,8 @@ export interface FileRoutesByTo {
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
   '/workspace-branding': typeof WorkspaceBrandingRoute
+  '/workspace-members': typeof WorkspaceMembersRoute
+  '/workspace-settings': typeof WorkspaceSettingsRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -792,6 +815,7 @@ export interface FileRoutesByTo {
   '/use-cases/real-estate': typeof UseCasesRealEstateRoute
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
+  '/workspace-invite/$token': typeof WorkspaceInviteTokenRoute
   '/admin': typeof AdminIndexRoute
   '/funnels': typeof FunnelsIndexRoute
   '/landing-pages': typeof LandingPagesIndexRoute
@@ -860,6 +884,8 @@ export interface FileRoutesById {
   '/videos': typeof VideosRouteWithChildren
   '/whatsapp-test': typeof WhatsappTestRoute
   '/workspace-branding': typeof WorkspaceBrandingRoute
+  '/workspace-members': typeof WorkspaceMembersRoute
+  '/workspace-settings': typeof WorkspaceSettingsRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
@@ -890,6 +916,7 @@ export interface FileRoutesById {
   '/use-cases/real-estate': typeof UseCasesRealEstateRoute
   '/v/$id': typeof VIdRoute
   '/videos/$id': typeof VideosIdRoute
+  '/workspace-invite/$token': typeof WorkspaceInviteTokenRoute
   '/admin/': typeof AdminIndexRoute
   '/funnels/': typeof FunnelsIndexRoute
   '/landing-pages/': typeof LandingPagesIndexRoute
@@ -959,6 +986,8 @@ export interface FileRouteTypes {
     | '/videos'
     | '/whatsapp-test'
     | '/workspace-branding'
+    | '/workspace-members'
+    | '/workspace-settings'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -989,6 +1018,7 @@ export interface FileRouteTypes {
     | '/use-cases/real-estate'
     | '/v/$id'
     | '/videos/$id'
+    | '/workspace-invite/$token'
     | '/admin/'
     | '/funnels/'
     | '/landing-pages/'
@@ -1056,6 +1086,8 @@ export interface FileRouteTypes {
     | '/videos'
     | '/whatsapp-test'
     | '/workspace-branding'
+    | '/workspace-members'
+    | '/workspace-settings'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1084,6 +1116,7 @@ export interface FileRouteTypes {
     | '/use-cases/real-estate'
     | '/v/$id'
     | '/videos/$id'
+    | '/workspace-invite/$token'
     | '/admin'
     | '/funnels'
     | '/landing-pages'
@@ -1151,6 +1184,8 @@ export interface FileRouteTypes {
     | '/videos'
     | '/whatsapp-test'
     | '/workspace-branding'
+    | '/workspace-members'
+    | '/workspace-settings'
     | '/academy/$id'
     | '/admin/kyc'
     | '/admin/plans'
@@ -1181,6 +1216,7 @@ export interface FileRouteTypes {
     | '/use-cases/real-estate'
     | '/v/$id'
     | '/videos/$id'
+    | '/workspace-invite/$token'
     | '/admin/'
     | '/funnels/'
     | '/landing-pages/'
@@ -1249,6 +1285,8 @@ export interface RootRouteChildren {
   VideosRoute: typeof VideosRouteWithChildren
   WhatsappTestRoute: typeof WhatsappTestRoute
   WorkspaceBrandingRoute: typeof WorkspaceBrandingRoute
+  WorkspaceMembersRoute: typeof WorkspaceMembersRoute
+  WorkspaceSettingsRoute: typeof WorkspaceSettingsRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
@@ -1274,6 +1312,7 @@ export interface RootRouteChildren {
   UseCasesNetworkMarketingRoute: typeof UseCasesNetworkMarketingRoute
   UseCasesRealEstateRoute: typeof UseCasesRealEstateRoute
   VIdRoute: typeof VIdRoute
+  WorkspaceInviteTokenRoute: typeof WorkspaceInviteTokenRoute
   AdminIndexRoute: typeof AdminIndexRoute
   FunnelsIndexRoute: typeof FunnelsIndexRoute
   LandingPagesIndexRoute: typeof LandingPagesIndexRoute
@@ -1294,6 +1333,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/workspace-settings': {
+      id: '/workspace-settings'
+      path: '/workspace-settings'
+      fullPath: '/workspace-settings'
+      preLoaderRoute: typeof WorkspaceSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspace-members': {
+      id: '/workspace-members'
+      path: '/workspace-members'
+      fullPath: '/workspace-members'
+      preLoaderRoute: typeof WorkspaceMembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/workspace-branding': {
       id: '/workspace-branding'
       path: '/workspace-branding'
@@ -1593,6 +1646,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/workspace-invite/$token': {
+      id: '/workspace-invite/$token'
+      path: '/workspace-invite/$token'
+      fullPath: '/workspace-invite/$token'
+      preLoaderRoute: typeof WorkspaceInviteTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/videos/$id': {
@@ -2103,6 +2163,8 @@ const rootRouteChildren: RootRouteChildren = {
   VideosRoute: VideosRouteWithChildren,
   WhatsappTestRoute: WhatsappTestRoute,
   WorkspaceBrandingRoute: WorkspaceBrandingRoute,
+  WorkspaceMembersRoute: WorkspaceMembersRoute,
+  WorkspaceSettingsRoute: WorkspaceSettingsRoute,
   AdminKycRoute: AdminKycRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminRevenueRoute: AdminRevenueRoute,
@@ -2128,6 +2190,7 @@ const rootRouteChildren: RootRouteChildren = {
   UseCasesNetworkMarketingRoute: UseCasesNetworkMarketingRoute,
   UseCasesRealEstateRoute: UseCasesRealEstateRoute,
   VIdRoute: VIdRoute,
+  WorkspaceInviteTokenRoute: WorkspaceInviteTokenRoute,
   AdminIndexRoute: AdminIndexRoute,
   FunnelsIndexRoute: FunnelsIndexRoute,
   LandingPagesIndexRoute: LandingPagesIndexRoute,
