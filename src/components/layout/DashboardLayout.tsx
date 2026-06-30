@@ -24,6 +24,7 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { PlanFeatureBadge } from "@/components/PlanFeatureBadge";
 // SupportFAB removed from global mount — moved to Profile page
 import { useRouter } from "@tanstack/react-router";
+import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
@@ -224,6 +225,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
           </nav>
 
           <div className="shrink-0 space-y-1 border-t border-border px-2 py-4">
+            <WorkspaceSwitcher collapsed={collapsed} />
             {bottomItems.map((item) => renderNavItem(item))}
             <button
               onClick={handleLogout}
