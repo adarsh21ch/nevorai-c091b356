@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  useLocation,
 } from "@tanstack/react-router";
 import { Toaster } from "@/components/ui/sonner";
 import { ConfirmDialogProvider } from "@/components/ui/confirm-dialog";
@@ -13,6 +14,8 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { CurrencyProvider } from "@/hooks/useCurrency";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { TenantProvider } from "@/contexts/TenantProvider";
+import { getCurrentTenant, type ResolvedTenant } from "@/lib/tenant.functions";
 import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
@@ -75,6 +78,19 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // Phase 0: resolve the current workspace from the request host. The result
+  // is purely informational right now — TenantProvider exposes it via
+  // useTenant() but nothing in the app reads it yet. Failures (e.g. the
+  // workspaces table doesn't exist before the migration runs) return null
+  // and the app behaves exactly as before.
+  loader: async (): Promise<{ tenant: ResolvedTenant | null }> => {
+    try {
+      const tenant = await getCurrentTenant();
+      return { tenant: tenant ?? null };
+    } catch {
+      return { tenant: null };
+    }
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -153,6 +169,9 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { tenant } = Route.useLoaderData();
+  const location = useLocation();
+
 
   // Force-unregister stale Service Workers from a previous app version.
   // Old SWs intercept navigation and serve a cached shell that doesn't know
@@ -224,18 +243,20 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <CurrencyProvider>
-            <ConfirmDialogProvider>
-              <ErrorBoundary>
-                <Outlet />
-              </ErrorBoundary>
-              <Toaster />
-            </ConfirmDialogProvider>
-          </CurrencyProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <TenantProvider tenant={tenant}>
+        <ThemeProvider>
+          <AuthProvider>
+            <CurrencyProvider>
+              <ConfirmDialogProvider>
+                <ErrorBoundary resetKey={`${location.pathname}${location.searchStr}`}>
+                  <Outlet />
+                </ErrorBoundary>
+                <Toaster />
+              </ConfirmDialogProvider>
+            </CurrencyProvider>
+          </AuthProvider>
+        </ThemeProvider>
+      </TenantProvider>
     </QueryClientProvider>
   );
 }
