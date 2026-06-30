@@ -224,6 +224,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
           </nav>
 
           <div className="shrink-0 space-y-1 border-t border-border px-2 py-4">
+            <WorkspaceSwitcher collapsed={collapsed} />
             {bottomItems.map((item) => renderNavItem(item))}
             <button
               onClick={handleLogout}
