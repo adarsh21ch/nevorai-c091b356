@@ -136,6 +136,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
 
   return (
     <div className="h-screen w-full max-w-full overflow-hidden bg-background">
+      <WorkspaceBrandingApplier />
       <div className="flex h-full w-full max-w-full overflow-hidden">
         <aside className={cn(
           "hidden h-full flex-col border-r border-border bg-sidebar transition-all duration-200 lg:flex",
