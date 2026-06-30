@@ -1,116 +1,74 @@
-## Goal
+# Tracking system hardening — Phase 3
 
-Two things in one production-ready pass:
+You picked all four. I'll ship them in one consolidated migration + a focused code pass. Order matters: encryption first (so the retry queue stores ciphertext from day one), then dedupe reconciliation, then queue, then verification UI.
 
-1. Stop the **"Something went wrong"** card from appearing on every page in production.
-2. Replace the self-serve **Workspace** concept with admin-managed **Applications** — only you (admin) can create one, assign it to a single user, and give it a subdomain like `client-name.nevorai.com`. The assigned user only sees their own Application.
+## 1. New migration: `tracking_phase3_migration.sql`
 
----
+Single file you paste into Supabase SQL editor. Idempotent. Contains:
 
-## Part 1 — Why every page is currently broken (root cause)
+**a) Encrypt `tracking_accounts.access_token` at rest (pgsodium)**
+- Enable `pgsodium` extension.
+- Add `access_token_encrypted bytea` + `access_token_key_id uuid`.
+- Backfill: encrypt existing plaintext rows, then `access_token = NULL`.
+- Rewrite `upsert_my_tracking_account` to encrypt on write.
+- Rewrite `resolve_capi_config_for_resource` + add `read_my_capi_token_for_test` to decrypt only inside SECURITY DEFINER, returning plaintext to the server caller (never to the browser).
+- Drop the raw `access_token` column at the end (kept during backfill for safety).
 
-What happened after the migrations:
+**b) `capi_fire_queue` retry table**
+- Columns: `id, owner_id, pixel_id, scope, resource_id, event_name, event_id, payload jsonb, attempts int, next_attempt_at timestamptz, last_error text, status ('pending'|'sent'|'dead'), created_at`.
+- Index on `(status, next_attempt_at)` for the worker.
+- RPC `enqueue_capi_fire(...)` and `claim_capi_fires(_limit int)` for the worker (FOR UPDATE SKIP LOCKED).
+- GRANTs: writes via service_role only; no anon/authenticated.
 
-- `phase3_split_and_swap.sql` **dropped every owner-only RLS policy** on every table that has a `workspace_id` column (this includes `profiles`, `user_subscriptions`, `funnels`, `videos`, `notifications`, etc.) and replaced them with **`same_workspace_as(workspace_id)`** policies.
-- Those policies only return rows where the row's `workspace_id` matches one of the caller's `workspace_members` rows.
-- Phase 3 also created a per-owner workspace for every user and backfilled their data. In theory this should keep everything working.
-- In practice the failure mode is one of three things — all caused by Phase 3 + the new client code, and all fixable in one migration + one client patch:
-  1. Some users / rows ended up with `workspace_id = legacy` (the splitter logs but does not fix this) → `same_workspace_as(legacy)` returns `false` → reads come back empty AND certain `.single()` callers in the app treat "no row" as an exception.
-  2. The new `WorkspaceBrandingApplier` and `WorkspaceSwitcher` mount on every dashboard page and call `workspace_branding` / `workspace_members` queries that throw if the user has no membership row (e.g. brand-new signups where the membership trigger missed).
-  3. The current `ErrorBoundary` swallows the real message, so every distinct cause shows the same generic card — masking the actual issue from us and from you.
+**c) Mark platform CAPI deprecated**
+- Comment on `pixel_fire_log` describing the reconciled model (see §2).
 
-**Fix strategy for Part 1**
+## 2. Reconcile the two CAPI paths
 
-1. **Diagnostic boundary already added** — surfaces the real error message in dev so we never have to guess again. Already in code; will be deployed.
-2. **One repair migration** (`phaseR_repair.sql`) — idempotent:
-   - Sweep every `workspace_id` column and re-point any rows still on `legacy` to the owner/user's primary workspace (or, when that fails, to a freshly minted workspace for them).
-   - Guarantee every `auth.users` row has a `workspaces` row AND a `workspace_members` row with role `owner`. Use a backfill + a trigger on `auth.users` insert so future signups can't end up without a workspace.
-   - Ensure the `same_workspace_as` function returns `true` for service-role calls (it already does via `SECURITY DEFINER`, but verify the GRANTs explicitly).
-   - Grants double-checked on `workspaces`, `workspace_members`, `workspace_branding`.
-3. **Client guards** (no behavior change for working users):
-   - `useWorkspaces`, `useActiveWorkspace`, `useWorkspaceBranding` already return safe empties on error — verify nothing throws synchronously when `workspace_members` is empty.
-   - `WorkspaceBrandingApplier` and `WorkspaceSwitcher` short-circuit when there's no active workspace (already true; will add a defensive `try/catch` around the `document.title` mutation just to be safe).
-   - `useAuth.fetchProfile` will tolerate `null` / RLS-blocked profile rows instead of leaving `profile` undefined in a way that downstream code assumes.
-4. **Verification**: after the migration, visit Dashboard, Funnels, Funnel Detail, Videos, Insights, Billing, Profile, Workspace Members, Branding, Settings — all must render without the error card. I'll run Playwright against the preview as smoke-test.
+**Decision: creator-CAPI (`/api/public/capi/fire`) is canonical for funnel/landing events.** Platform CAPI (`/api/public/pixel/track`) stays ONLY for platform-app events (signup, Purchase on billing, etc.) fired against the Nevorai pixel — never against creator pixels.
 
----
+Code changes:
+- `src/lib/pixel.ts`: when `pixelId` is set, NEVER mirror to platform `/track` (today it skips, but the comment is ambiguous — tighten the condition + add a guard log).
+- `src/routes/api/public/pixel/track.ts`: reject requests that include a `pixel_id` field with 400 `wrong_endpoint`.
+- Document the split at the top of both route files.
 
-## Part 2 — Restructure into admin-managed Applications
+Result: every event has exactly one server fire, sharing `event_id` with the browser for Meta dedupe.
 
-Your model in plain terms:
+## 3. Retry queue worker
 
-- One "Application" = one client's dedicated website (their own subdomain, branding, content silo).
-- **Only the platform admin (you) creates an Application** from the Admin Panel.
-- An Application is assigned to exactly one user (the "owner client"). That user logs in and only sees their Application — no switcher, no "create new workspace" button.
-- The Application's URL is `<slug>.nevorai.com` (plus optional custom domain later).
+- New server route `src/routes/api/public/capi/drain.ts` (POST, secret-gated via `CAPI_DRAIN_SECRET`) — claims up to 50 pending rows, re-POSTs to Meta, marks sent/failed. Exponential backoff: 1m, 5m, 30m, 2h, 12h, then `dead`.
+- Modify `capi/fire.ts`: on non-2xx or fetch error, `enqueue_capi_fire(...)` instead of swallowing.
+- Provide a `pg_cron` snippet at the bottom of the migration to hit `/api/public/capi/drain` every minute (commented — user copies into Supabase Dashboard → Database → Cron).
 
-Concretely:
+## 4. /tracking verification panel
 
-### Data model changes
+Upgrade the existing test-event card on `TrackingPage.tsx`:
+- Show the last 5 fires from `pixel_fire_log` (filtered to the user) with: time, event_name, success/✗, `fbtrace_id`, latency.
+- Show queue depth from `capi_fire_queue` (pending / dead counts).
+- "Send test event" already exists — extend response panel to show `events_received`, `fbtrace_id`, `test_event_code` status, and a copy-to-clipboard button for the full Graph response.
+- Add a "How to verify in Meta Events Manager" inline help (3 steps).
 
-- Reuse the existing `workspaces` table but treat it as the Applications table. No table rename (rename would break every existing query); we rename in the UI only.
-- Lock down `workspaces` policies:
-  - Regular users: **cannot INSERT/UPDATE/DELETE** workspaces (read-only to ones they're a member of).
-  - Only `service_role` and users with `has_role(auth.uid(),'admin')` can INSERT/UPDATE/DELETE.
-- `workspace_members`: admin-only INSERT/DELETE. Owner of an Application can still view the membership row.
-- Remove "invite teammate" flow from regular users (the `workspace_invitations` table stays in the schema but the UI is hidden — admin manages assignment instead).
+New server fn `getMyCapiDiagnostics` in `trackingAccount.functions.ts` returns `{ recent_fires, queue_pending, queue_dead, has_test_code }`.
 
-### Admin Panel — new "Applications" section
+## 5. Files I will touch
 
-Route: `/admin/applications` (gated by `useAdmin`).
+Create:
+- `tracking_phase3_migration.sql`
+- `src/routes/api/public/capi/drain.ts`
 
-Features:
-- **List**: name, slug (subdomain), assigned user (email + name), plan, status, created.
-- **Create Application** modal:
-  - Name
-  - Slug (validated — lowercase, 3–40 chars, regex, not in reserved list `["admin","api","app","auth","www","nevorai","flow","nflow","launchpad","ncall"]`, unique).
-  - Assign to user (searchable user picker — searches `profiles` by email/full_name).
-  - Plan (free / basic / pro).
-  - Optional initial branding (app name, primary color).
-- **Edit Application**: rename, change slug, change plan, change status (active/suspended), transfer to another user.
-- **Delete Application** (soft-delete via `deleted_at`).
-- After Create: the assigned user, on next login, sees only that Application. Their app loads at `<slug>.nevorai.com` (already supported by `getCurrentTenant` host resolution in `tenant.functions.ts`).
+Edit:
+- `src/lib/trackingAccount.functions.ts` — use new RPCs, add `getMyCapiDiagnostics`
+- `src/routes/api/public/capi/fire.ts` — decrypt via RPC, enqueue on failure
+- `src/routes/api/public/pixel/track.ts` — reject creator-pixel requests
+- `src/lib/pixel.ts` — tighten platform-mirror guard
+- `src/pages/TrackingPage.tsx` — verification panel
 
-### Regular user experience changes
+Secrets I'll request via `add_secret` after the migration: `CAPI_DRAIN_SECRET` (random, for the cron hitting `/api/public/capi/drain`).
 
-- **Sidebar**: remove "Workspace Settings", "Members", "Branding" links for non-admin users. They auto-belong to one Application and don't manage it.
-- **Workspace Switcher**: hidden for users with exactly one Application (already the case). For users with more than one (rare — multi-app clients), keep the switcher but rename the chip to "Application".
-- **Branding** stays editable by the owner client on their own Application via a single "Branding" page inside their app (kept, just relabeled "Site Branding").
-- **Invite/members** UI removed for non-admins. Admins manage assignment from `/admin/applications`.
+## 6. What you do
 
-### Wording
+1. Open Supabase SQL editor → paste `tracking_phase3_migration.sql` → run. It's idempotent so re-running is safe.
+2. After I land the code, I'll prompt for `CAPI_DRAIN_SECRET` (random 32-char) and give you the one-line `pg_cron` snippet.
+3. Paste a real Meta access token + `test_event_code` into `/tracking`, click Send test event, confirm `events_received: 1` in the panel and a hit in Meta Events Manager → Test Events.
 
-- "Workspace" → "Application" everywhere in user-facing copy.
-- "Workspace Settings" → "Site Settings".
-- "Workspace Members" page → removed from user nav (admins use `/admin/applications`).
-- "Workspace Branding" → "Site Branding".
-
-### Subdomain wiring
-
-- Already handled server-side: `getCurrentTenant` resolves `<slug>.nevorai.com` to the workspace row. We just have to make sure:
-  - The admin Create flow writes the slug correctly.
-  - The DNS wildcard `*.nevorai.com` is pointed at the app (one-time Cloudflare task on your side — I'll surface this as a checklist item in the admin panel, not auto-configure DNS).
-  - The "Open site" button in the Admin list copies/opens `https://<slug>.nevorai.com`.
-
----
-
-## Part 3 — Order of work
-
-1. Ship the diagnostic ErrorBoundary (already in code) + this plan.
-2. Write `phaseR_repair.sql` — you run it in Supabase SQL editor. I'll output the exact SQL and a verify query you can paste to confirm zero broken rows.
-3. After you confirm the repair migration succeeds, harden the client guards and remove the legacy "Workspace Members / Settings / Branding" links from the user sidebar.
-4. Write `phaseA_applications.sql` — admin-only RLS lockdown on `workspaces` / `workspace_members`, reserved-slug enforcement, trigger to ensure every new `auth.users` row gets a workspace.
-5. Build the Admin Panel "Applications" page (list / create / edit / delete / transfer).
-6. Rename UI strings ("Workspace" → "Application" / "Site").
-7. Playwright smoke test across all major pages + admin panel.
-8. Single closing message with what to run, what changed, and how to test.
-
----
-
-## What I need from you to start
-
-Just one yes/no:
-
-- **Confirm the model**: each Application has exactly **one** owner client (not "1 owner + many members"). If you want owner + optional teammates in the future, say so now and I'll keep the `workspace_members` table as the join (just hide invites from the regular UI).
-
-Reply "go" and I will start with Step 2 (the repair migration). Reply with the answer to the question above if you want owner+team rather than strictly one-user-per-app.
+Want me to execute this plan now?

@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { SafeIcon } from "@/components/SafeIcon";
 
 type DashboardSummary = {
   funnels: Array<{
@@ -157,7 +156,7 @@ function DashboardPage() {
               className={`group flex flex-col gap-1.5 rounded-xl border border-border bg-card/60 p-3 transition-all hover:border-primary/40 ${accentClass[s.color]}`}
             >
               <div className="flex items-center gap-2">
-                <SafeIcon icon={s.icon} size={13} className={iconClass[s.color]} />
+                <s.icon size={13} className={iconClass[s.color]} />
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
               </div>
               <div className="text-xl font-heading font-bold leading-none">{s.value}</div>
