@@ -84,6 +84,7 @@ import { Route as AdminSettingsRouteImport } from './routes/admin.settings'
 import { Route as AdminRevenueRouteImport } from './routes/admin.revenue'
 import { Route as AdminPlansRouteImport } from './routes/admin.plans'
 import { Route as AdminKycRouteImport } from './routes/admin.kyc'
+import { Route as AdminApplicationsRouteImport } from './routes/admin.applications'
 import { Route as AcademyIdRouteImport } from './routes/academy.$id'
 import { Route as LandingPagesIdIndexRouteImport } from './routes/landing-pages.$id.index'
 import { Route as FunnelsIdIndexRouteImport } from './routes/funnels.$id.index'
@@ -505,6 +506,13 @@ const AdminKycRoute = AdminKycRouteImport.update({
   path: '/admin/kyc',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/admin.kyc.lazy').then((d) => d.Route))
+const AdminApplicationsRoute = AdminApplicationsRouteImport.update({
+  id: '/admin/applications',
+  path: '/admin/applications',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() =>
+  import('./routes/admin.applications.lazy').then((d) => d.Route),
+)
 const AcademyIdRoute = AcademyIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -688,6 +696,7 @@ export interface FileRoutesByFullPath {
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
   '/academy/$id': typeof AcademyIdRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -788,6 +797,7 @@ export interface FileRoutesByTo {
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
   '/academy/$id': typeof AcademyIdRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -887,6 +897,7 @@ export interface FileRoutesById {
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
   '/academy/$id': typeof AcademyIdRoute
+  '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
   '/admin/plans': typeof AdminPlansRoute
   '/admin/revenue': typeof AdminRevenueRoute
@@ -989,6 +1000,7 @@ export interface FileRouteTypes {
     | '/workspace-members'
     | '/workspace-settings'
     | '/academy/$id'
+    | '/admin/applications'
     | '/admin/kyc'
     | '/admin/plans'
     | '/admin/revenue'
@@ -1089,6 +1101,7 @@ export interface FileRouteTypes {
     | '/workspace-members'
     | '/workspace-settings'
     | '/academy/$id'
+    | '/admin/applications'
     | '/admin/kyc'
     | '/admin/plans'
     | '/admin/revenue'
@@ -1187,6 +1200,7 @@ export interface FileRouteTypes {
     | '/workspace-members'
     | '/workspace-settings'
     | '/academy/$id'
+    | '/admin/applications'
     | '/admin/kyc'
     | '/admin/plans'
     | '/admin/revenue'
@@ -1287,6 +1301,7 @@ export interface RootRouteChildren {
   WorkspaceBrandingRoute: typeof WorkspaceBrandingRoute
   WorkspaceMembersRoute: typeof WorkspaceMembersRoute
   WorkspaceSettingsRoute: typeof WorkspaceSettingsRoute
+  AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminPlansRoute: typeof AdminPlansRoute
   AdminRevenueRoute: typeof AdminRevenueRoute
@@ -1858,6 +1873,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminKycRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/applications': {
+      id: '/admin/applications'
+      path: '/admin/applications'
+      fullPath: '/admin/applications'
+      preLoaderRoute: typeof AdminApplicationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/academy/$id': {
       id: '/academy/$id'
       path: '/$id'
@@ -2165,6 +2187,7 @@ const rootRouteChildren: RootRouteChildren = {
   WorkspaceBrandingRoute: WorkspaceBrandingRoute,
   WorkspaceMembersRoute: WorkspaceMembersRoute,
   WorkspaceSettingsRoute: WorkspaceSettingsRoute,
+  AdminApplicationsRoute: AdminApplicationsRoute,
   AdminKycRoute: AdminKycRoute,
   AdminPlansRoute: AdminPlansRoute,
   AdminRevenueRoute: AdminRevenueRoute,
