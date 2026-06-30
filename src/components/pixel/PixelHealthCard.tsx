@@ -168,7 +168,13 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
     console.warn("[PixelHealthCard] Unknown pixel health status:", data.status, data);
   }
   const StatusIcon = meta.icon;
-  const sparkMax = Math.max(1, ...(data.sparkline ?? []).map((d) => d.count));
+  // Defensive defaults — an old cached payload (pre-deploy) or a partial server
+  // response may be missing these nested objects. Never let the dashboard crash.
+  const last24h = data.last24h ?? { pageViews: 0, leads: 0, total: 0, successRate: 0 };
+  const last7d = data.last7d ?? { total: 0 };
+  const sparkline = data.sparkline ?? [];
+  const recent = data.recent ?? [];
+  const sparkMax = Math.max(1, ...sparkline.map((d) => d.count));
 
   return (
     <div className="glass-card p-5 space-y-4">
