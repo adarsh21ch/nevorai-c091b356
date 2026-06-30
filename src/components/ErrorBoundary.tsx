@@ -1,7 +1,7 @@
 import { Component, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 
-interface Props { children: ReactNode; }
+interface Props { children: ReactNode; resetKey?: string; }
 interface State { hasError: boolean; error: Error | null; info: string | null; }
 
 /**
@@ -11,6 +11,12 @@ interface State { hasError: boolean; error: Error | null; info: string | null; }
  */
 export class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, error: null, info: null };
+
+  componentDidUpdate(prevProps: Props) {
+    if (this.state.hasError && prevProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false, error: null, info: null });
+    }
+  }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error, info: null };
