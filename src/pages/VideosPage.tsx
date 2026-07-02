@@ -547,9 +547,9 @@ const VideosPage = () => {
                       <DropdownMenuItem onSelect={() => navigate({ to: "/leads" })}>
                         <Users size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
-                      {v._source === "own" && isReady && !(v as any).thumbnail_url && (
-                        <DropdownMenuItem onSelect={() => generateThumbnail(v as any)}>
-                          <RefreshCw size={13} className="mr-2" /> Generate Thumbnail
+                      {v._source === "own" && isReady && (
+                        <DropdownMenuItem onSelect={() => regenerateThumbnail(v as any)}>
+                          <RefreshCw size={13} className="mr-2" /> Regenerate Thumbnail
                         </DropdownMenuItem>
                       )}
                       {v._source === "own" && isFailed && (
