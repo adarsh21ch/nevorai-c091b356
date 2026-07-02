@@ -196,20 +196,55 @@ const VideosPage = () => {
     else { toast.success("Retry queued"); invalidateVideos(); }
   };
 
-  const generateThumbnail = async (v: { id: string; public_url?: string | null; playback_url?: string | null }) => {
+  const regenerateThumbnail = async (v: { id: string; public_url?: string | null; playback_url?: string | null }) => {
     const src = (v as any).public_url || (v as any).playback_url || null;
     if (!src) { toast.error("No video URL available yet"); return; }
-    const t = toast.loading("Generating thumbnail…");
+    const t = toast.loading("Regenerating thumbnail…");
     const { uploadVideoThumbnailFromSource } = await import("@/lib/videoThumbnail");
     const url = await uploadVideoThumbnailFromSource(v.id, src as string);
     toast.dismiss(t);
     if (url) {
-      toast.success("Thumbnail generated!");
+      toast.success("Thumbnail updated!");
       invalidateVideos();
     } else {
-      toast.error("Couldn't capture a frame from this video. Try re-uploading.");
+      toast.error("Couldn't capture a frame from this video.");
     }
   };
+
+  // Silent background backfill: generate missing thumbnails one at a time.
+  const backfilledRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!user?.id || isLoading) return;
+    const missing = ownVideos.filter(
+      (v: any) =>
+        v.status === "ready" &&
+        !v.thumbnail_url &&
+        (v.public_url || v.playback_url) &&
+        !backfilledRef.current.has(v.id),
+    );
+    if (!missing.length) return;
+    let cancelled = false;
+    (async () => {
+      const { uploadVideoThumbnailFromSource } = await import("@/lib/videoThumbnail");
+      for (const v of missing) {
+        if (cancelled) return;
+        backfilledRef.current.add(v.id);
+        const src = (v as any).public_url || (v as any).playback_url;
+        try {
+          const url = await uploadVideoThumbnailFromSource(v.id, src);
+          if (url && !cancelled) {
+            queryClient.setQueryData(["videos", user.id], (old: any) =>
+              Array.isArray(old)
+                ? old.map((x) => (x.id === v.id ? { ...x, thumbnail_url: url } : x))
+                : old,
+            );
+          }
+        } catch { /* silent */ }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [ownVideos, user?.id, isLoading, queryClient]);
+
 
   function invalidateVideos() {
     queryClient.invalidateQueries({ queryKey: ["videos"] });
