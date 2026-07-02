@@ -1,12 +1,10 @@
 /**
- * Video thumbnail helpers.
+ * Video thumbnail helpers with smart frame picking.
  *
- * - `captureFirstFrame` / `captureFirstFrameDataUrl` — legacy small-JPEG helpers
- *   kept for callers that only need an in-memory data URL.
- * - `captureVideoFrameBlob` — captures a 1280x720 cover-fit JPEG blob from a
- *   File or a public URL, suitable for uploading to storage.
- * - `uploadVideoThumbnailFromSource` — captures + uploads to Supabase Storage
- *   and updates `video_assets.thumbnail_url`. Silent-fails to null.
+ * `captureVideoFrameBlob` picks a non-black frame by sampling brightness and
+ * seeking forward through candidate timestamps if the first pick is dark.
+ * `uploadVideoThumbnailFromSource` captures + uploads to Supabase Storage and
+ * updates `video_assets.thumbnail_url`. Silent-fails to null.
  */
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,7 +12,9 @@ const OG_WIDTH = 1280;
 const OG_HEIGHT = 720;
 const THUMBNAIL_BUCKET = "landing-page-assets";
 const THUMBNAIL_PREFIX = "video-thumbnails";
+const BRIGHTNESS_MIN = 10; // avg luma below this is "near black"
 
+/** Legacy small-JPEG helper — kept for existing callers. */
 export async function captureFirstFrameDataUrl(
   file: File,
   opts: { maxWidth?: number; quality?: number } = {},
@@ -71,10 +71,31 @@ export async function captureFirstFrame(
   });
 }
 
+/** Compute average luma of a canvas (0-255). */
+function averageBrightness(ctx: CanvasRenderingContext2D, w: number, h: number): number {
+  try {
+    // Sample a downscaled slice for speed.
+    const step = Math.max(1, Math.floor((w * h) / 20000));
+    const data = ctx.getImageData(0, 0, w, h).data;
+    let sum = 0;
+    let count = 0;
+    for (let i = 0; i < data.length; i += 4 * step) {
+      // Rec.601 luma
+      sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+      count++;
+    }
+    return count ? sum / count : 0;
+  } catch {
+    // Tainted canvas or other read failure — treat as "bright enough" so we
+    // don't loop pointlessly.
+    return 255;
+  }
+}
+
 /**
  * Capture a 1280x720 cover-fit JPEG frame from a video source (File or URL).
- * Seeks to ~1s or 10% of duration, whichever is smaller.
- * Returns null on any failure (unsupported codec, iOS quirks, CORS on URL).
+ * Tries multiple timestamps and returns the first non-black frame; falls back
+ * to the brightest attempt if all are dark. Returns null on any failure.
  */
 export async function captureVideoFrameBlob(
   source: File | string,
@@ -88,61 +109,104 @@ export async function captureVideoFrameBlob(
     video.preload = "auto";
     video.muted = true;
     video.playsInline = true;
-    // Needed to draw a remote URL to canvas without tainting.
     if (typeof source === "string") video.crossOrigin = "anonymous";
 
     const objectUrl = typeof source !== "string" ? URL.createObjectURL(source) : null;
     const src = objectUrl ?? (source as string);
+
     let done = false;
+    let bestBlob: Blob | null = null;
+    let bestBrightness = -1;
+    let candidates: number[] = [];
+    let idx = 0;
+
     const finish = (blob: Blob | null) => {
       if (done) return;
       done = true;
       if (objectUrl) URL.revokeObjectURL(objectUrl);
       resolve(blob);
     };
-    // Safety timeout — some codecs never fire onseeked on iOS.
-    const timer = setTimeout(() => finish(null), 15000);
+    const timer = setTimeout(() => finish(bestBlob), 20000);
+
+    const canvas = document.createElement("canvas");
+    canvas.width = OG_WIDTH;
+    canvas.height = OG_HEIGHT;
+    const ctx = canvas.getContext("2d");
+
+    const tryNext = () => {
+      if (done) return;
+      if (!ctx || idx >= candidates.length) {
+        clearTimeout(timer);
+        finish(bestBlob);
+        return;
+      }
+      const t = candidates[idx++];
+      try {
+        video.currentTime = t;
+      } catch {
+        clearTimeout(timer);
+        finish(bestBlob);
+      }
+    };
 
     video.onloadedmetadata = () => {
-      try {
-        const target = Math.min(1, (video.duration || 10) * 0.1);
-        video.currentTime = Number.isFinite(target) && target > 0 ? target : 0.1;
-      } catch { clearTimeout(timer); finish(null); }
+      const dur = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
+      // Build up to 5 candidate timestamps.
+      const raw = [
+        1,
+        3,
+        5,
+        10,
+        dur ? dur * 0.1 : 0,
+        dur ? dur * 0.25 : 0,
+      ]
+        .filter((t) => t > 0 && (dur === 0 || t < dur))
+        .slice(0, 5);
+      candidates = raw.length ? raw : [0.5];
+      tryNext();
     };
+
     video.onseeked = () => {
+      if (done || !ctx) return;
       try {
         const vw = video.videoWidth || OG_WIDTH;
         const vh = video.videoHeight || OG_HEIGHT;
-        const canvas = document.createElement("canvas");
-        canvas.width = OG_WIDTH;
-        canvas.height = OG_HEIGHT;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) { clearTimeout(timer); finish(null); return; }
-        // Letterbox with cover-fit: fill entire canvas, crop overflow.
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, OG_WIDTH, OG_HEIGHT);
         const scale = Math.max(OG_WIDTH / vw, OG_HEIGHT / vh);
         const dw = vw * scale;
         const dh = vh * scale;
-        const dx = (OG_WIDTH - dw) / 2;
-        const dy = (OG_HEIGHT - dh) / 2;
-        ctx.drawImage(video, dx, dy, dw, dh);
+        ctx.drawImage(video, (OG_WIDTH - dw) / 2, (OG_HEIGHT - dh) / 2, dw, dh);
+        const brightness = averageBrightness(ctx, OG_WIDTH, OG_HEIGHT);
         canvas.toBlob(
-          (blob) => { clearTimeout(timer); finish(blob); },
+          (blob) => {
+            if (blob && brightness > bestBrightness) {
+              bestBlob = blob;
+              bestBrightness = brightness;
+            }
+            if (brightness >= BRIGHTNESS_MIN) {
+              clearTimeout(timer);
+              finish(bestBlob);
+            } else {
+              tryNext();
+            }
+          },
           "image/jpeg",
           quality,
         );
-      } catch { clearTimeout(timer); finish(null); }
+      } catch {
+        tryNext();
+      }
     };
-    video.onerror = () => { clearTimeout(timer); finish(null); };
+    video.onerror = () => { clearTimeout(timer); finish(bestBlob); };
     video.src = src;
   });
 }
 
 /**
  * Capture a frame from the given source, upload to Supabase Storage under
- * `video-thumbnails/{videoId}.jpg`, and persist `video_assets.thumbnail_url`.
- * Never throws — returns the public URL on success, null on any failure.
+ * `video-thumbnails/{videoId}.jpg`, and persist `video_assets.thumbnail_url`
+ * with a cache-buster. Never throws — returns the public URL or null.
  */
 export async function uploadVideoThumbnailFromSource(
   videoId: string,
@@ -163,8 +227,7 @@ export async function uploadVideoThumbnailFromSource(
     const { data } = supabase.storage.from(THUMBNAIL_BUCKET).getPublicUrl(path);
     const publicUrl = data?.publicUrl || null;
     if (!publicUrl) return null;
-    // Cache-bust so refreshed thumbnails show immediately.
-    const finalUrl = `${publicUrl}?v=${Date.now()}`;
+    const finalUrl = `${publicUrl}?t=${Date.now()}`;
     const { error: dbErr } = await supabase
       .from("video_assets")
       .update({ thumbnail_url: finalUrl })
