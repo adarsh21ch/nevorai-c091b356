@@ -196,6 +196,21 @@ const VideosPage = () => {
     else { toast.success("Retry queued"); invalidateVideos(); }
   };
 
+  const generateThumbnail = async (v: { id: string; public_url?: string | null; playback_url?: string | null }) => {
+    const src = (v as any).public_url || (v as any).playback_url || null;
+    if (!src) { toast.error("No video URL available yet"); return; }
+    const t = toast.loading("Generating thumbnail…");
+    const { uploadVideoThumbnailFromSource } = await import("@/lib/videoThumbnail");
+    const url = await uploadVideoThumbnailFromSource(v.id, src as string);
+    toast.dismiss(t);
+    if (url) {
+      toast.success("Thumbnail generated!");
+      invalidateVideos();
+    } else {
+      toast.error("Couldn't capture a frame from this video. Try re-uploading.");
+    }
+  };
+
   function invalidateVideos() {
     queryClient.invalidateQueries({ queryKey: ["videos"] });
     queryClient.invalidateQueries({ queryKey: ["shared-videos"] });
