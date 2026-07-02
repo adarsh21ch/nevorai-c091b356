@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-
-const SITE = "https://nevorai.com";
+import { buildOgMeta, genericNevoraiMeta, SITE } from "@/lib/ogMeta";
 
 type PublicFunnelMeta = {
   id: string;
@@ -9,6 +8,7 @@ type PublicFunnelMeta = {
   title: string | null;
   description: string | null;
   thumbnail_url: string | null;
+  first_video_thumb: string | null;
 } | null;
 
 export const Route = createFileRoute("/f/$slug/")({
@@ -21,6 +21,22 @@ export const Route = createFileRoute("/f/$slug/")({
         .eq("is_published", true)
         .maybeSingle();
       if (!data) return { funnel: null };
+
+      let firstVideoThumb: string | null = null;
+      if (!data.thumbnail_url) {
+        try {
+          const { data: steps } = await (supabase as any)
+            .from("funnel_steps")
+            .select("video_asset_id, step_order, video_assets:video_asset_id(thumbnail_url)")
+            .eq("funnel_id", data.id)
+            .not("video_asset_id", "is", null)
+            .order("step_order", { ascending: true })
+            .limit(1);
+          const step = Array.isArray(steps) ? steps[0] : null;
+          firstVideoThumb = step?.video_assets?.thumbnail_url ?? null;
+        } catch {}
+      }
+
       return {
         funnel: {
           id: data.id,
@@ -28,6 +44,7 @@ export const Route = createFileRoute("/f/$slug/")({
           title: data.title ?? null,
           description: data.description ?? null,
           thumbnail_url: data.thumbnail_url ?? null,
+          first_video_thumb: firstVideoThumb,
         },
       };
     } catch {
@@ -37,57 +54,12 @@ export const Route = createFileRoute("/f/$slug/")({
   head: ({ params, loaderData }) => {
     const f = loaderData?.funnel;
     const url = `${SITE}/f/${params.slug}`;
-    const defaultDesc =
-      "Watch on Nevorai — Same effort. Twice the conversion.";
-
-    if (!f) {
-      return {
-        meta: [
-          { title: "Funnel — Nevorai" },
-          { name: "description", content: defaultDesc },
-          { property: "og:title", content: "Funnel — Nevorai" },
-          { property: "og:description", content: defaultDesc },
-          { property: "og:url", content: url },
-          { property: "og:type", content: "website" },
-          { property: "og:site_name", content: "Nevorai" },
-          { name: "twitter:card", content: "summary_large_image" },
-        ],
-        links: [{ rel: "canonical", href: url }],
-      };
-    }
+    if (!f) return genericNevoraiMeta(url, "Funnel");
 
     const title = f.title ?? "Funnel";
-    const description = f.description?.trim() || defaultDesc;
-    const thumb = f.thumbnail_url || undefined;
+    const description = f.description?.trim() || "Watch this on Nevorai.";
+    const image = f.thumbnail_url || f.first_video_thumb || undefined;
 
-    const meta: Array<Record<string, string>> = [
-      { title: `${title} — Nevorai` },
-      { name: "description", content: description },
-      { property: "og:title", content: title },
-      { property: "og:description", content: description },
-      { property: "og:url", content: url },
-      { property: "og:type", content: "website" },
-      { property: "og:site_name", content: "Nevorai" },
-      { name: "twitter:title", content: title },
-      { name: "twitter:description", content: description },
-    ];
-
-    if (thumb) {
-      meta.push(
-        { property: "og:image", content: thumb },
-        { property: "og:image:secure_url", content: thumb },
-        { property: "og:image:width", content: "1280" },
-        { property: "og:image:height", content: "720" },
-        { name: "twitter:image", content: thumb },
-        { name: "twitter:card", content: "summary_large_image" },
-      );
-    } else {
-      meta.push({ name: "twitter:card", content: "summary" });
-    }
-
-    return {
-      meta,
-      links: [{ rel: "canonical", href: url }],
-    };
+    return buildOgMeta({ title, description, url, image });
   },
 });
