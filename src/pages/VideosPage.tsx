@@ -511,7 +511,11 @@ const VideosPage = () => {
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={() => navigate({ to: "/leads" })}>
                         <Users size={13} className="mr-2" /> View Insights
-                      </DropdownMenuItem>
+                      {v._source === "own" && isReady && !(v as any).thumbnail_url && (
+                        <DropdownMenuItem onSelect={() => generateThumbnail(v as any)}>
+                          <RefreshCw size={13} className="mr-2" /> Generate Thumbnail
+                        </DropdownMenuItem>
+                      )}
                       {v._source === "own" && isFailed && (
                         <DropdownMenuItem onSelect={() => retryFailed(v.id)}>
                           <RefreshCw size={13} className="mr-2" /> Retry Upload
