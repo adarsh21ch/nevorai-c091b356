@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Loader2, Settings, Play, MoreVertical, Users, FastForward, Youtube as YoutubeIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
