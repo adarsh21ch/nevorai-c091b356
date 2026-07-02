@@ -196,6 +196,21 @@ const VideosPage = () => {
     else { toast.success("Retry queued"); invalidateVideos(); }
   };
 
+  const generateThumbnail = async (v: { id: string; public_url?: string | null; playback_url?: string | null }) => {
+    const src = (v as any).public_url || (v as any).playback_url || null;
+    if (!src) { toast.error("No video URL available yet"); return; }
+    const t = toast.loading("Generating thumbnail…");
+    const { uploadVideoThumbnailFromSource } = await import("@/lib/videoThumbnail");
+    const url = await uploadVideoThumbnailFromSource(v.id, src as string);
+    toast.dismiss(t);
+    if (url) {
+      toast.success("Thumbnail generated!");
+      invalidateVideos();
+    } else {
+      toast.error("Couldn't capture a frame from this video. Try re-uploading.");
+    }
+  };
+
   function invalidateVideos() {
     queryClient.invalidateQueries({ queryKey: ["videos"] });
     queryClient.invalidateQueries({ queryKey: ["shared-videos"] });
@@ -497,6 +512,11 @@ const VideosPage = () => {
                       <DropdownMenuItem onSelect={() => navigate({ to: "/leads" })}>
                         <Users size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
+                      {v._source === "own" && isReady && !(v as any).thumbnail_url && (
+                        <DropdownMenuItem onSelect={() => generateThumbnail(v as any)}>
+                          <RefreshCw size={13} className="mr-2" /> Generate Thumbnail
+                        </DropdownMenuItem>
+                      )}
                       {v._source === "own" && isFailed && (
                         <DropdownMenuItem onSelect={() => retryFailed(v.id)}>
                           <RefreshCw size={13} className="mr-2" /> Retry Upload
@@ -571,6 +591,9 @@ const VideosPage = () => {
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => shareWhatsApp(v)}><Share2 size={13} className="mr-2" /> WhatsApp</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={13} className="mr-2" /> Share</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => useInFunnel(v.id)}><Rocket size={13} className="mr-2" /> Use in Funnel</DropdownMenuItem>
+                          {v._source === "own" && v.status === "ready" && !(v as any).thumbnail_url && (
+                            <DropdownMenuItem onSelect={() => generateThumbnail(v as any)}><RefreshCw size={13} className="mr-2" /> Generate Thumbnail</DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           {v._source === "linked" ? (
                             <DropdownMenuItem onSelect={() => removeLinkedVideo(v.id)} className="text-destructive focus:text-destructive"><Trash2 size={13} className="mr-2" /> Remove</DropdownMenuItem>

@@ -10,7 +10,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
 import { uploadVideoToR2 } from "@/lib/r2VideoUpload";
-import { captureFirstFrameDataUrl } from "@/lib/videoThumbnail";
+import { uploadVideoThumbnailFromSource } from "@/lib/videoThumbnail";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload, X, FileVideo, Loader2, Info, AlertCircle, RotateCcw, ChevronDown, AlertTriangle, Copy, ExternalLink, CheckCircle2, Layers, FileText, Radio } from "lucide-react";
@@ -206,21 +206,18 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
 
       // Persist the "allow copy link" preference + description on the new video asset
       if (result?.videoId) {
-        // Best-effort thumbnail capture from the first frame (silent fail).
-        let thumbnailUrl: string | null = null;
-        try {
-          thumbnailUrl = await captureFirstFrameDataUrl(file);
-        } catch {
-          thumbnailUrl = null;
-        }
         await supabase
           .from("video_assets")
           .update({
             allow_copy_link: allowCopyLink,
             description: cleanDescription || null,
-            ...(thumbnailUrl ? { thumbnail_url: thumbnailUrl } : {}),
           })
           .eq("id", result.videoId);
+
+        // Best-effort thumbnail capture from the source file (silent fail).
+        // Runs after the row exists so we can write thumbnail_url in place.
+        // Don't await — we want to unblock the "Done" step immediately.
+        uploadVideoThumbnailFromSource(result.videoId, file).catch(() => null);
       }
 
       toast.success("Video uploaded successfully!");
