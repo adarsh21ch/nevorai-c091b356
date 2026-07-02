@@ -626,8 +626,8 @@ const VideosPage = () => {
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => shareWhatsApp(v)}><Share2 size={13} className="mr-2" /> WhatsApp</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={13} className="mr-2" /> Share</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => useInFunnel(v.id)}><Rocket size={13} className="mr-2" /> Use in Funnel</DropdownMenuItem>
-                          {v._source === "own" && v.status === "ready" && !(v as any).thumbnail_url && (
-                            <DropdownMenuItem onSelect={() => generateThumbnail(v as any)}><RefreshCw size={13} className="mr-2" /> Generate Thumbnail</DropdownMenuItem>
+                          {v._source === "own" && v.status === "ready" && (
+                            <DropdownMenuItem onSelect={() => regenerateThumbnail(v as any)}><RefreshCw size={13} className="mr-2" /> Regenerate Thumbnail</DropdownMenuItem>
                           )}
                           <DropdownMenuSeparator />
                           {v._source === "linked" ? (
