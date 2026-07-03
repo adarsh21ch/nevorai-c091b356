@@ -56,7 +56,7 @@ export const FollowUpToday = () => {
           cur.best = Math.max(cur.best, e.progress_percent || 0);
           cur.best_seconds = Math.max(cur.best_seconds, e.watch_seconds || 0);
           cur.cta = cur.cta || cta;
-          if (e.recorded_at > cur.latest) cur.latest = e.recorded_at;
+          if (e.recorded_at && (!cur.latest || e.recorded_at > cur.latest)) cur.latest = e.recorded_at;
         }
       }
       const items = Array.from(bySession.values());
