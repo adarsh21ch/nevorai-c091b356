@@ -290,6 +290,8 @@ const Dashboard = () => {
           </div>
         )}
 
+        <AdvancedSection />
+
         <VideoUploadModal
           open={uploadOpen}
           onClose={() => { setUploadOpen(false); setPendingFile(null); }}
