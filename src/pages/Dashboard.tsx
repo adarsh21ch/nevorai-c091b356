@@ -183,16 +183,19 @@ const Dashboard = () => {
 
         <MonthlyViewsBanner />
 
+        {/* Live viewers strip — always at top */}
+        <LiveViewersBar />
+
         {/* Header */}
         <div>
           <h1 className="text-2xl font-heading font-bold">Dashboard</h1>
           <div className="page-header-accent" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}! Here's your Nevorai overview.
+            Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""} — kaun dekh raha hai, kitna dekha, ek nazar mein.
           </p>
         </div>
 
-        {/* Primary action — one clear CTA */}
+        {/* Primary action */}
         <input
           ref={uploadInputRef}
           type="file"
@@ -200,33 +203,31 @@ const Dashboard = () => {
           className="hidden"
           onChange={handleUploadPicked}
         />
-        <Button
-          variant="hero"
-          size="lg"
-          onClick={openUploadFlow}
-          className="h-14 w-full rounded-2xl text-base font-semibold sm:w-auto sm:px-8"
-        >
-          <Upload size={18} className="mr-2" /> Upload Video
-        </Button>
-
-        {/* Latest video — share-first spotlight */}
-        {latestVideo && <LatestVideoShareCard video={latestVideo} />}
-
-        {/* Plan + view limits strip (Today's Views + Monthly Views) */}
-        <DashboardKpiStrip />
-
-        {/* View more insights link */}
-        <div className="flex justify-end">
-          <Link to="/insights" className="flex items-center gap-1 text-xs text-primary hover:underline">
-            View more insights <ArrowRight size={12} />
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="hero"
+            size="lg"
+            onClick={openUploadFlow}
+            className="h-12 rounded-2xl text-sm font-semibold sm:px-6"
+          >
+            <Upload size={16} className="mr-2" /> Upload Video
+          </Button>
+          <Link to="/funnels/create">
+            <Button variant="outline" size="lg" className="h-12 rounded-2xl text-sm sm:px-6">
+              <Layers size={16} className="mr-2" /> Create Funnel
+            </Button>
           </Link>
         </div>
 
-        {/* Content row */}
-        <DashboardContentRow />
+        {/* Follow up today — the money section */}
+        <FollowUpToday />
 
-        {/* Promote — visible only when user is connected to a leader */}
-        <PromoteSection />
+        {/* Today's numbers */}
+        <TodaysNumbers />
+
+        {/* Tracking matrix — heart of tracking */}
+        <TrackingMatrix />
+
 
         {/* Recent funnels — gated for free users */}
         {funnels.length === 0 ? (
