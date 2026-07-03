@@ -1,12 +1,13 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Navigate, Link, useNavigate } from "@/lib/router-compat";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { MonthlyViewsBanner } from "@/components/MonthlyViewsBanner";
-import { DashboardKpiStrip } from "@/components/dashboard/DashboardKpiStrip";
-import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
-import { LatestVideoShareCard } from "@/components/dashboard/LatestVideoShareCard";
-import { PromoteSection } from "@/components/dashboard/PromoteSection";
+import { LiveViewersBar } from "@/components/dashboard/LiveViewersBar";
+import { FollowUpToday } from "@/components/dashboard/FollowUpToday";
+import { TodaysNumbers } from "@/components/dashboard/TodaysNumbers";
+import { TrackingMatrix } from "@/components/dashboard/TrackingMatrix";
+import { AdvancedSection } from "@/components/dashboard/AdvancedSection";
 import { useHasVideos } from "@/hooks/useHasVideos";
 import { Layers, Users, Eye, IndianRupee, ArrowRight, Upload, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
-import { useState } from "react";
 
 
 const Dashboard = () => {
