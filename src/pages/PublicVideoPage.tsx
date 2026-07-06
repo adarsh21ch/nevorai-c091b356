@@ -68,7 +68,7 @@ const PublicVideoPage = () => {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
-  const [videoError, setVideoError] = useState(false);
+  const [videoError, setVideoError] = useState<null | "format" | "network" | false>(false);
   const [reuploadOpen, setReuploadOpen] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [openedByApp, setOpenedByApp] = useState(false);
