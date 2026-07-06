@@ -29,6 +29,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { isYouTubeUrl } from "@/lib/youtube";
+import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 
 const buildPublicVideoUrl = (v: { id: string; slug?: string | null }) =>
   `${window.location.origin}/v/${v.slug || v.id}`;
@@ -324,7 +325,7 @@ const VideosPage = () => {
           <input
             ref={uploadInputRef}
             type="file"
-            accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+            accept={VIDEO_UPLOAD_ACCEPT}
             className="hidden"
             onChange={handleUploadPicked}
           />
