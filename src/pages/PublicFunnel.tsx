@@ -511,42 +511,25 @@ const NativeCustomVideoPlayer = ({
 
       {loadError && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center bg-black/80 backdrop-blur-sm px-4 gap-3">
-          {loadError === "format" ? (
-            <>
-              <div className="text-destructive text-sm font-medium">⚠️ This video format can't play in your browser.</div>
-              <div className="text-white/80 text-xs max-w-xs">The creator uploaded a file (likely .mov / HEVC) that Chrome and Safari can't decode. Ask them to re-upload as MP4 (H.264).</div>
-              {onFormatErrorAction && (
-                <button
-                  type="button"
-                  className="mt-1 px-4 py-2 rounded-full bg-white text-black text-xs font-semibold"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFormatErrorAction();
-                  }}
-                >
-                  {formatErrorActionLabel || "Re-upload"}
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="text-white text-sm font-medium">Video couldn't load.</div>
-              <div className="text-white/70 text-xs">Check your internet and try again.</div>
-              <button
-                type="button"
-                className="mt-1 px-4 py-2 rounded-full bg-white text-black text-xs font-semibold"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLoadError(null);
-                  setIsLoading(true);
-                  const v = videoRef.current;
-                  if (v) { v.load(); v.play().catch(() => {}); }
-                }}
-              >
-                Retry
-              </button>
-            </>
-          )}
+          <div className="text-white text-sm font-medium">Video couldn't load.</div>
+          <div className="text-white/70 text-xs">Check your internet and try again.</div>
+          <button
+            type="button"
+            className="mt-1 px-4 py-2 rounded-full bg-white text-black text-xs font-semibold"
+            onClick={(e) => {
+              e.stopPropagation();
+              setLoadError(null);
+              setIsLoading(true);
+              const v = videoRef.current;
+              if (v) {
+                (v as any).__nfRetried = false;
+                v.load();
+                v.play().catch(() => {});
+              }
+            }}
+          >
+            Retry
+          </button>
         </div>
       )}
 
