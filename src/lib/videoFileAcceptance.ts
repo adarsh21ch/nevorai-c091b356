@@ -18,6 +18,10 @@ const NON_VIDEO_MP4_SAMPLE_ENTRIES = new Set([
 
 const readSlice = (blob: Blob) =>
   new Promise<ArrayBuffer>((resolve, reject) => {
+    if (typeof FileReader === "undefined") {
+      blob.arrayBuffer().then(resolve, reject);
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => resolve(reader.result as ArrayBuffer);
     reader.onerror = () => reject(reader.error || new Error("Could not read video file"));
