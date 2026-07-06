@@ -20,6 +20,7 @@ import { Link } from "@/lib/router-compat";
 import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 import { useStorageUsage } from "@/hooks/useStorageUsage";
 import { StorageLimitModal } from "@/components/StorageLimitModal";
+import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT, VIDEO_UPLOAD_HELP_TEXT } from "@/lib/videoFileAcceptance";
 
 interface Props {
   open: boolean;
@@ -29,29 +30,7 @@ interface Props {
   initialFile?: File | null;
 }
 
-// Browsers can only reliably play MP4 (H.264) and WEBM. MOV is warned
-// because iPhone recordings are extremely common — most play, some (HEVC/ProRes)
-// don't. MKV / AVI / M4V / FLV / WMV almost never play natively in browsers,
-// so we reject them at pick time instead of letting the user upload a file
-// that will show "Video format not supported" to every prospect.
-const PREFERRED_EXTENSIONS = [".mp4", ".webm"];
-const WARN_EXTENSIONS = [".mov"];
-const REJECT_EXTENSIONS = [".mkv", ".avi", ".m4v", ".flv", ".wmv", ".mpeg", ".mpg", ".3gp", ".ts"];
 const MAX_SIZE_BYTES = 500 * 1024 * 1024;
-
-type AcceptResult = "ok" | "warn" | "reject";
-
-const checkVideoAcceptance = (file: File): AcceptResult => {
-  const name = file.name.toLowerCase();
-  if (PREFERRED_EXTENSIONS.some((ext) => name.endsWith(ext))) return "ok";
-  if (file.type === "video/mp4" || file.type === "video/webm") return "ok";
-  if (WARN_EXTENSIONS.some((ext) => name.endsWith(ext))) return "warn";
-  if (file.type === "video/quicktime") return "warn";
-  if (REJECT_EXTENSIONS.some((ext) => name.endsWith(ext))) return "reject";
-  // Unknown extension but claims to be a video — reject rather than
-  // upload something that likely won't play.
-  return "reject";
-};
 
 const formatEta = (seconds: number): string => {
   if (!isFinite(seconds) || seconds <= 0) return "";
@@ -62,10 +41,8 @@ const formatEta = (seconds: number): string => {
   return `${h}h ${m}m remaining`;
 };
 
-const FORMAT_WARNING_MSG =
-  "MOV can play on most devices, but iPhone HEVC recordings sometimes don't play in browsers. If any viewer sees 'format not supported', convert to MP4 (H.264) at cloudconvert.com and re-upload.";
 const FORMAT_REJECT_MSG =
-  "This format won't play in most browsers. Please convert to MP4 (H.264) first — cloudconvert.com is free and takes ~1 minute.";
+  "Only MP4 (H.264/AVC) is allowed. Convert MOV/WEBM/MKV/AVI or YouTube-downloaded WEBM to MP4 (H.264) before uploading.";
 
 
 export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false, initialFile = null }: Props) => {
@@ -81,6 +58,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
   const [progress, setProgress] = useState(0);
   const [eta, setEta] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [validatingFile, setValidatingFile] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [formatWarning, setFormatWarning] = useState<string | null>(null);
   const [tipOpen, setTipOpen] = useState(false);
@@ -100,13 +78,67 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
   const [storageLimitOpen, setStorageLimitOpen] = useState(false);
   const storage = useStorageUsage();
 
-  // Hydrate from initialFile when modal opens with a preselected file
+  const reset = () => {
+    setFile(null);
+    setTitle("");
+    setDescription("");
+    setProgress(0);
+    setUploading(false);
+    setProcessing(false);
+    setValidatingFile(false);
+    setEta("");
+    setError(null);
+    setFormatWarning(null);
+    // allowCopyLink is now a constant — nothing to reset
+    setDoneVideoId(null);
+  };
+
+  const validateAndSetFile = async (f: File): Promise<boolean> => {
+    setError(null);
+    setFormatWarning(null);
+
+    if (f.size > MAX_SIZE_BYTES) {
+      const sizeMb = Math.round(f.size / (1024 * 1024));
+      toast.error(
+        `That file is ${sizeMb} MB — uploads are capped at 500 MB. Compress it (e.g. handbrake.fr) and try again.`,
+        { duration: 7000 },
+      );
+      if (fileRef.current) fileRef.current.value = "";
+      return false;
+    }
+
+    setValidatingFile(true);
+    const acceptance = await validatePlayableUploadFile(f);
+    setValidatingFile(false);
+
+    if (!acceptance.ok) {
+      const msg = acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || FORMAT_REJECT_MSG;
+      setError(msg);
+      toast.error(msg, { duration: 9000 });
+      if (fileRef.current) fileRef.current.value = "";
+      return false;
+    }
+
+    // Storage quota gate — block before any upload starts.
+    if (!skipStorageCheck && !storage.isLoading && storage.wouldExceed(f.size)) {
+      setStorageLimitOpen(true);
+      if (fileRef.current) fileRef.current.value = "";
+      return false;
+    }
+
+    setFile(f);
+    if (!title) setTitle(f.name.replace(/\.[^/.]+$/, ""));
+    return true;
+  };
+
+  // Hydrate from initialFile when modal opens with a preselected file. This must
+  // run through the same validation as the modal picker; otherwise Dashboard / Videos
+  // can bypass format checks and upload MOV/WEBM files that later fail for prospects.
   useEffect(() => {
     if (open && initialFile && !file) {
-      setFile(initialFile);
-      if (!title) setTitle(initialFile.name.replace(/\.[^/.]+$/, ""));
+      void validateAndSetFile(initialFile);
     }
-  }, [open, initialFile]);
+  }, [open, initialFile, file]);
 
   // Fallback: if modal opens without a file, trigger native picker once
   useEffect(() => {
@@ -117,59 +149,24 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     if (!open) autoPickRef.current = false;
   }, [open, file, initialFile, doneVideoId]);
 
-  const reset = () => {
-    setFile(null);
-    setTitle("");
-    setDescription("");
-    setProgress(0);
-    setUploading(false);
-    setProcessing(false);
-    setEta("");
-    setError(null);
-    setFormatWarning(null);
-    // allowCopyLink is now a constant — nothing to reset
-    setDoneVideoId(null);
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
+    e.target.value = "";
     if (!f) return;
-    setError(null);
-
-    const result = checkVideoAcceptance(f);
-
-    if (result === "reject") {
-      toast.error(FORMAT_REJECT_MSG, { duration: 7000 });
-      if (fileRef.current) fileRef.current.value = "";
-      return;
-    }
-
-    if (f.size > MAX_SIZE_BYTES) {
-      const sizeMb = Math.round(f.size / (1024 * 1024));
-      toast.error(
-        `That file is ${sizeMb} MB — uploads are capped at 500 MB. Compress it (e.g. handbrake.fr) and try again.`,
-        { duration: 7000 },
-      );
-      if (fileRef.current) fileRef.current.value = "";
-      return;
-    }
-
-    // Storage quota gate — block before any upload starts.
-    if (!skipStorageCheck && !storage.isLoading && storage.wouldExceed(f.size)) {
-      setStorageLimitOpen(true);
-      if (fileRef.current) fileRef.current.value = "";
-      return;
-    }
-
-    setFormatWarning(result === "warn" ? FORMAT_WARNING_MSG : null);
-    setFile(f);
-    if (!title) setTitle(f.name.replace(/\.[^/.]+$/, ""));
+    void validateAndSetFile(f);
   };
 
   const runUpload = async () => {
     const cleanTitle = sanitizeText(title);
     const cleanDescription = sanitizeText(description);
     if (!user || !file || !cleanTitle) return;
+    const stillSafe = await validatePlayableUploadFile(file);
+    if (!stillSafe.ok) {
+      const msg = stillSafe.detail ? `${stillSafe.message} ${stillSafe.detail}` : stillSafe.message || FORMAT_REJECT_MSG;
+      setError(msg);
+      toast.error(msg, { duration: 9000 });
+      return;
+    }
     setUploading(true);
     setProcessing(false);
     setProgress(0);
@@ -250,7 +247,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     onClose();
   };
 
-  const busy = uploading || processing;
+  const busy = uploading || processing || validatingFile;
 
   const publicUrl = doneVideoId && typeof window !== "undefined" ? `${window.location.origin}/v/${doneVideoId}` : "";
 
@@ -334,14 +331,14 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                   <div className="px-3 pb-3 text-sm text-muted-foreground space-y-2">
                     <p className="font-medium text-foreground">💡 Pro Tip — For Best Playback Quality:</p>
                     <p>
-                      Videos downloaded from YouTube play the smoothest on Nevorai. If your video lags or buffers, try this:
+                       For smooth playback on every prospect phone, upload only MP4 in H.264 format. If you download from YouTube, avoid WEBM.
                     </p>
                     <ol className="list-decimal list-inside space-y-1 pl-1">
-                      <li>Upload your video to YouTube (can be Unlisted)</li>
-                      <li>Download it using any YouTube downloader app</li>
-                      <li>Upload that downloaded file here</li>
+                      <li>Choose MP4 / 720p or 1080p while downloading</li>
+                      <li>If the file is MOV, WEBM, MKV or AVI, convert it to MP4 (H.264)</li>
+                      <li>Upload that MP4 here</li>
                     </ol>
-                    <p>This ensures perfect quality for all your viewers.</p>
+                    <p>This prevents the “video format can’t play” error for viewers.</p>
                     <Button size="sm" variant="outline" onClick={dismissTip} className="mt-1">Got it →</Button>
                   </div>
                 </CollapsibleContent>
@@ -352,7 +349,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
           <input
             ref={fileRef}
             type="file"
-            accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+            accept={VIDEO_UPLOAD_ACCEPT}
             className="hidden"
             onChange={handleFileChange}
           />
@@ -369,7 +366,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                 Tap to select a video
               </span>
               <span className="text-xs text-muted-foreground/70 text-center">
-                Max 500 MB · MP4 (best), MOV, WEBM, M4V, MKV, AVI
+                Max 500 MB · MP4 only · H.264
               </span>
             </button>
           ) : (
@@ -389,7 +386,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
             </div>
           )}
 
-          {/* Soft format warning for MOV/WEBM */}
+          {/* Reserved for soft notices */}
           {formatWarning && !busy && (
             <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-xs text-yellow-300">
               <AlertTriangle size={14} className="shrink-0 mt-0.5" />
@@ -406,7 +403,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
 
           {/* Helper text + tooltip */}
           <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-            <span>MP4 plays best · MOV / WEBM / M4V / MKV / AVI also accepted · Max 500 MB</span>
+            <span>{VIDEO_UPLOAD_HELP_TEXT}</span>
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -415,9 +412,9 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
-                  For best results, use MP4 format.<br />
-                  WhatsApp videos: save as MP4 before uploading.<br />
-                  Google Drive: download as MP4 format.
+                  Use MP4 with H.264/AVC codec.<br />
+                  YouTube downloads: select MP4, not WEBM.<br />
+                  iPhone videos: export/convert HEVC to H.264.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -490,7 +487,9 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
             className="w-full h-11 rounded-xl text-sm font-semibold"
             variant="hero"
           >
-            {processing ? (
+            {validatingFile ? (
+              <><Loader2 size={16} className="animate-spin" /> Checking video…</>
+            ) : processing ? (
               <><Loader2 size={16} className="animate-spin" /> Processing…</>
             ) : uploading ? (
               <><Loader2 size={16} className="animate-spin" /> Uploading… {progress}%</>

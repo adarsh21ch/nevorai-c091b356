@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
+import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 
 
 const Dashboard = () => {
@@ -199,7 +200,7 @@ const Dashboard = () => {
         <input
           ref={uploadInputRef}
           type="file"
-          accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
+          accept={VIDEO_UPLOAD_ACCEPT}
           className="hidden"
           onChange={handleUploadPicked}
         />
