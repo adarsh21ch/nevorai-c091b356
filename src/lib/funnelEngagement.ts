@@ -57,15 +57,12 @@ export function logFunnelEngagement(opts: LogOpts): void {
       navigator.sendBeacon(ENDPOINT, blob);
       return;
     }
-    // Public endpoint (verify_jwt=false). Do NOT send Authorization —
-    // the edge function's CORS does not allow it, and it would trigger a
-    // preflight rejection ("authorization is not allowed by
-    // Access-Control-Allow-Headers"). apikey is enough.
     void fetch(ENDPOINT, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         apikey: supabasePublishableKey,
+        Authorization: `Bearer ${supabasePublishableKey}`,
       },
       body,
       keepalive: true,

@@ -23,7 +23,6 @@ import { PrivateLeadForm } from "@/components/funnel/PrivateLeadForm";
 import { FunnelDailyLimitGate } from "@/components/funnel/FunnelDailyLimitGate";
 import { CreatorInactiveGate } from "@/components/funnel/CreatorInactiveGate";
 import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
-import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { isYouTubeUrl } from "@/lib/youtube";
 import { sanitizeText } from "@/lib/sanitize";
@@ -46,7 +45,6 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { StateSelect } from "@/components/ui/StateSelect";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
-import { useAuth } from "@/hooks/useAuth";
 
 
 /* ─── Speed Popover ─── */
@@ -115,8 +113,6 @@ type CustomVideoPlayerProps = {
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   onPlay?: () => void;
   tracking?: import("@/hooks/useVideoTracking").VideoTrackingMeta;
-  formatErrorActionLabel?: string;
-  onFormatErrorAction?: () => void;
 };
 
 const CustomVideoPlayer = (props: CustomVideoPlayerProps) => {
@@ -148,8 +144,6 @@ const NativeCustomVideoPlayer = ({
   onTimeUpdate,
   onPlay,
   tracking,
-  formatErrorActionLabel,
-  onFormatErrorAction,
 }: CustomVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   useVideoTracking(videoRef, tracking);
@@ -170,7 +164,7 @@ const NativeCustomVideoPlayer = ({
   const [speed, setSpeed] = useState(1);
   const [autoplayMuted, setAutoplayMuted] = useState(false);
   const [seekToast, setSeekToast] = useState(false);
-  const [loadError, setLoadError] = useState<null | "format" | "network">(null);
+  const [loadError, setLoadError] = useState(false);
   const [centerFlash, setCenterFlash] = useState<{ kind: "play" | "pause"; key: number } | null>(null);
   const [seekRipple, setSeekRipple] = useState<{ side: "left" | "right"; key: number } | null>(null);
   const userPaused = useRef(false);
@@ -493,58 +487,15 @@ const NativeCustomVideoPlayer = ({
         onPlaying={() => { setIsBuffering(false); setIsLoading(false); }}
         onWaiting={() => setIsBuffering(true)}
         onCanPlay={() => setIsLoading(false)}
-        onError={() => {
-          const err = videoRef.current?.error;
-          // MEDIA_ERR_SRC_NOT_SUPPORTED (4) = real format issue.
-          // 1/2/3 = aborted / network / decode — usually transient, retryable.
-          const code = err?.code ?? 0;
-          setLoadError(code === 4 ? "format" : "network");
-          setIsLoading(false);
-          setIsBuffering(false);
-        }}
+        onError={() => { setLoadError(true); setIsLoading(false); setIsBuffering(false); }}
       />
 
       {loadError && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center bg-black/80 backdrop-blur-sm px-4 gap-3">
-          {loadError === "format" ? (
-            <>
-              <div className="text-destructive text-sm font-medium">⚠️ This video format can't play in your browser.</div>
-              <div className="text-white/80 text-xs max-w-xs">The creator uploaded a file (likely .mov / HEVC) that Chrome and Safari can't decode. Ask them to re-upload as MP4 (H.264).</div>
-              {onFormatErrorAction && (
-                <button
-                  type="button"
-                  className="mt-1 px-4 py-2 rounded-full bg-white text-black text-xs font-semibold"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onFormatErrorAction();
-                  }}
-                >
-                  {formatErrorActionLabel || "Re-upload"}
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="text-white text-sm font-medium">Video couldn't load.</div>
-              <div className="text-white/70 text-xs">Check your internet and try again.</div>
-              <button
-                type="button"
-                className="mt-1 px-4 py-2 rounded-full bg-white text-black text-xs font-semibold"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLoadError(null);
-                  setIsLoading(true);
-                  const v = videoRef.current;
-                  if (v) { v.load(); v.play().catch(() => {}); }
-                }}
-              >
-                Retry
-              </button>
-            </>
-          )}
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center bg-black/80 backdrop-blur-sm px-4 gap-2">
+          <div className="text-destructive text-sm font-medium">⚠️ Video format not supported.</div>
+          <div className="text-white/80 text-xs">Please re-upload as MP4 format.</div>
         </div>
       )}
-
 
 
       {autoplayMuted && started && muted && (
@@ -764,7 +715,6 @@ const NativeCustomVideoPlayer = ({
 /* ─── Main Page ─── */
 const PublicFunnel = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { user } = useAuth();
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [showCta, setShowCta] = useState(false);
   const [watchSeconds, setWatchSeconds] = useState(0);
@@ -780,7 +730,6 @@ const PublicFunnel = () => {
   const [passwordUnlocked, setPasswordUnlocked] = useState(false);
   const [codeGateUnlocked, setCodeGateUnlocked] = useState(false);
   const [privateLeadSubmitted, setPrivateLeadSubmitted] = useState(false);
-  const [reuploadOpen, setReuploadOpen] = useState(false);
   const [pubTheme, setPubTheme] = useState<"dark" | "light">("dark");
   // Hydrate theme from localStorage SYNCHRONOUSLY before paint (no flash of
   // wrong-theme text — eliminates the "dim text on dark bg" issue users saw).
@@ -841,7 +790,7 @@ const PublicFunnel = () => {
   };
 
 
-  const { data: bundle, isLoading, refetch } = useQuery({
+  const { data: bundle, isLoading } = useQuery({
     queryKey: ["public-funnel-bundle", slug],
     queryFn: async () => {
       const requestUrl = `${supabaseProjectUrl}/functions/v1/get-funnel-data?slug=${encodeURIComponent(slug ?? "")}`;
@@ -881,7 +830,6 @@ const PublicFunnel = () => {
   const priceOptions: any[] = bundle?.priceOptions || [];
   const funnelSteps: any[] = bundle?.steps || [];
   const isMultiStep = funnel?.funnel_mode === "multi" && funnelSteps.length > 0;
-  const isOwner = !!user?.id && !!funnel?.owner_id && user.id === funnel.owner_id;
 
   const canView = funnel && funnel.is_published;
   const isPrivateFunnel = funnel?.visibility === "private";
@@ -1485,8 +1433,6 @@ const PublicFunnel = () => {
                     check("completed", 95);
                   }}
                   onPlay={() => setVideoPlaying(true)}
-                  formatErrorActionLabel={isOwner ? "Replace video" : undefined}
-                  onFormatErrorAction={isOwner ? () => setReuploadOpen(true) : undefined}
                 />
               )}
               {videoUrl && videoAsset?.id && (videoAsset as any)?.allow_copy_link !== false && (
@@ -1680,26 +1626,6 @@ const PublicFunnel = () => {
               </Button>
             </div>
           </div>
-        )}
-
-        {isOwner && (
-          <VideoUploadModal
-            open={reuploadOpen}
-            onClose={() => setReuploadOpen(false)}
-            onSuccess={async (videoId) => {
-              if (videoId && funnel?.id && user?.id) {
-                const { error } = await supabase
-                  .from("funnels")
-                  .update({ video_asset_id: videoId })
-                  .eq("id", funnel.id)
-                  .eq("owner_id", user.id);
-                if (error) toast.error("Uploaded, but could not replace the funnel video.");
-                else toast.success("Funnel video replaced.");
-              }
-              setReuploadOpen(false);
-              refetch();
-            }}
-          />
         )}
 
         {paymentSubmitted && (

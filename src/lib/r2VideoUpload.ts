@@ -1,6 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
 import { sanitizeFilename, hasDoubleExtension } from "@/lib/sanitize";
-import { validatePlayableUploadFile } from "@/lib/videoFileAcceptance";
 
 type UploadPurpose = "video-asset" | "academy-video" | "academy-thumbnail";
 
@@ -51,8 +50,6 @@ const resolveContentType = (file: File): string => {
   return "application/octet-stream";
 };
 
-const isVideoPurpose = (purpose: UploadPurpose) => purpose === "video-asset" || purpose === "academy-video";
-
 export const uploadVideoToR2 = async ({
   file,
   title,
@@ -91,14 +88,8 @@ export const uploadFileToR2 = async ({
     if (hasDoubleExtension(file.name)) {
       throw new Error("This filename looks unsafe — please rename and try again.");
     }
-    if (isVideoPurpose(purpose)) {
-      const acceptance = await validatePlayableUploadFile(file);
-      if (!acceptance.ok) {
-        throw new Error(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Only MP4 (H.264) videos are supported.");
-      }
-    }
     const safeName = sanitizeFilename(file.name);
-    const contentType = isVideoPurpose(purpose) ? "video/mp4" : resolveContentType(file);
+    const contentType = resolveContentType(file);
 
     const { data, error } = await supabase.functions.invoke("get-r2-upload-url", {
       body: {

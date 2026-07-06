@@ -53,7 +53,7 @@ export interface VideoPlayerProps {
   live?: boolean;
   viewerCount?: number;
   onVideoRef?: (el: HTMLVideoElement | null) => void;
-  onError?: (el: HTMLVideoElement | null) => void;
+  onError?: () => void;
   onPlay?: () => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   /** Optional view-tracking metadata. When provided, view events are recorded. */
@@ -630,7 +630,7 @@ function NativeVideoPlayer({
           }
           setPlaybackRate(e.currentTarget.playbackRate);
         }}
-        onError={(e) => onError?.(e.currentTarget)}
+        onError={onError}
       />
 
       {/* Buffering spinner — saffron, only while truly waiting on data */}

@@ -105,6 +105,3 @@ supabase/          # Supabase migrations & config
 - User reinstalled Claude Code in May 2026 — prior session context recovered from nevorai-sales-compass archive
 - Target market: Indian network marketers running WhatsApp-based sales
 - Meta Ads running at ₹100-200/day budget targeting this niche
-
-## Rules
-- Every new PUBLIC route (anything served without auth) MUST set head() via `buildOgMeta` from `src/lib/ogMeta.ts`, fetching title/description/image in the route loader so crawlers see OG tags without JS.

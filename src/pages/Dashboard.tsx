@@ -1,13 +1,12 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Navigate, Link, useNavigate } from "@/lib/router-compat";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { MonthlyViewsBanner } from "@/components/MonthlyViewsBanner";
-import { LiveViewersBar } from "@/components/dashboard/LiveViewersBar";
-import { FollowUpToday } from "@/components/dashboard/FollowUpToday";
-import { TodaysNumbers } from "@/components/dashboard/TodaysNumbers";
-import { TrackingMatrix } from "@/components/dashboard/TrackingMatrix";
-import { AdvancedSection } from "@/components/dashboard/AdvancedSection";
+import { DashboardKpiStrip } from "@/components/dashboard/DashboardKpiStrip";
+import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
+import { LatestVideoShareCard } from "@/components/dashboard/LatestVideoShareCard";
+import { PromoteSection } from "@/components/dashboard/PromoteSection";
 import { useHasVideos } from "@/hooks/useHasVideos";
 import { Layers, Users, Eye, IndianRupee, ArrowRight, Upload, Video as VideoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePlan } from "@/hooks/usePlan";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
-import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
+import { useState } from "react";
 
 
 const Dashboard = () => {
@@ -184,51 +183,50 @@ const Dashboard = () => {
 
         <MonthlyViewsBanner />
 
-        {/* Live viewers strip — always at top */}
-        <LiveViewersBar />
-
         {/* Header */}
         <div>
           <h1 className="text-2xl font-heading font-bold">Dashboard</h1>
           <div className="page-header-accent" />
           <p className="mt-2 text-sm text-muted-foreground">
-            Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""} — kaun dekh raha hai, kitna dekha, ek nazar mein.
+            Welcome back{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}! Here's your Nevorai overview.
           </p>
         </div>
 
-        {/* Primary action */}
+        {/* Primary action — one clear CTA */}
         <input
           ref={uploadInputRef}
           type="file"
-          accept={VIDEO_UPLOAD_ACCEPT}
+          accept=".mp4,.mov,.webm,.m4v,.mkv,.avi,video/*"
           className="hidden"
           onChange={handleUploadPicked}
         />
-        <div className="flex flex-wrap gap-2">
-          <Button
-            variant="hero"
-            size="lg"
-            onClick={openUploadFlow}
-            className="h-12 rounded-2xl text-sm font-semibold sm:px-6"
-          >
-            <Upload size={16} className="mr-2" /> Upload Video
-          </Button>
-          <Link to="/funnels/create">
-            <Button variant="outline" size="lg" className="h-12 rounded-2xl text-sm sm:px-6">
-              <Layers size={16} className="mr-2" /> Create Funnel
-            </Button>
+        <Button
+          variant="hero"
+          size="lg"
+          onClick={openUploadFlow}
+          className="h-14 w-full rounded-2xl text-base font-semibold sm:w-auto sm:px-8"
+        >
+          <Upload size={18} className="mr-2" /> Upload Video
+        </Button>
+
+        {/* Latest video — share-first spotlight */}
+        {latestVideo && <LatestVideoShareCard video={latestVideo} />}
+
+        {/* Plan + view limits strip (Today's Views + Monthly Views) */}
+        <DashboardKpiStrip />
+
+        {/* View more insights link */}
+        <div className="flex justify-end">
+          <Link to="/insights" className="flex items-center gap-1 text-xs text-primary hover:underline">
+            View more insights <ArrowRight size={12} />
           </Link>
         </div>
 
-        {/* Follow up today — the money section */}
-        <FollowUpToday />
+        {/* Content row */}
+        <DashboardContentRow />
 
-        {/* Today's numbers */}
-        <TodaysNumbers />
-
-        {/* Tracking matrix — heart of tracking */}
-        <TrackingMatrix />
-
+        {/* Promote — visible only when user is connected to a leader */}
+        <PromoteSection />
 
         {/* Recent funnels — gated for free users */}
         {funnels.length === 0 ? (
@@ -290,8 +288,6 @@ const Dashboard = () => {
             </div>
           </div>
         )}
-
-        <AdvancedSection />
 
         <VideoUploadModal
           open={uploadOpen}

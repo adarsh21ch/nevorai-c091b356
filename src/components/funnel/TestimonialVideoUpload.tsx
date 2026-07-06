@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { compressImage, IMAGE_PRESETS, LONG_CACHE_CONTROL } from "@/lib/imageCompress";
 import { Loader2, Play, Upload, Video, X } from "lucide-react";
 import { toast } from "sonner";
-import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 
 interface TestimonialVideoUploadProps {
   testimonialId: string;
@@ -17,6 +16,7 @@ interface TestimonialVideoUploadProps {
   onClear: () => void;
 }
 
+const ALLOWED_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 const MAX_SIZE_MB = 100;
 const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
@@ -31,7 +31,7 @@ const getVideoMetadata = (file: File): Promise<{ duration: number }> =>
     const objectUrl = URL.createObjectURL(file);
     video.preload = "metadata";
     video.onloadedmetadata = () => { resolve({ duration: Math.round(video.duration) }); URL.revokeObjectURL(objectUrl); };
-    video.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Could not read the video metadata. Please use MP4 (H.264).")); };
+    video.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Could not read the video metadata. Please use MP4, MOV, or WEBM.")); };
     video.src = objectUrl;
   });
 
@@ -77,13 +77,8 @@ export const TestimonialVideoUpload = ({
 
   const handleFile = async (file: File) => {
     setError("");
+    if (!ALLOWED_TYPES.includes(file.type)) { setError("Only MP4, MOV, and WEBM videos are supported."); return; }
     if (file.size > MAX_SIZE_BYTES) { setError(`File too large. Maximum size is ${MAX_SIZE_MB}MB.`); return; }
-
-    const acceptance = await validatePlayableUploadFile(file);
-    if (!acceptance.ok) {
-      setError(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Only MP4 (H.264) videos are supported.");
-      return;
-    }
 
     setUploading(true); setFileName(file.name); setProgress(0); setStatusLabel("Checking video");
     try {
@@ -108,9 +103,9 @@ export const TestimonialVideoUpload = ({
       }
 
       setProgress(20); setStatusLabel("Uploading video");
-      const videoPath = `testimonial-videos/${landingPageId}/${testimonialId}-${Date.now()}.mp4`;
+      const videoPath = `testimonial-videos/${landingPageId}/${testimonialId}-${Date.now()}.${file.name.split('.').pop()?.toLowerCase() || 'mp4'}`;
       const { error: uploadError } = await supabase.storage.from("landing-page-assets")
-        .upload(videoPath, file, { cacheControl: LONG_CACHE_CONTROL, upsert: true, contentType: "video/mp4" });
+        .upload(videoPath, file, { cacheControl: LONG_CACHE_CONTROL, upsert: true, contentType: file.type });
       if (uploadError) throw new Error(uploadError.message || "Video upload failed");
 
       setProgress(90); setStatusLabel("Finalizing");
@@ -136,7 +131,7 @@ export const TestimonialVideoUpload = ({
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
       onDrop={(e) => { e.preventDefault(); e.stopPropagation(); const file = e.dataTransfer.files[0]; if (file) handleFile(file); }}
     >
-      <input ref={inputRef} type="file" accept={VIDEO_UPLOAD_ACCEPT} className="hidden"
+      <input ref={inputRef} type="file" accept="video/mp4,video/quicktime,video/webm" className="hidden"
         onChange={(e) => { const file = e.target.files?.[0]; if (file) handleFile(file); }} />
 
       {value ? (
@@ -186,7 +181,7 @@ export const TestimonialVideoUpload = ({
           <div className="flex-1 space-y-2 text-center sm:text-left">
             <div>
               <p className="text-sm font-medium text-foreground">{uploading ? "Uploading student video" : "Upload a student video testimonial"}</p>
-              <p className="text-xs text-muted-foreground">MP4 (H.264) • Max {maxSeconds} seconds • Max {MAX_SIZE_MB}MB</p>
+              <p className="text-xs text-muted-foreground">MP4, MOV, WEBM • Max {maxSeconds} seconds • Max {MAX_SIZE_MB}MB</p>
               <p className="text-xs text-muted-foreground">Portrait videos look best in the live preview.</p>
             </div>
             {uploading ? (
