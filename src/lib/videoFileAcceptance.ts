@@ -144,4 +144,4 @@ export const validatePlayableUploadFile = async (file: File): Promise<VideoFileA
 
 export const VIDEO_UPLOAD_ACCEPT = "video/mp4,.mp4";
 
-export const VIDEO_UPLOAD_HELP_TEXT = "MP4 only · H.264/AVC codec · Max 500 MB";
+export const VIDEO_UPLOAD_HELP_TEXT = "MP4 only · H.264/AVC codec · Max 2 GB";
