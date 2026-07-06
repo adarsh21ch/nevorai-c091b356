@@ -95,6 +95,15 @@ export const validatePlayableUploadFile = async (file: File): Promise<VideoFileA
   try {
     const buffer = await readMp4ScanBuffer(file);
     const codecs = collectMp4SampleCodecs(buffer);
+
+    if (codecs.length === 0) {
+      return {
+        ok: false,
+        message: "Could not verify this MP4 codec.",
+        detail: "Please convert/export it as MP4 (H.264/AVC) and upload again. This avoids prospect-side playback failure.",
+      };
+    }
+
     const possibleVideoCodecs = codecs.filter((codec) => !NON_VIDEO_MP4_SAMPLE_ENTRIES.has(codec));
     const safeVideoCodecs = possibleVideoCodecs.filter((codec) => SAFE_MP4_VIDEO_CODECS.has(codec));
     const unsafeVideoCodecs = possibleVideoCodecs.filter((codec) => UNSAFE_MP4_VIDEO_CODECS.has(codec));
@@ -115,7 +124,7 @@ export const validatePlayableUploadFile = async (file: File): Promise<VideoFileA
       };
     }
 
-    if (codecs.length > 0 && safeVideoCodecs.length === 0) {
+    if (safeVideoCodecs.length === 0) {
       return {
         ok: false,
         message: "No supported video track was found.",
