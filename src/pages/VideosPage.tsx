@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, Grid, List, Link2, Share2, Pencil, Rocket, Upload, Copy, Trash2, RefreshCw, Loader2, Settings, Play, MoreVertical, Users, FastForward, Youtube as YoutubeIcon } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
@@ -29,6 +29,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { isYouTubeUrl } from "@/lib/youtube";
+import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 
 const buildPublicVideoUrl = (v: { id: string; slug?: string | null }) =>
   `${window.location.origin}/v/${v.slug || v.id}`;
@@ -196,6 +197,56 @@ const VideosPage = () => {
     else { toast.success("Retry queued"); invalidateVideos(); }
   };
 
+  const regenerateThumbnail = async (v: { id: string; public_url?: string | null; playback_url?: string | null }) => {
+    const src = (v as any).public_url || (v as any).playback_url || null;
+    if (!src) { toast.error("No video URL available yet"); return; }
+    const t = toast.loading("Regenerating thumbnail…");
+    const { uploadVideoThumbnailFromSource } = await import("@/lib/videoThumbnail");
+    const url = await uploadVideoThumbnailFromSource(v.id, src as string);
+    toast.dismiss(t);
+    if (url) {
+      toast.success("Thumbnail updated!");
+      invalidateVideos();
+    } else {
+      toast.error("Couldn't capture a frame from this video.");
+    }
+  };
+
+  // Silent background backfill: generate missing thumbnails one at a time.
+  const backfilledRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!user?.id || isLoading) return;
+    const missing = ownVideos.filter(
+      (v: any) =>
+        v.status === "ready" &&
+        !v.thumbnail_url &&
+        (v.public_url || v.playback_url) &&
+        !backfilledRef.current.has(v.id),
+    );
+    if (!missing.length) return;
+    let cancelled = false;
+    (async () => {
+      const { uploadVideoThumbnailFromSource } = await import("@/lib/videoThumbnail");
+      for (const v of missing) {
+        if (cancelled) return;
+        backfilledRef.current.add(v.id);
+        const src = (v as any).public_url || (v as any).playback_url;
+        try {
+          const url = await uploadVideoThumbnailFromSource(v.id, src);
+          if (url && !cancelled) {
+            queryClient.setQueryData(["videos", user.id], (old: any) =>
+              Array.isArray(old)
+                ? old.map((x) => (x.id === v.id ? { ...x, thumbnail_url: url } : x))
+                : old,
+            );
+          }
+        } catch { /* silent */ }
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [ownVideos, user?.id, isLoading, queryClient]);
+
+
   function invalidateVideos() {
     queryClient.invalidateQueries({ queryKey: ["videos"] });
     queryClient.invalidateQueries({ queryKey: ["shared-videos"] });
@@ -274,7 +325,7 @@ const VideosPage = () => {
           <input
             ref={uploadInputRef}
             type="file"
-            accept=".mp4,.mov,.webm,.m4v,.mkv,.avi,video/*"
+            accept={VIDEO_UPLOAD_ACCEPT}
             className="hidden"
             onChange={handleUploadPicked}
           />
@@ -497,6 +548,11 @@ const VideosPage = () => {
                       <DropdownMenuItem onSelect={() => navigate({ to: "/leads" })}>
                         <Users size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
+                      {v._source === "own" && isReady && (
+                        <DropdownMenuItem onSelect={() => regenerateThumbnail(v as any)}>
+                          <RefreshCw size={13} className="mr-2" /> Regenerate Thumbnail
+                        </DropdownMenuItem>
+                      )}
                       {v._source === "own" && isFailed && (
                         <DropdownMenuItem onSelect={() => retryFailed(v.id)}>
                           <RefreshCw size={13} className="mr-2" /> Retry Upload
@@ -571,6 +627,9 @@ const VideosPage = () => {
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => shareWhatsApp(v)}><Share2 size={13} className="mr-2" /> WhatsApp</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={13} className="mr-2" /> Share</DropdownMenuItem>
                           <DropdownMenuItem disabled={v.status !== "ready"} onSelect={() => useInFunnel(v.id)}><Rocket size={13} className="mr-2" /> Use in Funnel</DropdownMenuItem>
+                          {v._source === "own" && v.status === "ready" && (
+                            <DropdownMenuItem onSelect={() => regenerateThumbnail(v as any)}><RefreshCw size={13} className="mr-2" /> Regenerate Thumbnail</DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           {v._source === "linked" ? (
                             <DropdownMenuItem onSelect={() => removeLinkedVideo(v.id)} className="text-destructive focus:text-destructive"><Trash2 size={13} className="mr-2" /> Remove</DropdownMenuItem>

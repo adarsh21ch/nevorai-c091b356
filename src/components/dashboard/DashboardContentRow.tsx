@@ -1,6 +1,7 @@
 import { Link } from "@/lib/router-compat";
 import { Layers, Video, FileText, Radio } from "lucide-react";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { SafeIcon } from "@/components/SafeIcon";
 
 export const DashboardContentRow = () => {
   const { config, counts } = usePlanLimits();
@@ -25,7 +26,7 @@ export const DashboardContentRow = () => {
           } ${i === 1 ? "sm:border-r" : ""} ${i === items.length - 2 ? "sm:border-b-0" : ""}`}
         >
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <item.icon size={16} />
+            <SafeIcon icon={item.icon} size={16} />
           </div>
           <div className="min-w-0 flex-col">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</p>

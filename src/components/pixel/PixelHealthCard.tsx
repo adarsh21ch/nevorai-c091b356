@@ -157,9 +157,24 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
     );
   }
 
-  const meta = STATUS_META[data.status];
+  // Defensive: if the server ever returns a status string the client bundle
+  // doesn't know about (e.g. an older cached query result after a deploy, or
+  // a new status added on the server but not yet shipped to this client),
+  // fall back to "unknown" instead of crashing the entire page.
+  const meta = STATUS_META[data.status] ?? STATUS_META.unknown;
+  if (!STATUS_META[data.status]) {
+    // Log so we can spot the unexpected status in production console.
+    // eslint-disable-next-line no-console
+    console.warn("[PixelHealthCard] Unknown pixel health status:", data.status, data);
+  }
   const StatusIcon = meta.icon;
-  const sparkMax = Math.max(1, ...data.sparkline.map((d) => d.count));
+  // Defensive defaults — an old cached payload (pre-deploy) or a partial server
+  // response may be missing these nested objects. Never let the dashboard crash.
+  const last24h = data.last24h ?? { pageViews: 0, leads: 0, total: 0, successRate: 0 };
+  const last7d = data.last7d ?? { total: 0 };
+  const sparkline = data.sparkline ?? [];
+  const recent = data.recent ?? [];
+  const sparkMax = Math.max(1, ...sparkline.map((d) => d.count));
 
   return (
     <div className="glass-card p-5 space-y-4">
@@ -223,10 +238,10 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
       {/* KPIs */}
       <div className="grid grid-cols-4 gap-2">
         {[
-          { label: "PageViews", value: data.last24h.pageViews },
-          { label: "Leads", value: data.last24h.leads },
-          { label: "Success", value: `${data.last24h.successRate}%` },
-          { label: "Total 24h", value: data.last24h.total },
+          { label: "PageViews", value: last24h.pageViews },
+          { label: "Leads", value: last24h.leads },
+          { label: "Success", value: `${last24h.successRate}%` },
+          { label: "Total 24h", value: last24h.total },
         ].map((k) => (
           <div key={k.label} className="bg-muted/40 rounded-lg p-2.5 text-center">
             <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{k.label}</div>
@@ -237,9 +252,9 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
 
       {/* Sparkline */}
       <div>
-        <div className="text-[10px] text-muted-foreground mb-1">Last 7 days · {data.last7d.total} events</div>
+        <div className="text-[10px] text-muted-foreground mb-1">Last 7 days · {last7d.total} events</div>
         <div className="flex items-end gap-1 h-10">
-          {data.sparkline.map((d) => (
+          {sparkline.map((d) => (
             <div key={d.day} className="flex-1 flex flex-col items-center gap-0.5">
               <div
                 className="w-full bg-primary/60 rounded-sm transition-all"
@@ -252,10 +267,10 @@ export function PixelHealthCard({ scope, resourceId, publicUrl }: Props) {
       </div>
 
       {/* Recent events */}
-      {data.recent.length > 0 ? (
+      {recent.length > 0 ? (
         <div className="space-y-1 border-t border-border pt-3">
           <div className="text-[10px] text-muted-foreground mb-1">Recent events</div>
-          {data.recent.map((r, i) => (
+          {recent.map((r, i) => (
             <div key={i} className="flex items-center justify-between text-[11px] gap-2">
               <div className="flex items-center gap-1.5 min-w-0">
                 {r.success ? (

@@ -1,74 +1,80 @@
-# Tracking system hardening — Phase 3
 
-You picked all four. I'll ship them in one consolidated migration + a focused code pass. Order matters: encryption first (so the retry queue stores ciphertext from day one), then dedupe reconciliation, then queue, then verification UI.
+# Dashboard + Tracking Redesign
 
-## 1. New migration: `tracking_phase3_migration.sql`
+The dashboard becomes a follow-up workspace, not an analytics report. Every section answers one question: *who watched my video, how far, and how do I contact them right now?* Mobile-first, one column on phones.
 
-Single file you paste into Supabase SQL editor. Idempotent. Contains:
+## New page structure (`/dashboard`)
 
-**a) Encrypt `tracking_accounts.access_token` at rest (pgsodium)**
-- Enable `pgsodium` extension.
-- Add `access_token_encrypted bytea` + `access_token_key_id uuid`.
-- Backfill: encrypt existing plaintext rows, then `access_token = NULL`.
-- Rewrite `upsert_my_tracking_account` to encrypt on write.
-- Rewrite `resolve_capi_config_for_resource` + add `read_my_capi_token_for_test` to decrypt only inside SECURITY DEFINER, returning plaintext to the server caller (never to the browser).
-- Drop the raw `access_token` column at the end (kept during backfill for safety).
+Top-to-bottom, replacing the current KPI strip + content rows overview:
 
-**b) `capi_fire_queue` retry table**
-- Columns: `id, owner_id, pixel_id, scope, resource_id, event_name, event_id, payload jsonb, attempts int, next_attempt_at timestamptz, last_error text, status ('pending'|'sent'|'dead'), created_at`.
-- Index on `(status, next_attempt_at)` for the worker.
-- RPC `enqueue_capi_fire(...)` and `claim_capi_fires(_limit int)` for the worker (FOR UPDATE SKIP LOCKED).
-- GRANTs: writes via service_role only; no anon/authenticated.
+```text
+┌──────────────────────────────────────────┐
+│ ● 5 watching now — tap to see who       │   LiveViewersBar
+├──────────────────────────────────────────┤
+│ Follow up today                          │   FollowUpToday
+│  Ravi   Product demo  82% 🔥  [WA][Call] │
+│  Anon   Offer video   41% ⚡  —          │
+├──────────────────────────────────────────┤
+│ Today  Yesterday  Week  Month            │   TodaysNumbers
+│  12/3    18/2      74/9   210/34         │   (unique viewers / leads)
+├──────────────────────────────────────────┤
+│ Videos × Days matrix (scroll →)          │   TrackingMatrix
+│  ▢ Demo    | 3 | 5 | 2 | 8 | …           │
+│  ▢ Offer   | 0 | 1 | 4 | 2 | …           │
+├──────────────────────────────────────────┤
+│ Quick actions · Recent funnels           │   (kept from today)
+├──────────────────────────────────────────┤
+│ ▸ Advanced (traffic, attribution, team)  │   AdvancedSection
+└──────────────────────────────────────────┘
+```
 
-**c) Mark platform CAPI deprecated**
-- Comment on `pixel_fire_log` describing the reconciled model (see §2).
+Clicking any name anywhere opens the **Person Profile** drawer (mini-CRM for one prospect).
 
-## 2. Reconcile the two CAPI paths
+## Sections in detail
 
-**Decision: creator-CAPI (`/api/public/capi/fire`) is canonical for funnel/landing events.** Platform CAPI (`/api/public/pixel/track`) stays ONLY for platform-app events (signup, Purchase on billing, etc.) fired against the Nevorai pixel — never against creator pixels.
+**1. LiveViewersBar** — replaces `WatchingNowStrip`. Slim bar always visible. Polls every 15s using existing `funnel_video_analytics` recent-events query. Click expands inline list of active viewers with name, video title, live % bar, and WA/Call buttons when a lead is attached. Empty state = one-line quiet strip.
 
-Code changes:
-- `src/lib/pixel.ts`: when `pixelId` is set, NEVER mirror to platform `/track` (today it skips, but the comment is ambiguous — tighten the condition + add a guard log).
-- `src/routes/api/public/pixel/track.ts`: reject requests that include a `pixel_id` field with 400 `wrong_endpoint`.
-- Document the split at the top of both route files.
+**2. FollowUpToday** — new. Last 24h of engagement across owner's videos, ranked by score (watched % + CTA click). Row shows name/Anonymous, video, % watched, drop-off timestamp, relative time, HOT/WARM badge. WA button uses `wa.me/<phone>?text=…` with a short pre-filled Hinglish message; Call uses `tel:`. Empty state copy: "Share a video link — jisne dekha, wo yahan dikhega."
 
-Result: every event has exactly one server fire, sharing `event_id` with the browser for Meta dedupe.
+**3. TodaysNumbers** — four compact tiles (Today / Yesterday / Week / Month), each `unique viewers · leads`. No comparison chips. Reuses `useOwnerUniquePeople` and `funnel_leads` counts bucketed by date on the client.
 
-## 3. Retry queue worker
+**4. TrackingMatrix** — the heart. Rows = owner's videos (thumb + title). Columns = last 30 days, most recent first, horizontal scroll on mobile with sticky first column. Cell = unique viewers of that video on that date, derived from `video_view_events` (source-agnostic, so direct/funnel/landing all fold together — this is already how the table is written per `useVideoTracking`). Non-zero cells open a drill-down sheet listing each viewer: name/Anonymous, % watched, drop-off (`max_position`), CTA yes/no, last activity, plus filter chips (>50%, submitted, clicked). Row's left rail shows all-time total.
 
-- New server route `src/routes/api/public/capi/drain.ts` (POST, secret-gated via `CAPI_DRAIN_SECRET`) — claims up to 50 pending rows, re-POSTs to Meta, marks sent/failed. Exponential backoff: 1m, 5m, 30m, 2h, 12h, then `dead`.
-- Modify `capi/fire.ts`: on non-2xx or fetch error, `enqueue_capi_fire(...)` instead of swallowing.
-- Provide a `pg_cron` snippet at the bottom of the migration to hit `/api/public/capi/drain` every minute (commented — user copies into Supabase Dashboard → Database → Cron).
+**5. PersonProfile drawer** — opened from any name. Shows lead contact + WA/Call at top, then full history: every video with % + drop-off, form submissions, CTA clicks, chronological timeline. Data comes from `video_view_events` joined on `fingerprint`/`lead_id`, plus `funnel_leads` and CTA events.
 
-## 4. /tracking verification panel
+**6. AdvancedSection** — a single `<Collapsible>` block on the dashboard. Contains links to the existing Traffic Sources, Lead Attribution, Team Tracking, and per-surface (Videos/Funnels/Landing/Live) insights pages. Nothing is deleted; the routes still work, they just leave the main path.
 
-Upgrade the existing test-event card on `TrackingPage.tsx`:
-- Show the last 5 fires from `pixel_fire_log` (filtered to the user) with: time, event_name, success/✗, `fbtrace_id`, latency.
-- Show queue depth from `capi_fire_queue` (pending / dead counts).
-- "Send test event" already exists — extend response panel to show `events_received`, `fbtrace_id`, `test_event_code` status, and a copy-to-clipboard button for the full Graph response.
-- Add a "How to verify in Meta Events Manager" inline help (3 steps).
+## Files
 
-New server fn `getMyCapiDiagnostics` in `trackingAccount.functions.ts` returns `{ recent_fires, queue_pending, queue_dead, has_test_code }`.
+New:
+- `src/components/dashboard/LiveViewersBar.tsx` (replaces WatchingNowStrip usage)
+- `src/components/dashboard/FollowUpToday.tsx`
+- `src/components/dashboard/TodaysNumbers.tsx`
+- `src/components/dashboard/TrackingMatrix.tsx`
+- `src/components/dashboard/PersonProfileDrawer.tsx`
+- `src/components/dashboard/AdvancedSection.tsx`
+- `src/lib/followUp.ts` — score + WA message helpers
 
-## 5. Files I will touch
+Edited:
+- `src/pages/Dashboard.tsx` — new section order, drop old KPI strip + content rows from main path (moved into Advanced).
+- `src/pages/TrackingPage.tsx` — becomes a thin wrapper around `TrackingMatrix` full-screen (keeps the `/tracking` route working from Advanced).
 
-Create:
-- `tracking_phase3_migration.sql`
-- `src/routes/api/public/capi/drain.ts`
+Untouched: `InsightsPage.tsx` and the four `insights/*` sub-pages — still reachable via Advanced. No new libraries. No schema changes.
 
-Edit:
-- `src/lib/trackingAccount.functions.ts` — use new RPCs, add `getMyCapiDiagnostics`
-- `src/routes/api/public/capi/fire.ts` — decrypt via RPC, enqueue on failure
-- `src/routes/api/public/pixel/track.ts` — reject creator-pixel requests
-- `src/lib/pixel.ts` — tighten platform-mirror guard
-- `src/pages/TrackingPage.tsx` — verification panel
+## Data / accuracy
 
-Secrets I'll request via `add_secret` after the migration: `CAPI_DRAIN_SECRET` (random, for the cron hitting `/api/public/capi/drain`).
+- % watched: `video_view_events.watch_position / duration_seconds` (already written by `useVideoTracking` heartbeats at 25/50/75/completion).
+- Drop-off: `max_position` on the same row.
+- Unique viewer per day: existing `nv_v_seen:*` sessionStorage guard + fingerprint. Matrix aggregates by `date_trunc('day', started_at)` + distinct `fingerprint`.
+- Live: reuse `funnel_video_analytics` recent-events (last 60s) query, poll every 15s.
+- Cross-surface unification: already true — `video_view_events` is the single writer for direct/funnel/landing/live.
 
-## 6. What you do
+## Mobile verification
 
-1. Open Supabase SQL editor → paste `tracking_phase3_migration.sql` → run. It's idempotent so re-running is safe.
-2. After I land the code, I'll prompt for `CAPI_DRAIN_SECRET` (random 32-char) and give you the one-line `pg_cron` snippet.
-3. Paste a real Meta access token + `test_event_code` into `/tracking`, click Send test event, confirm `events_received: 1` in the panel and a hit in Meta Events Manager → Test Events.
+After build, drive Playwright at 390×844 and confirm: live bar visible, follow-up list stacks cleanly, matrix scrolls horizontally with sticky first column, drawer opens full-height.
 
-Want me to execute this plan now?
+## Not doing
+
+- No new realtime infra (Supabase Realtime channels) — polling only.
+- No schema migrations. Everything reads existing tables.
+- No changes to the video player, upload flow, or public share pages.

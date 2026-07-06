@@ -18,6 +18,6 @@ export const brand = {
     poweredBy: "Powered by Nevorai",
     poweredByFull: "Powered by Nevorai",
     madeIn: "Made in India 🇮🇳",
-    copyright: `© ${new Date().getFullYear()} Nevorai. All rights reserved.`,
+    copyright: () => `© ${new Date().getFullYear()} Nevorai. All rights reserved.`,
   },
 } as const;

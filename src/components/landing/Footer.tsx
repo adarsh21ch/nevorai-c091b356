@@ -63,7 +63,7 @@ export const Footer = () => {
           ))}
         </div>
         <div className="border-t border-border-subtle/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">{brand.footer.copyright}</p>
+          <p className="text-xs text-muted-foreground" suppressHydrationWarning>{brand.footer.copyright()}</p>
           <p className="text-xs text-muted-foreground">{brand.footer.madeIn}</p>
         </div>
       </div>
