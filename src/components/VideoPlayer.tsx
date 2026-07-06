@@ -630,7 +630,7 @@ function NativeVideoPlayer({
           }
           setPlaybackRate(e.currentTarget.playbackRate);
         }}
-        onError={onError}
+        onError={(e) => onError?.(e.currentTarget)}
       />
 
       {/* Buffering spinner — saffron, only while truly waiting on data */}
