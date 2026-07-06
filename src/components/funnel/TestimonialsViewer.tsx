@@ -139,12 +139,16 @@ const VideoPlayer = ({ videoUrl, thumbnailUrl, durationSeconds }: { videoUrl: st
 
   return (
     <div className="relative rounded-xl overflow-hidden bg-black cursor-pointer aspect-[9/16] max-h-[420px]" onClick={handlePlayPause}>
-      <video ref={videoRef} src={videoUrl} poster={thumbnailUrl || undefined} muted={muted} playsInline preload="metadata" className="w-full h-full object-cover" onEnded={handleEnded} onError={() => setLoadError(true)} />
+      <video ref={videoRef} src={videoUrl} poster={thumbnailUrl || undefined} muted={muted} playsInline preload="metadata" className="w-full h-full object-cover" onEnded={handleEnded} onError={(e) => {
+        const el = e.currentTarget;
+        if (!(el as any).__nfRetried) { (el as any).__nfRetried = true; try { el.load(); } catch { /* ignore */ } return; }
+        setLoadError(true);
+      }} />
 
       {loadError && (
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center bg-black/80 px-3 gap-1">
-          <div className="text-destructive text-xs font-medium">⚠️ Video format not supported.</div>
-          <div className="text-white/70 text-[11px]">Please re-upload as MP4 format.</div>
+          <div className="text-white text-xs font-medium">Video couldn't load.</div>
+          <div className="text-white/70 text-[11px]">Please try again.</div>
         </div>
       )}
 
