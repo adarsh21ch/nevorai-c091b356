@@ -30,7 +30,8 @@ interface Props {
   initialFile?: File | null;
 }
 
-const MAX_SIZE_BYTES = 500 * 1024 * 1024;
+const MAX_SIZE_MB = 2048;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
 const formatEta = (seconds: number): string => {
   if (!isFinite(seconds) || seconds <= 0) return "";
@@ -100,7 +101,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     if (f.size > MAX_SIZE_BYTES) {
       const sizeMb = Math.round(f.size / (1024 * 1024));
       toast.error(
-        `That file is ${sizeMb} MB — uploads are capped at 500 MB. Compress it (e.g. handbrake.fr) and try again.`,
+        `That file is ${sizeMb} MB — uploads are capped at ${MAX_SIZE_MB} MB (${(MAX_SIZE_MB/1024).toFixed(0)} GB). Compress it (e.g. handbrake.fr) and try again.`,
         { duration: 7000 },
       );
       if (fileRef.current) fileRef.current.value = "";
@@ -366,7 +367,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                 Tap to select a video
               </span>
               <span className="text-xs text-muted-foreground/70 text-center">
-                Max 500 MB · MP4 only · H.264
+                Max 2 GB · MP4 only · H.264
               </span>
             </button>
           ) : (

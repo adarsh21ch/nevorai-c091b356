@@ -57,14 +57,15 @@ Deno.serve(async (req) => {
     const isAcademyVideo = purpose === "academy-video";
     const isAcademyThumbnail = purpose === "academy-thumbnail";
 
-    // Server-side file size cap. Mirrors the client's 500 MB limit so a
-    // tampered client cannot presign uploads larger than the platform allows.
-    const ABSOLUTE_MAX_BYTES = 500 * 1024 * 1024;
+    // Server-side per-file cap. Mirrors the client's 2 GB limit so a tampered
+    // client cannot presign uploads larger than the platform allows. Per-plan
+    // storage quota is enforced separately below.
+    const ABSOLUTE_MAX_BYTES = 2048 * 1024 * 1024;
     if (!isAcademyVideo && typeof fileSize === "number" && fileSize > 0 && fileSize > ABSOLUTE_MAX_BYTES) {
       const sizeMb = Math.round(fileSize / (1024 * 1024));
       return new Response(
         JSON.stringify({
-          error: `That file is ${sizeMb} MB — uploads are capped at 500 MB. Compress it and try again.`,
+          error: `That file is ${sizeMb} MB — uploads are capped at 2 GB. Compress it and try again.`,
         }),
         { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );

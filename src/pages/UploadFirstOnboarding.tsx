@@ -23,7 +23,7 @@ const UploadFirstOnboarding = () => {
   };
 
   const steps = [
-    { icon: Upload, title: "Upload video", desc: "MP4, MOV or WebM up to 500 MB." },
+    { icon: Upload, title: "Upload video", desc: "MP4 (H.264) up to 2 GB." },
     { icon: Link2, title: "Copy share link", desc: "Send it like a YouTube link — anywhere." },
     { icon: BarChart3, title: "Capture views & leads", desc: "Track who watched and turn it into a funnel later." },
   ];
