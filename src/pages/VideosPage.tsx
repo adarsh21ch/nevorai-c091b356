@@ -324,7 +324,7 @@ const VideosPage = () => {
           <input
             ref={uploadInputRef}
             type="file"
-            accept=".mp4,.mov,.webm,.m4v,.mkv,.avi,video/*"
+            accept="video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov"
             className="hidden"
             onChange={handleUploadPicked}
           />

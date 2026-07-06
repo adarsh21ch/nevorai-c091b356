@@ -164,7 +164,7 @@ const NativeCustomVideoPlayer = ({
   const [speed, setSpeed] = useState(1);
   const [autoplayMuted, setAutoplayMuted] = useState(false);
   const [seekToast, setSeekToast] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState<null | "format" | "network">(null);
   const [centerFlash, setCenterFlash] = useState<{ kind: "play" | "pause"; key: number } | null>(null);
   const [seekRipple, setSeekRipple] = useState<{ side: "left" | "right"; key: number } | null>(null);
   const userPaused = useRef(false);
@@ -487,15 +487,46 @@ const NativeCustomVideoPlayer = ({
         onPlaying={() => { setIsBuffering(false); setIsLoading(false); }}
         onWaiting={() => setIsBuffering(true)}
         onCanPlay={() => setIsLoading(false)}
-        onError={() => { setLoadError(true); setIsLoading(false); setIsBuffering(false); }}
+        onError={() => {
+          const err = videoRef.current?.error;
+          // MEDIA_ERR_SRC_NOT_SUPPORTED (4) = real format issue.
+          // 1/2/3 = aborted / network / decode — usually transient, retryable.
+          const code = err?.code ?? 0;
+          setLoadError(code === 4 ? "format" : "network");
+          setIsLoading(false);
+          setIsBuffering(false);
+        }}
       />
 
       {loadError && (
-        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center bg-black/80 backdrop-blur-sm px-4 gap-2">
-          <div className="text-destructive text-sm font-medium">⚠️ Video format not supported.</div>
-          <div className="text-white/80 text-xs">Please re-upload as MP4 format.</div>
+        <div className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center bg-black/80 backdrop-blur-sm px-4 gap-3">
+          {loadError === "format" ? (
+            <>
+              <div className="text-destructive text-sm font-medium">⚠️ This video format can't play in your browser.</div>
+              <div className="text-white/80 text-xs max-w-xs">The creator uploaded a file (likely .mov / HEVC) that Chrome and Safari can't decode. Ask them to re-upload as MP4 (H.264).</div>
+            </>
+          ) : (
+            <>
+              <div className="text-white text-sm font-medium">Video couldn't load.</div>
+              <div className="text-white/70 text-xs">Check your internet and try again.</div>
+              <button
+                type="button"
+                className="mt-1 px-4 py-2 rounded-full bg-white text-black text-xs font-semibold"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLoadError(null);
+                  setIsLoading(true);
+                  const v = videoRef.current;
+                  if (v) { v.load(); v.play().catch(() => {}); }
+                }}
+              >
+                Retry
+              </button>
+            </>
+          )}
         </div>
       )}
+
 
 
       {autoplayMuted && started && muted && (
