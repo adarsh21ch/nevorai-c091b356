@@ -367,7 +367,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                 Tap to select a video
               </span>
               <span className="text-xs text-muted-foreground/70 text-center">
-                Max 500 MB · MP4 only · H.264
+                Max 2 GB · MP4 only · H.264
               </span>
             </button>
           ) : (
