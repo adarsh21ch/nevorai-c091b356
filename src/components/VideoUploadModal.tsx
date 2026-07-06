@@ -101,7 +101,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     if (f.size > MAX_SIZE_BYTES) {
       const sizeMb = Math.round(f.size / (1024 * 1024));
       toast.error(
-        `That file is ${sizeMb} MB — uploads are capped at 500 MB. Compress it (e.g. handbrake.fr) and try again.`,
+        `That file is ${sizeMb} MB — uploads are capped at ${MAX_SIZE_MB} MB (${(MAX_SIZE_MB/1024).toFixed(0)} GB). Compress it (e.g. handbrake.fr) and try again.`,
         { duration: 7000 },
       );
       if (fileRef.current) fileRef.current.value = "";
