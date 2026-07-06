@@ -53,7 +53,7 @@ export interface VideoPlayerProps {
   live?: boolean;
   viewerCount?: number;
   onVideoRef?: (el: HTMLVideoElement | null) => void;
-  onError?: () => void;
+  onError?: (el: HTMLVideoElement | null) => void;
   onPlay?: () => void;
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   /** Optional view-tracking metadata. When provided, view events are recorded. */
