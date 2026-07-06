@@ -30,7 +30,8 @@ interface Props {
   initialFile?: File | null;
 }
 
-const MAX_SIZE_BYTES = 500 * 1024 * 1024;
+const MAX_SIZE_MB = 2048;
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024;
 
 const formatEta = (seconds: number): string => {
   if (!isFinite(seconds) || seconds <= 0) return "";
