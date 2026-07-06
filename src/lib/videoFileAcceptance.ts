@@ -7,7 +7,14 @@ export type VideoFileAcceptance = {
 };
 
 const SAFE_MP4_VIDEO_CODECS = new Set(["avc1", "avc3"]);
-const UNSAFE_MP4_VIDEO_CODECS = new Set(["hvc1", "hev1", "av01", "vp09", "mp4v", "dvhe", "dvh1"]);
+const UNSAFE_MP4_VIDEO_CODECS = new Set([
+  "hvc1", "hev1", "av01", "vp09", "vp08", "mp4v", "dvhe", "dvh1",
+  "apch", "apcn", "apcs", "apco", "ap4h", "ap4x", "jpeg", "mjpa", "mjpg",
+]);
+const NON_VIDEO_MP4_SAMPLE_ENTRIES = new Set([
+  "mp4a", "enca", "ac-3", "ec-3", "alac", "flac", "opus",
+  "text", "tx3g", "sbtl", "subt", "stpp", "wvtt", "c608", "c708", "meta",
+]);
 
 const readSlice = (blob: Blob) =>
   new Promise<ArrayBuffer>((resolve, reject) => {
@@ -84,9 +91,11 @@ export const validatePlayableUploadFile = async (file: File): Promise<VideoFileA
   try {
     const buffer = await readMp4ScanBuffer(file);
     const codecs = collectMp4SampleCodecs(buffer);
-    const videoCodecs = codecs.filter((codec) => SAFE_MP4_VIDEO_CODECS.has(codec) || UNSAFE_MP4_VIDEO_CODECS.has(codec));
+    const possibleVideoCodecs = codecs.filter((codec) => !NON_VIDEO_MP4_SAMPLE_ENTRIES.has(codec));
+    const safeVideoCodecs = possibleVideoCodecs.filter((codec) => SAFE_MP4_VIDEO_CODECS.has(codec));
+    const unsafeVideoCodecs = possibleVideoCodecs.filter((codec) => UNSAFE_MP4_VIDEO_CODECS.has(codec));
 
-    if (videoCodecs.some((codec) => UNSAFE_MP4_VIDEO_CODECS.has(codec))) {
+    if (unsafeVideoCodecs.length > 0) {
       return {
         ok: false,
         message: "This MP4 uses an unsupported video codec.",
@@ -94,11 +103,19 @@ export const validatePlayableUploadFile = async (file: File): Promise<VideoFileA
       };
     }
 
-    if (videoCodecs.length > 0 && !videoCodecs.some((codec) => SAFE_MP4_VIDEO_CODECS.has(codec))) {
+    if (possibleVideoCodecs.length > 0 && safeVideoCodecs.length === 0) {
       return {
         ok: false,
         message: "This video codec is not safe for all browsers.",
         detail: "Convert/download as MP4 (H.264/AVC) before uploading.",
+      };
+    }
+
+    if (codecs.length > 0 && safeVideoCodecs.length === 0) {
+      return {
+        ok: false,
+        message: "No supported video track was found.",
+        detail: "Please export/download again as MP4 (H.264/AVC).",
       };
     }
   } catch {
