@@ -69,12 +69,10 @@ const collectMp4SampleCodecs = (buffer: ArrayBuffer): string[] => {
 
 const isMp4ByNameOrType = (file: File) => {
   const name = file.name.toLowerCase();
-  return name.endsWith(".mp4") || name.endsWith(".m4v") || file.type === "video/mp4" || file.type === "video/x-m4v";
+  return name.endsWith(".mp4") || file.type === "video/mp4";
 };
 
 export const validatePlayableUploadFile = async (file: File): Promise<VideoFileAcceptance> => {
-  const name = file.name.toLowerCase();
-
   if (!isMp4ByNameOrType(file)) {
     return {
       ok: false,
