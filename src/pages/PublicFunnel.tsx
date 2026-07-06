@@ -494,11 +494,16 @@ const NativeCustomVideoPlayer = ({
         onWaiting={() => setIsBuffering(true)}
         onCanPlay={() => setIsLoading(false)}
         onError={() => {
-          const err = videoRef.current?.error;
-          // MEDIA_ERR_SRC_NOT_SUPPORTED (4) = real format issue.
-          // 1/2/3 = aborted / network / decode — usually transient, retryable.
-          const code = err?.code ?? 0;
-          setLoadError(code === 4 ? "format" : "network");
+          // Auto-retry once before showing any error UI — many "errors" here
+          // are transient (aborted range fetch, brief src re-mount, iOS quirk)
+          // and would wrongly scare users into re-uploading a perfectly fine MP4.
+          const v = videoRef.current;
+          if (v && !(v as any).__nfRetried) {
+            (v as any).__nfRetried = true;
+            try { v.load(); v.play().catch(() => {}); } catch { /* ignore */ }
+            return;
+          }
+          setLoadError("network");
           setIsLoading(false);
           setIsBuffering(false);
         }}
