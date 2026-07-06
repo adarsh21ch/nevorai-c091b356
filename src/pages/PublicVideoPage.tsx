@@ -344,22 +344,21 @@ const PublicVideoPage = () => {
           {videoError ? (
             <div className="w-full h-full flex flex-col items-center justify-center text-center px-4 gap-3 bg-card">
               <AlertTriangle size={36} className="text-destructive" />
-              <p className="text-sm font-medium">
-                {videoError === "format" ? "This video can't play in your browser." : "Video couldn't load."}
-              </p>
+              <p className="text-sm font-medium">Video couldn't load.</p>
               <p className="text-xs text-muted-foreground max-w-sm">
-                {videoError === "format"
-                  ? "The file (likely .mov / HEVC) isn't supported by browsers. Re-upload as MP4 (H.264)."
-                  : "Check your connection and try again."}
+                Check your connection and try again.
               </p>
-              {videoError === "network" ? (
-                <Button size="sm" variant="outline" onClick={() => setVideoError(false)}>
-                  Retry
-                </Button>
-              ) : isOwner ? (
-                <Button size="sm" variant="hero" onClick={() => setReuploadOpen(true)}>
-                  Re-upload
-                </Button>
+              <Button size="sm" variant="outline" onClick={() => setVideoError(false)}>
+                Retry
+              </Button>
+              {isOwner ? (
+                <button
+                  type="button"
+                  className="text-xs text-muted-foreground underline mt-1"
+                  onClick={() => setReuploadOpen(true)}
+                >
+                  Replace video
+                </button>
               ) : null}
             </div>
           ) : video.public_url ? (
@@ -373,8 +372,15 @@ const PublicVideoPage = () => {
               title={video.title || undefined}
               onVideoRef={handleVideoRef}
               onError={(el) => {
-                const code = el?.error?.code ?? 0;
-                setVideoError(code === 4 ? "format" : "network");
+                // Auto-retry once before flagging — most first-load errors
+                // are transient (aborted range fetch / brief src remount) and
+                // wrongly showing "unsupported" scares users into re-uploading.
+                if (el && !(el as any).__nfRetried) {
+                  (el as any).__nfRetried = true;
+                  try { el.load(); el.play?.().catch?.(() => {}); } catch { /* ignore */ }
+                  return;
+                }
+                setVideoError("network");
               }}
               tracking={video.id ? { videoId: video.id, sourceType: "direct", sourceId: null } : undefined}
             />
