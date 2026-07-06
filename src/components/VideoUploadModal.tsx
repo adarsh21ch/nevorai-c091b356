@@ -29,33 +29,27 @@ interface Props {
   initialFile?: File | null;
 }
 
-// MP4 = best path. MOV/WEBM = supported but soft-warned. M4V/MKV/AVI =
-// best-effort: we accept and warn, instead of rejecting a file the user
-// just spent a minute picking.
-const PREFERRED_EXTENSIONS = [".mp4"];
-const SUPPORTED_EXTENSIONS = [".mp4", ".mov", ".webm", ".m4v"];
-const LENIENT_EXTENSIONS = [".mkv", ".avi"];
-const SUPPORTED_MIME_TYPES = [
-  "video/mp4",
-  "video/quicktime",
-  "video/webm",
-  "video/x-m4v",
-  "video/x-matroska",
-  "video/x-msvideo",
-];
+// Browsers can only reliably play MP4 (H.264) and WEBM. MOV is warned
+// because iPhone recordings are extremely common — most play, some (HEVC/ProRes)
+// don't. MKV / AVI / M4V / FLV / WMV almost never play natively in browsers,
+// so we reject them at pick time instead of letting the user upload a file
+// that will show "Video format not supported" to every prospect.
+const PREFERRED_EXTENSIONS = [".mp4", ".webm"];
+const WARN_EXTENSIONS = [".mov"];
+const REJECT_EXTENSIONS = [".mkv", ".avi", ".m4v", ".flv", ".wmv", ".mpeg", ".mpg", ".3gp", ".ts"];
 const MAX_SIZE_BYTES = 500 * 1024 * 1024;
 
 type AcceptResult = "ok" | "warn" | "reject";
 
 const checkVideoAcceptance = (file: File): AcceptResult => {
   const name = file.name.toLowerCase();
-  if (PREFERRED_EXTENSIONS.some((ext) => name.endsWith(ext)) || file.type === "video/mp4") {
-    return "ok";
-  }
-  if (SUPPORTED_EXTENSIONS.some((ext) => name.endsWith(ext))) return "warn";
-  if (LENIENT_EXTENSIONS.some((ext) => name.endsWith(ext))) return "warn";
-  if (file.type && file.type.startsWith("video/")) return "warn";
-  if (SUPPORTED_MIME_TYPES.includes(file.type)) return "warn";
+  if (PREFERRED_EXTENSIONS.some((ext) => name.endsWith(ext))) return "ok";
+  if (file.type === "video/mp4" || file.type === "video/webm") return "ok";
+  if (WARN_EXTENSIONS.some((ext) => name.endsWith(ext))) return "warn";
+  if (file.type === "video/quicktime") return "warn";
+  if (REJECT_EXTENSIONS.some((ext) => name.endsWith(ext))) return "reject";
+  // Unknown extension but claims to be a video — reject rather than
+  // upload something that likely won't play.
   return "reject";
 };
 
@@ -69,9 +63,10 @@ const formatEta = (seconds: number): string => {
 };
 
 const FORMAT_WARNING_MSG =
-  "We'll try to upload this format, but MP4 plays the smoothest on every device. If playback stutters, convert to MP4 at cloudconvert.com.";
+  "MOV can play on most devices, but iPhone HEVC recordings sometimes don't play in browsers. If any viewer sees 'format not supported', convert to MP4 (H.264) at cloudconvert.com and re-upload.";
 const FORMAT_REJECT_MSG =
-  "That doesn't look like a video file. Please pick an MP4, MOV, WEBM, M4V, MKV, or AVI — or convert it first at cloudconvert.com.";
+  "This format won't play in most browsers. Please convert to MP4 (H.264) first — cloudconvert.com is free and takes ~1 minute.";
+
 
 export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false, initialFile = null }: Props) => {
   const autoPickRef = useRef(false);
