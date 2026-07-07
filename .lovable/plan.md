@@ -1,80 +1,94 @@
+# Finish-line plan — 3 steps to green
 
-# Dashboard + Tracking Redesign
+## Step 1 — SQL fix (you paste, ~5 sec)
 
-The dashboard becomes a follow-up workspace, not an analytics report. Every section answers one question: *who watched my video, how far, and how do I contact them right now?* Mobile-first, one column on phones.
+Paste this exactly into Supabase SQL editor. It replaces `track_link_event_v2` with **only one line changed** — the `ON CONFLICT` clause now uses index inference instead of constraint-by-name. All other logic, security_definer, and search_path stay identical:
 
-## New page structure (`/dashboard`)
+```sql
+CREATE OR REPLACE FUNCTION public.track_link_event_v2(
+  p_token text,
+  p_step_id uuid,
+  p_event_type text,
+  p_fingerprint text,
+  p_user_agent text DEFAULT NULL::text
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public', 'extensions', 'pg_temp'
+AS $function$
+declare
+  v_link_id uuid;
+  v_funnel_id uuid;
+  v_ip text;
+  v_ipua_hash text;
+begin
+  if p_event_type not in ('view','lead','complete') then
+    return null;
+  end if;
 
-Top-to-bottom, replacing the current KPI strip + content rows overview:
+  select id, funnel_id into v_link_id, v_funnel_id
+  from public.funnel_share_links
+  where token = p_token and is_active = true;
 
-```text
-┌──────────────────────────────────────────┐
-│ ● 5 watching now — tap to see who       │   LiveViewersBar
-├──────────────────────────────────────────┤
-│ Follow up today                          │   FollowUpToday
-│  Ravi   Product demo  82% 🔥  [WA][Call] │
-│  Anon   Offer video   41% ⚡  —          │
-├──────────────────────────────────────────┤
-│ Today  Yesterday  Week  Month            │   TodaysNumbers
-│  12/3    18/2      74/9   210/34         │   (unique viewers / leads)
-├──────────────────────────────────────────┤
-│ Videos × Days matrix (scroll →)          │   TrackingMatrix
-│  ▢ Demo    | 3 | 5 | 2 | 8 | …           │
-│  ▢ Offer   | 0 | 1 | 4 | 2 | …           │
-├──────────────────────────────────────────┤
-│ Quick actions · Recent funnels           │   (kept from today)
-├──────────────────────────────────────────┤
-│ ▸ Advanced (traffic, attribution, team)  │   AdvancedSection
-└──────────────────────────────────────────┘
+  if v_link_id is null then return null; end if;
+
+  begin
+    v_ip := coalesce(
+      current_setting('request.headers', true)::jsonb ->> 'x-forwarded-for',
+      current_setting('request.headers', true)::jsonb ->> 'cf-connecting-ip',
+      ''
+    );
+  exception when others then
+    v_ip := '';
+  end;
+
+  v_ipua_hash := encode(digest(coalesce(v_ip,'') || '|' || coalesce(p_user_agent,''), 'sha256'), 'hex');
+
+  insert into public.link_events
+    (share_link_id, funnel_id, funnel_step_id, event_type, visitor_fingerprint, ip_ua_hash, user_agent)
+  values
+    (v_link_id, v_funnel_id, p_step_id, p_event_type, p_fingerprint, v_ipua_hash, p_user_agent)
+  on conflict (share_link_id, funnel_step_id, visitor_fingerprint)
+    where (event_type = 'view' and visitor_fingerprint is not null)
+    do nothing;
+
+  if p_event_type <> 'view' then
+    if not found then
+      insert into public.link_events
+        (share_link_id, funnel_id, funnel_step_id, event_type, visitor_fingerprint, ip_ua_hash, user_agent)
+      values
+        (v_link_id, v_funnel_id, p_step_id, p_event_type, p_fingerprint, v_ipua_hash, p_user_agent);
+    end if;
+  end if;
+
+  return v_link_id;
+end;
+$function$;
 ```
 
-Clicking any name anywhere opens the **Person Profile** drawer (mini-CRM for one prospect).
+**Why this works**: Postgres allows `ON CONFLICT` with an index-inference clause that matches a partial unique index. The partial index `uq_link_events_unique_view` already exists on those columns with that exact WHERE — so this just tells Postgres to use it directly, bypassing the constraint-name lookup that was failing.
 
-## Sections in detail
+## Step 2 — Deploy remaining edge functions (you)
 
-**1. LiveViewersBar** — replaces `WatchingNowStrip`. Slim bar always visible. Polls every 15s using existing `funnel_video_analytics` recent-events query. Click expands inline list of active viewers with name, video title, live % bar, and WA/Call buttons when a lead is attached. Empty state = one-line quiet strip.
+From the Supabase dashboard, deploy these three (you already have them open):
+- `get-funnel-data`
+- `funnel-engagement-log`
+- `get-r2-upload-url`
 
-**2. FollowUpToday** — new. Last 24h of engagement across owner's videos, ranked by score (watched % + CTA click). Row shows name/Anonymous, video, % watched, drop-off timestamp, relative time, HOT/WARM badge. WA button uses `wa.me/<phone>?text=…` with a short pre-filled Hinglish message; Call uses `tel:`. Empty state copy: "Share a video link — jisne dekha, wo yahan dikhega."
+Or bulk via CLI: `supabase functions deploy --project-ref dnyjlmtiliqkpxwsgqyn`
 
-**3. TodaysNumbers** — four compact tiles (Today / Yesterday / Week / Month), each `unique viewers · leads`. No comparison chips. Reuses `useOwnerUniquePeople` and `funnel_leads` counts bucketed by date on the client.
+## Step 3 — I verify + ship hardening (me)
 
-**4. TrackingMatrix** — the heart. Rows = owner's videos (thumb + title). Columns = last 30 days, most recent first, horizontal scroll on mobile with sticky first column. Cell = unique viewers of that video on that date, derived from `video_view_events` (source-agnostic, so direct/funnel/landing all fold together — this is already how the table is written per `useVideoTracking`). Non-zero cells open a drill-down sheet listing each viewer: name/Anonymous, % watched, drop-off (`max_position`), CTA yes/no, last activity, plus filter chips (>50%, submitted, clicked). Row's left rail shows all-time total.
+Reply **"done"** and I'll (all in one build turn):
 
-**5. PersonProfile drawer** — opened from any name. Shows lead contact + WA/Call at top, then full history: every video with % + drop-off, form submissions, CTA clicks, chronological timeline. Data comes from `video_view_events` joined on `fingerprint`/`lead_id`, plus `funnel_leads` and CTA events.
+1. Query DB for the 3 funnel slugs (`2CC se 30 lakh...` + latest + any HEVC .mov)
+2. Run Playwright playback verification on production, screenshot each playing frame
+3. If green, publish current preview build to prod, re-verify once more
+4. Implement hardening tweak 1 — HEVC/MOV/MKV/AVI upload advisory (client toast + `videos.format_warning` flag + owner-only badge on My Videos card)
+5. Implement hardening tweak 2 — public player logs `MediaError.code` + video id on real playback error (console only; skip DB event table unless a trivially reusable path exists)
+6. Final production verification with screenshots
 
-**6. AdvancedSection** — a single `<Collapsible>` block on the dashboard. Contains links to the existing Traffic Sources, Lead Attribution, Team Tracking, and per-surface (Videos/Funnels/Landing/Live) insights pages. Nothing is deleted; the routes still work, they just leave the main path.
+## What stays off-limits
 
-## Files
-
-New:
-- `src/components/dashboard/LiveViewersBar.tsx` (replaces WatchingNowStrip usage)
-- `src/components/dashboard/FollowUpToday.tsx`
-- `src/components/dashboard/TodaysNumbers.tsx`
-- `src/components/dashboard/TrackingMatrix.tsx`
-- `src/components/dashboard/PersonProfileDrawer.tsx`
-- `src/components/dashboard/AdvancedSection.tsx`
-- `src/lib/followUp.ts` — score + WA message helpers
-
-Edited:
-- `src/pages/Dashboard.tsx` — new section order, drop old KPI strip + content rows from main path (moved into Advanced).
-- `src/pages/TrackingPage.tsx` — becomes a thin wrapper around `TrackingMatrix` full-screen (keeps the `/tracking` route working from Advanced).
-
-Untouched: `InsightsPage.tsx` and the four `insights/*` sub-pages — still reachable via Advanced. No new libraries. No schema changes.
-
-## Data / accuracy
-
-- % watched: `video_view_events.watch_position / duration_seconds` (already written by `useVideoTracking` heartbeats at 25/50/75/completion).
-- Drop-off: `max_position` on the same row.
-- Unique viewer per day: existing `nv_v_seen:*` sessionStorage guard + fingerprint. Matrix aggregates by `date_trunc('day', started_at)` + distinct `fingerprint`.
-- Live: reuse `funnel_video_analytics` recent-events (last 60s) query, poll every 15s.
-- Cross-surface unification: already true — `video_view_events` is the single writer for direct/funnel/landing/live.
-
-## Mobile verification
-
-After build, drive Playwright at 390×844 and confirm: live bar visible, follow-up list stacks cleanly, matrix scrolls horizontally with sticky first column, drawer opens full-height.
-
-## Not doing
-
-- No new realtime infra (Supabase Realtime channels) — polling only.
-- No schema migrations. Everything reads existing tables.
-- No changes to the video player, upload flow, or public share pages.
+Per your constraints from earlier: no changes to accept list, size caps, contentType handling, or the public error UI beyond the two tweaks. No transcoding work.
