@@ -19,9 +19,7 @@ import {
   Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/useAuth";
 import { useTheme } from "@/hooks/useTheme";
-import { VideoUploadModal } from "@/components/VideoUploadModal";
 import {
   formatViewCount,
   formatDuration,
@@ -65,11 +63,9 @@ const TitleBlock = ({ title }: { title: string }) => {
 
 const PublicVideoPage = () => {
   const { id } = useParams();
-  const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
-  const [videoError, setVideoError] = useState<null | "format" | "network" | false>(false);
-  const [reuploadOpen, setReuploadOpen] = useState(false);
+  const [videoError, setVideoError] = useState<null | "network" | false>(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [openedByApp, setOpenedByApp] = useState(false);
   const trackingRef = useRef<{
@@ -87,7 +83,7 @@ const PublicVideoPage = () => {
     setOpenedByApp(Boolean(window.opener));
   }, []);
 
-  const { data: video, isLoading, error, refetch } = useQuery({
+  const { data: video, isLoading, error } = useQuery({
     queryKey: ["public-video", id],
     queryFn: async () => {
       const looksLikeUuid =
@@ -299,7 +295,6 @@ const PublicVideoPage = () => {
     );
   }
 
-  const isOwner = !!user && user.id === video.owner_id;
   const showDescToggle = !!video.description && video.description.length > 200;
   const showVerifiedBadge = verifiedBadgeEnabled && !!creatorProfile?.is_verified;
 
@@ -351,15 +346,6 @@ const PublicVideoPage = () => {
               <Button size="sm" variant="outline" onClick={() => setVideoError(false)}>
                 Retry
               </Button>
-              {isOwner ? (
-                <button
-                  type="button"
-                  className="text-xs text-muted-foreground underline mt-1"
-                  onClick={() => setReuploadOpen(true)}
-                >
-                  Replace video
-                </button>
-              ) : null}
             </div>
           ) : video.public_url ? (
             <VideoPlayer
@@ -535,18 +521,6 @@ const PublicVideoPage = () => {
             )}
           </div>
         </div>
-      )}
-
-      {isOwner && (
-        <VideoUploadModal
-          open={reuploadOpen}
-          onClose={() => setReuploadOpen(false)}
-          onSuccess={() => {
-            setVideoError(false);
-            setReuploadOpen(false);
-            refetch();
-          }}
-        />
       )}
 
       <footer

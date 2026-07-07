@@ -31,7 +31,7 @@ const getVideoMetadata = (file: File): Promise<{ duration: number }> =>
     const objectUrl = URL.createObjectURL(file);
     video.preload = "metadata";
     video.onloadedmetadata = () => { resolve({ duration: Math.round(video.duration) }); URL.revokeObjectURL(objectUrl); };
-    video.onerror = () => { URL.revokeObjectURL(objectUrl); reject(new Error("Could not read the video metadata. Please use MP4 (H.264).")); };
+    video.onerror = () => { URL.revokeObjectURL(objectUrl); resolve({ duration: 0 }); };
     video.src = objectUrl;
   });
 
@@ -81,7 +81,7 @@ export const TestimonialVideoUpload = ({
 
     const acceptance = await validatePlayableUploadFile(file);
     if (!acceptance.ok) {
-      setError(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Only MP4 (H.264) videos are supported.");
+      setError(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Please upload a video file.");
       return;
     }
 
@@ -108,9 +108,10 @@ export const TestimonialVideoUpload = ({
       }
 
       setProgress(20); setStatusLabel("Uploading video");
-      const videoPath = `testimonial-videos/${landingPageId}/${testimonialId}-${Date.now()}.mp4`;
+      const ext = file.name.toLowerCase().split(".").pop() || "mp4";
+      const videoPath = `testimonial-videos/${landingPageId}/${testimonialId}-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("landing-page-assets")
-        .upload(videoPath, file, { cacheControl: LONG_CACHE_CONTROL, upsert: true, contentType: "video/mp4" });
+        .upload(videoPath, file, { cacheControl: LONG_CACHE_CONTROL, upsert: true, contentType: file.type || "application/octet-stream" });
       if (uploadError) throw new Error(uploadError.message || "Video upload failed");
 
       setProgress(90); setStatusLabel("Finalizing");
@@ -186,7 +187,7 @@ export const TestimonialVideoUpload = ({
           <div className="flex-1 space-y-2 text-center sm:text-left">
             <div>
               <p className="text-sm font-medium text-foreground">{uploading ? "Uploading student video" : "Upload a student video testimonial"}</p>
-              <p className="text-xs text-muted-foreground">MP4 (H.264) • Max {maxSeconds} seconds • Max {MAX_SIZE_MB}MB</p>
+              <p className="text-xs text-muted-foreground">Video file • Max {maxSeconds} seconds • Max {MAX_SIZE_MB}MB</p>
               <p className="text-xs text-muted-foreground">Portrait videos look best in the live preview.</p>
             </div>
             {uploading ? (

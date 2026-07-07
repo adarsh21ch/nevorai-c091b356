@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadFileToR2 } from "@/lib/r2VideoUpload";
-import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
+import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 import { toast } from "sonner";
 import {
   ArrowDown,
@@ -285,9 +285,6 @@ export const AcademyTab = () => {
     setVideoUpload({ error: null, fileName: file.name, progress: 0, uploading: true });
 
     try {
-      const acceptance = await validatePlayableUploadFile(file);
-      if (!acceptance.ok) throw new Error(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Only MP4 (H.264) videos are supported.");
-
       const result = await uploadFileToR2({
         file,
         purpose: "academy-video",

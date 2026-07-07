@@ -42,8 +42,7 @@ const formatEta = (seconds: number): string => {
   return `${h}h ${m}m remaining`;
 };
 
-const FORMAT_REJECT_MSG =
-  "Only MP4 (H.264/AVC) is allowed. Convert MOV/WEBM/MKV/AVI or YouTube-downloaded WEBM to MP4 (H.264) before uploading.";
+const FORMAT_REJECT_MSG = "Please upload a video file.";
 
 
 export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false, initialFile = null }: Props) => {
@@ -132,9 +131,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
     return true;
   };
 
-  // Hydrate from initialFile when modal opens with a preselected file. This must
-  // run through the same validation as the modal picker; otherwise Dashboard / Videos
-  // can bypass format checks and upload MOV/WEBM files that later fail for prospects.
+  // Hydrate from initialFile when modal opens with a preselected file.
   useEffect(() => {
     if (open && initialFile && !file) {
       void validateAndSetFile(initialFile);
@@ -332,14 +329,13 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                   <div className="px-3 pb-3 text-sm text-muted-foreground space-y-2">
                     <p className="font-medium text-foreground">💡 Pro Tip — For Best Playback Quality:</p>
                     <p>
-                       For smooth playback on every prospect phone, upload only MP4 in H.264 format. If you download from YouTube, avoid WEBM.
+                       You can upload videos directly from your device. MP4 usually plays on the most phones, but we no longer block other video files.
                     </p>
                     <ol className="list-decimal list-inside space-y-1 pl-1">
-                      <li>Choose MP4 / 720p or 1080p while downloading</li>
-                      <li>If the file is MOV, WEBM, MKV or AVI, convert it to MP4 (H.264)</li>
-                      <li>Upload that MP4 here</li>
+                      <li>Choose the best quality version you have</li>
+                      <li>Keep files under 2 GB</li>
+                      <li>Share the link after upload finishes</li>
                     </ol>
-                    <p>This prevents the “video format can’t play” error for viewers.</p>
                     <Button size="sm" variant="outline" onClick={dismissTip} className="mt-1">Got it →</Button>
                   </div>
                 </CollapsibleContent>
@@ -367,7 +363,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                 Tap to select a video
               </span>
               <span className="text-xs text-muted-foreground/70 text-center">
-                Max 2 GB · MP4 only · H.264
+                Max 2 GB · Any video file
               </span>
             </button>
           ) : (
@@ -413,9 +409,8 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
                   </button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
-                  Use MP4 with H.264/AVC codec.<br />
-                  YouTube downloads: select MP4, not WEBM.<br />
-                  iPhone videos: export/convert HEVC to H.264.
+                  Upload standard video files from your device.<br />
+                  MP4 is most compatible, but MOV, WEBM and other video files are no longer blocked.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>

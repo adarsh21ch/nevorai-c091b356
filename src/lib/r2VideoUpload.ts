@@ -46,8 +46,15 @@ const resolveContentType = (file: File): string => {
   if (file.type) return file.type;
   const name = file.name.toLowerCase();
   if (name.endsWith(".mp4")) return "video/mp4";
+  if (name.endsWith(".m4v")) return "video/x-m4v";
   if (name.endsWith(".mov")) return "video/quicktime";
   if (name.endsWith(".webm")) return "video/webm";
+  if (name.endsWith(".mkv")) return "video/x-matroska";
+  if (name.endsWith(".avi")) return "video/x-msvideo";
+  if (name.endsWith(".mpeg") || name.endsWith(".mpg")) return "video/mpeg";
+  if (name.endsWith(".3gp")) return "video/3gpp";
+  if (name.endsWith(".3g2")) return "video/3gpp2";
+  if (name.endsWith(".ogg") || name.endsWith(".ogv")) return "video/ogg";
   return "application/octet-stream";
 };
 
@@ -94,11 +101,11 @@ export const uploadFileToR2 = async ({
     if (isVideoPurpose(purpose)) {
       const acceptance = await validatePlayableUploadFile(file);
       if (!acceptance.ok) {
-        throw new Error(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Only MP4 (H.264) videos are supported.");
+        throw new Error(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Please upload a video file.");
       }
     }
     const safeName = sanitizeFilename(file.name);
-    const contentType = isVideoPurpose(purpose) ? "video/mp4" : resolveContentType(file);
+    const contentType = resolveContentType(file);
 
     const { data, error } = await supabase.functions.invoke("get-r2-upload-url", {
       body: {
