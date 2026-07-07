@@ -94,11 +94,11 @@ export const uploadFileToR2 = async ({
     if (isVideoPurpose(purpose)) {
       const acceptance = await validatePlayableUploadFile(file);
       if (!acceptance.ok) {
-        throw new Error(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Only MP4 (H.264) videos are supported.");
+        throw new Error(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Please upload a video file.");
       }
     }
     const safeName = sanitizeFilename(file.name);
-    const contentType = isVideoPurpose(purpose) ? "video/mp4" : resolveContentType(file);
+    const contentType = resolveContentType(file);
 
     const { data, error } = await supabase.functions.invoke("get-r2-upload-url", {
       body: {

@@ -26,7 +26,7 @@ import { VideoShareModal } from "@/components/VideoShareModal";
 import { VideoRenameModal } from "@/components/VideoRenameModal";
 import { useNavigate } from "@/lib/router-compat";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
+import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 
 const AdminVideosPage = () => {
   const { user } = useAuth();
@@ -105,11 +105,8 @@ const AdminVideosPage = () => {
     let videoId: string | null = null;
 
     try {
-      const acceptance = await validatePlayableUploadFile(file);
-      if (!acceptance.ok) throw new Error(acceptance.detail ? `${acceptance.message} ${acceptance.detail}` : acceptance.message || "Only MP4 (H.264) videos are supported.");
-
       const { data, error } = await supabase.functions.invoke("get-r2-upload-url", {
-        body: { filename: file.name, contentType: "video/mp4", title: title || file.name },
+        body: { filename: file.name, contentType: file.type || "application/octet-stream", title: title || file.name, fileSize: file.size },
       });
       if (error || !data?.uploadUrl) throw new Error(data?.error || "Failed to get upload URL");
 
@@ -121,7 +118,7 @@ const AdminVideosPage = () => {
 
       await new Promise<void>((resolve, reject) => {
         xhr.open("PUT", data.uploadUrl);
-        xhr.setRequestHeader("Content-Type", "video/mp4");
+        xhr.setRequestHeader("Content-Type", file.type || "application/octet-stream");
         xhr.onload = () => {
           if (xhr.status < 300) resolve();
           else reject(new Error(`Upload failed (HTTP ${xhr.status})`));
