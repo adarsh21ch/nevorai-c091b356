@@ -115,8 +115,6 @@ type CustomVideoPlayerProps = {
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   onPlay?: () => void;
   tracking?: import("@/hooks/useVideoTracking").VideoTrackingMeta;
-  formatErrorActionLabel?: string;
-  onFormatErrorAction?: () => void;
 };
 
 const CustomVideoPlayer = (props: CustomVideoPlayerProps) => {
@@ -148,8 +146,6 @@ const NativeCustomVideoPlayer = ({
   onTimeUpdate,
   onPlay,
   tracking,
-  formatErrorActionLabel,
-  onFormatErrorAction,
 }: CustomVideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   useVideoTracking(videoRef, tracking);
@@ -1473,8 +1469,6 @@ const PublicFunnel = () => {
                     check("completed", 95);
                   }}
                   onPlay={() => setVideoPlaying(true)}
-                  formatErrorActionLabel={isOwner ? "Replace video" : undefined}
-                  onFormatErrorAction={isOwner ? () => setReuploadOpen(true) : undefined}
                 />
               )}
               {videoUrl && videoAsset?.id && (videoAsset as any)?.allow_copy_link !== false && (
