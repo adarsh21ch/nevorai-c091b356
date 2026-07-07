@@ -20,7 +20,7 @@ import { Link } from "@/lib/router-compat";
 import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 import { useStorageUsage } from "@/hooks/useStorageUsage";
 import { StorageLimitModal } from "@/components/StorageLimitModal";
-import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT, VIDEO_UPLOAD_HELP_TEXT } from "@/lib/videoFileAcceptance";
+import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT, VIDEO_UPLOAD_HELP_TEXT, getVideoFormatWarning } from "@/lib/videoFileAcceptance";
 
 interface Props {
   open: boolean;
