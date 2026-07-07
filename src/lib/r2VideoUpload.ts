@@ -46,8 +46,15 @@ const resolveContentType = (file: File): string => {
   if (file.type) return file.type;
   const name = file.name.toLowerCase();
   if (name.endsWith(".mp4")) return "video/mp4";
+  if (name.endsWith(".m4v")) return "video/x-m4v";
   if (name.endsWith(".mov")) return "video/quicktime";
   if (name.endsWith(".webm")) return "video/webm";
+  if (name.endsWith(".mkv")) return "video/x-matroska";
+  if (name.endsWith(".avi")) return "video/x-msvideo";
+  if (name.endsWith(".mpeg") || name.endsWith(".mpg")) return "video/mpeg";
+  if (name.endsWith(".3gp")) return "video/3gpp";
+  if (name.endsWith(".3g2")) return "video/3gpp2";
+  if (name.endsWith(".ogg") || name.endsWith(".ogv")) return "video/ogg";
   return "application/octet-stream";
 };
 

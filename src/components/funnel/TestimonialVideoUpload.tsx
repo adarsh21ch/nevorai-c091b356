@@ -108,9 +108,10 @@ export const TestimonialVideoUpload = ({
       }
 
       setProgress(20); setStatusLabel("Uploading video");
-      const videoPath = `testimonial-videos/${landingPageId}/${testimonialId}-${Date.now()}.mp4`;
+      const ext = file.name.toLowerCase().split(".").pop() || "mp4";
+      const videoPath = `testimonial-videos/${landingPageId}/${testimonialId}-${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("landing-page-assets")
-        .upload(videoPath, file, { cacheControl: LONG_CACHE_CONTROL, upsert: true, contentType: "video/mp4" });
+        .upload(videoPath, file, { cacheControl: LONG_CACHE_CONTROL, upsert: true, contentType: file.type || "application/octet-stream" });
       if (uploadError) throw new Error(uploadError.message || "Video upload failed");
 
       setProgress(90); setStatusLabel("Finalizing");
