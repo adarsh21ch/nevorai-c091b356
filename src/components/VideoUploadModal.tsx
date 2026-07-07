@@ -211,6 +211,10 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
       }
 
       toast.success("Video uploaded successfully!");
+      const fmtWarning = getVideoFormatWarning(file);
+      if (fmtWarning) {
+        toast(fmtWarning, { duration: 8000, icon: "⚠️" });
+      }
       queryClient.invalidateQueries({ queryKey: ["storage-usage"] });
       onSuccess(result?.videoId);
       // Show the Done/Share step instead of immediately closing.
