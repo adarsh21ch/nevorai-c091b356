@@ -492,6 +492,10 @@ const NativeCustomVideoPlayer = ({
           // are transient (aborted range fetch, brief src re-mount, iOS quirk)
           // and would wrongly scare users into re-uploading a perfectly fine MP4.
           const v = videoRef.current;
+          const code = v?.error?.code ?? null;
+          const codeName = code === 1 ? "ABORTED" : code === 2 ? "NETWORK" : code === 3 ? "DECODE" : code === 4 ? "SRC_NOT_SUPPORTED" : "UNKNOWN";
+          // eslint-disable-next-line no-console
+          console.warn("[nf-player] video error", { code, codeName, src: (v?.currentSrc || v?.src || src) });
           if (v && !(v as any).__nfRetried) {
             (v as any).__nfRetried = true;
             try { v.load(); v.play().catch(() => {}); } catch { /* ignore */ }
