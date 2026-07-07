@@ -361,6 +361,10 @@ const PublicVideoPage = () => {
                 // Auto-retry once before flagging — most first-load errors
                 // are transient (aborted range fetch / brief src remount) and
                 // wrongly showing "unsupported" scares users into re-uploading.
+                const code = el?.error?.code ?? null;
+                const codeName = code === 1 ? "ABORTED" : code === 2 ? "NETWORK" : code === 3 ? "DECODE" : code === 4 ? "SRC_NOT_SUPPORTED" : "UNKNOWN";
+                // eslint-disable-next-line no-console
+                console.warn("[nf-player] video error", { code, codeName, videoId: video.id, src: (el?.currentSrc || el?.src || video.public_url) });
                 if (el && !(el as any).__nfRetried) {
                   (el as any).__nfRetried = true;
                   try { el.load(); el.play?.().catch?.(() => {}); } catch { /* ignore */ }

@@ -20,7 +20,7 @@ import { Link } from "@/lib/router-compat";
 import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
 import { useStorageUsage } from "@/hooks/useStorageUsage";
 import { StorageLimitModal } from "@/components/StorageLimitModal";
-import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT, VIDEO_UPLOAD_HELP_TEXT } from "@/lib/videoFileAcceptance";
+import { validatePlayableUploadFile, VIDEO_UPLOAD_ACCEPT, VIDEO_UPLOAD_HELP_TEXT, getVideoFormatWarning } from "@/lib/videoFileAcceptance";
 
 interface Props {
   open: boolean;
@@ -211,6 +211,10 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
       }
 
       toast.success("Video uploaded successfully!");
+      const fmtWarning = getVideoFormatWarning(file);
+      if (fmtWarning) {
+        toast(fmtWarning, { duration: 8000, icon: "⚠️" });
+      }
       queryClient.invalidateQueries({ queryKey: ["storage-usage"] });
       onSuccess(result?.videoId);
       // Show the Done/Share step instead of immediately closing.

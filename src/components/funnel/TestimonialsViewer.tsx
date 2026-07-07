@@ -141,6 +141,10 @@ const VideoPlayer = ({ videoUrl, thumbnailUrl, durationSeconds }: { videoUrl: st
     <div className="relative rounded-xl overflow-hidden bg-black cursor-pointer aspect-[9/16] max-h-[420px]" onClick={handlePlayPause}>
       <video ref={videoRef} src={videoUrl} poster={thumbnailUrl || undefined} muted={muted} playsInline preload="metadata" className="w-full h-full object-cover" onEnded={handleEnded} onError={(e) => {
         const el = e.currentTarget;
+        const code = el?.error?.code ?? null;
+        const codeName = code === 1 ? "ABORTED" : code === 2 ? "NETWORK" : code === 3 ? "DECODE" : code === 4 ? "SRC_NOT_SUPPORTED" : "UNKNOWN";
+        // eslint-disable-next-line no-console
+        console.warn("[nf-testimonial] video error", { code, codeName, src: (el?.currentSrc || el?.src || videoUrl) });
         if (!(el as any).__nfRetried) { (el as any).__nfRetried = true; try { el.load(); } catch { /* ignore */ } return; }
         setLoadError(true);
       }} />
