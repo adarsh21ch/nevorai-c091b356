@@ -23,7 +23,6 @@ import { PrivateLeadForm } from "@/components/funnel/PrivateLeadForm";
 import { FunnelDailyLimitGate } from "@/components/funnel/FunnelDailyLimitGate";
 import { CreatorInactiveGate } from "@/components/funnel/CreatorInactiveGate";
 import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
-import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { isYouTubeUrl } from "@/lib/youtube";
 import { sanitizeText } from "@/lib/sanitize";
@@ -46,7 +45,6 @@ import {
 import { NPhoneInput } from "@/components/ui/PhoneInput";
 import { StateSelect } from "@/components/ui/StateSelect";
 import { PrivacyMicrocopy } from "@/components/funnel/PrivacyMicrocopy";
-import { useAuth } from "@/hooks/useAuth";
 
 
 /* ─── Speed Popover ─── */
@@ -166,7 +164,7 @@ const NativeCustomVideoPlayer = ({
   const [speed, setSpeed] = useState(1);
   const [autoplayMuted, setAutoplayMuted] = useState(false);
   const [seekToast, setSeekToast] = useState(false);
-  const [loadError, setLoadError] = useState<null | "format" | "network">(null);
+  const [loadError, setLoadError] = useState<null | "network">(null);
   const [centerFlash, setCenterFlash] = useState<{ kind: "play" | "pause"; key: number } | null>(null);
   const [seekRipple, setSeekRipple] = useState<{ side: "left" | "right"; key: number } | null>(null);
   const userPaused = useRef(false);
@@ -748,7 +746,6 @@ const NativeCustomVideoPlayer = ({
 /* ─── Main Page ─── */
 const PublicFunnel = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { user } = useAuth();
   const [leadSubmitted, setLeadSubmitted] = useState(false);
   const [showCta, setShowCta] = useState(false);
   const [watchSeconds, setWatchSeconds] = useState(0);
@@ -764,7 +761,6 @@ const PublicFunnel = () => {
   const [passwordUnlocked, setPasswordUnlocked] = useState(false);
   const [codeGateUnlocked, setCodeGateUnlocked] = useState(false);
   const [privateLeadSubmitted, setPrivateLeadSubmitted] = useState(false);
-  const [reuploadOpen, setReuploadOpen] = useState(false);
   const [pubTheme, setPubTheme] = useState<"dark" | "light">("dark");
   // Hydrate theme from localStorage SYNCHRONOUSLY before paint (no flash of
   // wrong-theme text — eliminates the "dim text on dark bg" issue users saw).
@@ -825,7 +821,7 @@ const PublicFunnel = () => {
   };
 
 
-  const { data: bundle, isLoading, refetch } = useQuery({
+  const { data: bundle, isLoading } = useQuery({
     queryKey: ["public-funnel-bundle", slug],
     queryFn: async () => {
       const requestUrl = `${supabaseProjectUrl}/functions/v1/get-funnel-data?slug=${encodeURIComponent(slug ?? "")}`;
@@ -865,8 +861,6 @@ const PublicFunnel = () => {
   const priceOptions: any[] = bundle?.priceOptions || [];
   const funnelSteps: any[] = bundle?.steps || [];
   const isMultiStep = funnel?.funnel_mode === "multi" && funnelSteps.length > 0;
-  const isOwner = !!user?.id && !!funnel?.owner_id && user.id === funnel.owner_id;
-
   const canView = funnel && funnel.is_published;
   const isPrivateFunnel = funnel?.visibility === "private";
   // Derive privacy-gated form fields from the Lead Capture config (single source
@@ -1662,26 +1656,6 @@ const PublicFunnel = () => {
               </Button>
             </div>
           </div>
-        )}
-
-        {isOwner && (
-          <VideoUploadModal
-            open={reuploadOpen}
-            onClose={() => setReuploadOpen(false)}
-            onSuccess={async (videoId) => {
-              if (videoId && funnel?.id && user?.id) {
-                const { error } = await supabase
-                  .from("funnels")
-                  .update({ video_asset_id: videoId })
-                  .eq("id", funnel.id)
-                  .eq("owner_id", user.id);
-                if (error) toast.error("Uploaded, but could not replace the funnel video.");
-                else toast.success("Funnel video replaced.");
-              }
-              setReuploadOpen(false);
-              refetch();
-            }}
-          />
         )}
 
         {paymentSubmitted && (
