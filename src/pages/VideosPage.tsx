@@ -29,7 +29,8 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { UpgradeModal } from "@/components/UpgradeModal";
 import { isYouTubeUrl } from "@/lib/youtube";
-import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
+import { VIDEO_UPLOAD_ACCEPT, getVideoFormatWarning, FORMAT_ADVISORY_MESSAGE } from "@/lib/videoFileAcceptance";
+import { AlertTriangle } from "lucide-react";
 
 const buildPublicVideoUrl = (v: { id: string; slug?: string | null }) =>
   `${window.location.origin}/v/${v.slug || v.id}`;
