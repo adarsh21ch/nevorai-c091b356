@@ -621,6 +621,14 @@ const VideosPage = () => {
                     <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                       <VideoStatusBadge status={v.status} />
                       <span className="text-[11px] text-muted-foreground">{formatSize(v.file_size_bytes)}</span>
+                      {getVideoFormatWarning(v.public_url) && (
+                        <span
+                          title={FORMAT_ADVISORY_MESSAGE}
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        >
+                          <AlertTriangle size={10} /> Format
+                        </span>
+                      )}
                     </div>
                     <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                       <Button variant="ghost" size="sm" disabled={v.status !== "ready"} onClick={() => copyLink(v)}><Copy size={13} className="mr-1" /> Copy</Button>
