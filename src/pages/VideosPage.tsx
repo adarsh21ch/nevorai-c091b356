@@ -459,6 +459,14 @@ const VideosPage = () => {
                       {v._source === "linked" && (
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/10 text-primary">Linked</span>
                       )}
+                      {getVideoFormatWarning(v.public_url) && (
+                        <span
+                          title={FORMAT_ADVISORY_MESSAGE}
+                          className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                        >
+                          <AlertTriangle size={10} /> Format
+                        </span>
+                      )}
                     </div>
                   </div>
 
