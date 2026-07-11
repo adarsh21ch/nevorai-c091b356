@@ -268,6 +268,10 @@ const PublicLandingPage = () => {
     );
   }
 
+  if (page?.owner_id && !ownerActive) {
+    return <PlanInactiveScreen />;
+  }
+
   if (page.access_code_enabled && !pageUnlocked) {
     return (
       <LandingPageCodeGate
