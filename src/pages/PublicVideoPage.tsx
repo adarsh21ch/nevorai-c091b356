@@ -301,7 +301,7 @@ const PublicVideoPage = () => {
 
   // Owner's plan disabled (e.g. Free tier turned off by admin, subscription lapsed):
   // show a neutral "temporarily unavailable" screen to the prospect.
-  if (video?.owner_id && ownerActive === false) {
+  if (video?.owner_id && !ownerActive) {
     return <PlanInactiveScreen />;
   }
 
