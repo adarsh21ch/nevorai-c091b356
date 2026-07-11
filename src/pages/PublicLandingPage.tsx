@@ -30,6 +30,8 @@ import {
   scrollToFirstError,
 } from "@/lib/leadInputs";
 import { NPhoneInput } from "@/components/ui/PhoneInput";
+import { PlanInactiveScreen } from "@/components/PlanInactiveScreen";
+import { useOwnerActive } from "@/hooks/useOwnerActive";
 
 
 const PublicLandingPage = () => {
@@ -47,6 +49,7 @@ const PublicLandingPage = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
   const [ownerPixelId, setOwnerPixelId] = useState<string | undefined>(undefined);
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
+  const { isActive: ownerActive } = useOwnerActive(page?.owner_id);
 
   useEffect(() => {
     if (!slug) return;
@@ -263,6 +266,10 @@ const PublicLandingPage = () => {
         </div>
       </div>
     );
+  }
+
+  if (page?.owner_id && !ownerActive) {
+    return <PlanInactiveScreen />;
   }
 
   if (page.access_code_enabled && !pageUnlocked) {

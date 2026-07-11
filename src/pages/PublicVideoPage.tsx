@@ -27,6 +27,8 @@ import {
 } from "@/lib/format";
 import { toast } from "sonner";
 import { VideoReactions } from "@/components/video/VideoReactions";
+import { PlanInactiveScreen } from "@/components/PlanInactiveScreen";
+import { useOwnerActive } from "@/hooks/useOwnerActive";
 
 const TitleBlock = ({ title }: { title: string }) => {
   const [expanded, setExpanded] = useState(false);
@@ -103,6 +105,8 @@ const PublicVideoPage = () => {
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
+
+  const { isActive: ownerActive } = useOwnerActive(video?.owner_id);
 
   const { data: creatorProfile } = useQuery({
     queryKey: ["public-video-creator", video?.owner_id],
@@ -293,6 +297,12 @@ const PublicVideoPage = () => {
         </div>
       </div>
     );
+  }
+
+  // Owner's plan disabled (e.g. Free tier turned off by admin, subscription lapsed):
+  // show a neutral "temporarily unavailable" screen to the prospect.
+  if (video?.owner_id && !ownerActive) {
+    return <PlanInactiveScreen />;
   }
 
   const showDescToggle = !!video.description && video.description.length > 200;

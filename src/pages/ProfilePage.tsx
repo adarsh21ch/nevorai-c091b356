@@ -6,28 +6,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
   Crown, CreditCard, FileCheck, IndianRupee,
-  Bell, Settings, Download, ChevronRight, ChevronDown, Pencil,
+  Bell, Settings, Download, ChevronRight, Pencil,
   Sun, Moon, HelpCircle, LogOut, Shield, Infinity as InfinityIcon, GraduationCap,
-  Sparkles, Users, Target,
+  Sparkles, Users, Target, User, Globe, SlidersHorizontal, LifeBuoy,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
-import { Switch } from "@/components/ui/switch";
 import { Link } from "@/lib/router-compat";
 import { useRouter } from "@tanstack/react-router";
 import { usePlan } from "@/hooks/usePlan";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useTrialStatus } from "@/hooks/useTrialStatus";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { sanitizeFields, normalizePhone } from "@/lib/sanitize";
 import { StorageUsageCard } from "@/components/StorageUsageCard";
 import { ProfilePhotoCropModal } from "@/components/ProfilePhotoCropModal";
 import { WhatsAppVerification } from "@/components/profile/WhatsAppVerification";
 import { LeaderConnectionCard } from "@/components/profile/LeaderConnectionCard";
+
+/**
+ * Profile page — redesigned into 4 clear tabs:
+ *   1. Personal    — who you are (private): name, phone, email, address, KYC
+ *   2. Public      — what prospects see: username, display name, bio, CTA, socials, pixel
+ *   3. Account     — billing, payments, storage, integrations (WhatsApp, leader)
+ *   4. Preferences — theme, notifications, support, admin, logout
+ *
+ * Each tab has ONE explicit save button scoped to its section so it's always
+ * clear which button saves what. Read-only rows use the same `Row` component.
+ */
+
+type SectionKey = "personal" | "public" | "account" | "preferences";
 
 const ProfilePage = () => {
   useDocumentTitle("Profile");
@@ -37,9 +50,13 @@ const ProfilePage = () => {
   const { isAdmin } = useAdmin();
   const trial = useTrialStatus();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
 
-  // Prefetch likely-next routes from Profile so first-tap is instant.
+  const [tab, setTab] = useState<SectionKey>("personal");
+  const [savingPersonal, setSavingPersonal] = useState(false);
+  const [savingPublic, setSavingPublic] = useState(false);
+  const [emailSaving, setEmailSaving] = useState(false);
+
+  // Prefetch likely-next routes.
   useEffect(() => {
     const paths = ["/billing", "/payments", "/pricing", "/kyc", "/notifications", "/settings", "/help", "/install"];
     const run = () => paths.forEach((p) => { try { void router.preloadRoute({ to: p as any }); } catch {} });
@@ -47,40 +64,44 @@ const ProfilePage = () => {
       | ((cb: () => void, opts?: { timeout: number }) => number) | null;
     if (ric) ric(run, { timeout: 1500 }); else setTimeout(run, 200);
   }, [router]);
-  const [editOpen, setEditOpen] = useState(false);
-  const [form, setForm] = useState({
-    full_name: "", display_name: "", phone: "", city: "", address: "", bio: "", company: "",
-    instagram_url: "", whatsapp_number: "",
-    username: "", cta_label: "", cta_url: "",
-    email: "",
-    meta_pixel_id: "",
-  });
-  const [emailSaving, setEmailSaving] = useState(false);
 
+  const [personal, setPersonal] = useState({
+    full_name: "", phone: "", city: "", address: "", company: "", email: "",
+  });
+  const [publicForm, setPublicForm] = useState({
+    display_name: "", username: "", bio: "", instagram_url: "",
+    cta_label: "", cta_url: "", meta_pixel_id: "",
+  });
   const [usernameStatus, setUsernameStatus] = useState<"idle" | "checking" | "available" | "taken" | "invalid">("idle");
   const [cropFile, setCropFile] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    if (profile) {
-      const p = profile as any;
-      setForm({
-        full_name: profile.full_name || "", display_name: p.display_name || "",
-        phone: profile.phone || "", city: profile.city || "", address: p.address || "",
-        bio: profile.bio || "", company: profile.company || "",
-        instagram_url: profile.instagram_url || "", whatsapp_number: profile.whatsapp_number || "",
-        username: p.username || "", cta_label: p.cta_label || "", cta_url: p.cta_url || "",
-        email: profile.email || "",
-        meta_pixel_id: p.meta_pixel_id || "",
-      });
-      setAvatarUrl(profile.avatar_url || null);
-    }
-
+    if (!profile) return;
+    const p = profile as any;
+    setPersonal({
+      full_name: profile.full_name || "",
+      phone: profile.phone || "",
+      city: profile.city || "",
+      address: p.address || "",
+      company: profile.company || "",
+      email: profile.email || "",
+    });
+    setPublicForm({
+      display_name: p.display_name || "",
+      username: p.username || "",
+      bio: profile.bio || "",
+      instagram_url: profile.instagram_url || "",
+      cta_label: p.cta_label || "",
+      cta_url: p.cta_url || "",
+      meta_pixel_id: p.meta_pixel_id || "",
+    });
+    setAvatarUrl(profile.avatar_url || null);
   }, [profile]);
 
   // Username uniqueness check (debounced)
   useEffect(() => {
-    const u = form.username.trim().toLowerCase();
+    const u = publicForm.username.trim().toLowerCase();
     if (!u) { setUsernameStatus("idle"); return; }
     if (!/^[a-z0-9_]{3,20}$/.test(u)) { setUsernameStatus("invalid"); return; }
     if ((profile as any)?.username === u) { setUsernameStatus("available"); return; }
@@ -91,37 +112,44 @@ const ProfilePage = () => {
       setUsernameStatus(data ? "taken" : "available");
     }, 400);
     return () => clearTimeout(t);
-  }, [form.username, profile]);
+  }, [publicForm.username, profile]);
 
-  const handleSave = async () => {
+  const savePersonal = async () => {
     if (!user) return;
-    if (form.username && usernameStatus !== "available") {
-      toast.error("Fix username before saving"); return;
-    }
-    if (form.cta_url && !/^https?:\/\/|^mailto:|^tel:|^wa\.me/i.test(form.cta_url)) {
-      toast.error("CTA URL must start with https://, mailto:, tel: or wa.me"); return;
-    }
-    const cleanForm = sanitizeFields(form, [
-      "full_name", "display_name", "city", "address", "bio", "company", "instagram_url", "cta_label",
-    ]) as any;
-    cleanForm.phone = normalizePhone(form.phone);
-    // whatsapp_number changes only via OTP re-verification, never via this form.
-    delete cleanForm.whatsapp_number;
-    delete cleanForm.email;
-    cleanForm.username = form.username.trim().toLowerCase() || null;
-    cleanForm.cta_url = form.cta_url.trim() || null;
-    cleanForm.cta_label = (cleanForm.cta_label || "").slice(0, 30) || null;
-    cleanForm.meta_pixel_id = form.meta_pixel_id.replace(/\D/g, "").slice(0, 20) || null;
-    setLoading(true);
-    const { error } = await (supabase as any).from("profiles").update(cleanForm).eq("id", user.id);
-    setLoading(false);
+    const clean = sanitizeFields(personal, ["full_name", "city", "address", "company"]) as any;
+    clean.phone = normalizePhone(personal.phone);
+    delete clean.email; // email uses the separate confirm-link flow
+    setSavingPersonal(true);
+    const { error } = await (supabase as any).from("profiles").update(clean).eq("id", user.id);
+    setSavingPersonal(false);
     if (error) { toast.error(error.message || "Failed to save"); return; }
     await refreshProfile();
-    toast.success("Profile updated!");
+    toast.success("Personal details updated");
+  };
+
+  const savePublic = async () => {
+    if (!user) return;
+    if (publicForm.username && usernameStatus !== "available") {
+      toast.error("Fix username before saving"); return;
+    }
+    if (publicForm.cta_url && !/^https?:\/\/|^mailto:|^tel:|^wa\.me/i.test(publicForm.cta_url)) {
+      toast.error("CTA URL must start with https://, mailto:, tel: or wa.me"); return;
+    }
+    const clean = sanitizeFields(publicForm, ["display_name", "bio", "instagram_url", "cta_label"]) as any;
+    clean.username = publicForm.username.trim().toLowerCase() || null;
+    clean.cta_url = publicForm.cta_url.trim() || null;
+    clean.cta_label = (clean.cta_label || "").slice(0, 30) || null;
+    clean.meta_pixel_id = publicForm.meta_pixel_id.replace(/\D/g, "").slice(0, 20) || null;
+    setSavingPublic(true);
+    const { error } = await (supabase as any).from("profiles").update(clean).eq("id", user.id);
+    setSavingPublic(false);
+    if (error) { toast.error(error.message || "Failed to save"); return; }
+    await refreshProfile();
+    toast.success("Public profile updated");
   };
 
   const handleEmailChange = async () => {
-    const newEmail = form.email.trim().toLowerCase();
+    const newEmail = personal.email.trim().toLowerCase();
     if (!newEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newEmail)) {
       toast.error("Enter a valid email"); return;
     }
@@ -132,9 +160,8 @@ const ProfilePage = () => {
     const { error } = await supabase.auth.updateUser({ email: newEmail });
     setEmailSaving(false);
     if (error) { toast.error(error.message || "Could not update email"); return; }
-    toast.success("Check both inboxes — Supabase sent a confirmation link.");
+    toast.success("Check both inboxes — we sent a confirmation link.");
   };
-
 
   const onPickPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -167,8 +194,7 @@ const ProfilePage = () => {
   const trialDaysLeft = trial.daysRemaining ?? 0;
   const isActiveTrial =
     (tier === "trial" || trial.subscriptionStatus === "trial") &&
-    !trial.isTrialExpired &&
-    trialDaysLeft > 0;
+    !trial.isTrialExpired && trialDaysLeft > 0;
   const planLabel = isPro
     ? "Pro Plan"
     : isBasic
@@ -177,46 +203,60 @@ const ProfilePage = () => {
     ? `Trial · ${trialDaysLeft} day${trialDaysLeft === 1 ? "" : "s"} left`
     : "Free Plan";
 
-  const accountItems = [
-    { icon: FileCheck, label: "Get Verified", path: "/kyc", desc: "KYC for payouts" },
-    { icon: CreditCard, label: "Billing", path: "/billing", desc: "Subscription & invoices" },
-    ...(!isPro ? [{ icon: Crown, label: "Upgrade to Pro", path: "/pricing", desc: "Unlock everything" }] : []),
-    { icon: IndianRupee, label: "Payments", path: "/payments", desc: "Customer payments & history" },
-  ];
-
-  const preferenceItems = [
-    { icon: Bell, label: "Notifications", path: "/notifications", desc: "Alerts & updates" },
-    { icon: Settings, label: "Settings", path: "/settings", desc: "App preferences" },
-  ];
-
-  const supportItems = [
-    { icon: HelpCircle, label: "Nevorai Academy", path: "/help", desc: "Tutorials, FAQs and contact support" },
-    { icon: Download, label: "Install App", path: "/install", desc: "Add to home screen" },
-  ];
-
-  const SectionLabel = ({ children }: { children: React.ReactNode }) => (
-    <p className="px-4 pt-2 pb-1 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{children}</p>
-  );
-
-  const Row = ({ icon: Icon, label, path, desc, danger }: any) => (
-    <Link to={path}
-      className="flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-muted/50 transition-colors group">
-      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${danger ? "bg-destructive/10" : "bg-muted"}`}>
-        <Icon size={14} className={danger ? "text-destructive" : "text-muted-foreground"} />
+  // Reusable primitives
+  const Row = ({
+    icon: Icon, label, path, desc, danger,
+  }: { icon: any; label: string; path: string; desc: string; danger?: boolean }) => (
+    <Link
+      to={path}
+      className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-muted/60 transition-colors group border border-transparent hover:border-border"
+    >
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${danger ? "bg-destructive/10" : "bg-muted"}`}>
+        <Icon size={15} className={danger ? "text-destructive" : "text-foreground/70"} />
       </div>
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium ${danger ? "text-destructive" : ""}`}>{label}</p>
-        <p className="text-[10px] text-muted-foreground">{desc}</p>
+        <p className="text-[11px] text-muted-foreground">{desc}</p>
       </div>
-      <ChevronRight size={14} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+      <ChevronRight size={15} className="text-muted-foreground group-hover:text-foreground transition-colors" />
     </Link>
+  );
+
+  const SectionCard = ({
+    title, hint, children,
+  }: { title: string; hint?: string; children: React.ReactNode }) => (
+    <div className="rounded-2xl border border-border bg-card">
+      <div className="px-5 pt-5 pb-3 border-b border-border/60">
+        <h3 className="font-heading text-sm font-semibold tracking-tight">{title}</h3>
+        {hint && <p className="mt-0.5 text-[11px] text-muted-foreground">{hint}</p>}
+      </div>
+      <div className="p-5 space-y-4">{children}</div>
+    </div>
+  );
+
+  const Field = ({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) => (
+    <div>
+      <Label className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{label}</Label>
+      <div className="mt-1.5">{children}</div>
+      {hint && <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p>}
+    </div>
+  );
+
+  const TabPill = ({ value, icon: Icon, label }: { value: SectionKey; icon: any; label: string }) => (
+    <TabsTrigger
+      value={value}
+      className="flex-1 gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background rounded-lg"
+    >
+      <Icon size={14} />
+      <span className="text-xs font-semibold">{label}</span>
+    </TabsTrigger>
   );
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl space-y-5">
-        {/* PROFILE HEADER */}
-        <div className="premium-card p-5">
+      <div className="max-w-3xl mx-auto space-y-6 pb-10">
+        {/* HEADER */}
+        <div className="rounded-2xl border border-border bg-card p-5">
           <div className="flex items-center gap-4">
             <div className="relative shrink-0">
               <div className="w-16 h-16 rounded-full bg-foreground border-2 border-foreground flex items-center justify-center overflow-hidden">
@@ -248,11 +288,20 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* MOBILE-ONLY: features that aren't in the bottom nav. Keeps mobile users
-            in sync with the desktop sidebar (Nev AI, My Team, Tracking, Billing). */}
-        <div className="lg:hidden premium-card p-4">
-          <h3 className="font-heading font-bold text-sm uppercase tracking-wide text-muted-foreground mb-3">
-            More features
+        {cropFile && user && (
+          <ProfilePhotoCropModal
+            open={!!cropFile}
+            onClose={() => setCropFile(null)}
+            imageSrc={cropFile}
+            userId={user.id}
+            onSaved={(url: string) => { setAvatarUrl(url); refreshProfile(); }}
+          />
+        )}
+
+        {/* MOBILE quick-nav (unchanged behaviour) */}
+        <div className="lg:hidden rounded-2xl border border-border bg-card p-4">
+          <h3 className="font-heading font-bold text-xs uppercase tracking-wide text-muted-foreground mb-3">
+            Quick access
           </h3>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -276,193 +325,241 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        <Link
-          to="/help"
-          className="group block rounded-xl border border-primary/40 bg-gradient-to-br from-primary/15 via-card to-card p-4 transition-all hover:border-primary/70 hover:shadow-lg"
-          style={{ boxShadow: "0 6px 24px -10px color-mix(in oklab, var(--accent-saffron) 55%, transparent), 0 0 0 1px color-mix(in oklab, var(--accent-saffron) 25%, transparent)" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary">
-              <GraduationCap size={22} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <p className="truncate text-sm font-semibold">Nevorai Academy</p>
-                <span className="rounded-full bg-primary/15 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-primary">New</span>
+        {/* TABS */}
+        <Tabs value={tab} onValueChange={(v) => setTab(v as SectionKey)}>
+          <TabsList className="grid grid-cols-4 gap-1 bg-muted/50 p-1 rounded-xl h-auto">
+            <TabPill value="personal" icon={User} label="Personal" />
+            <TabPill value="public" icon={Globe} label="Public" />
+            <TabPill value="account" icon={CreditCard} label="Account" />
+            <TabPill value="preferences" icon={SlidersHorizontal} label="More" />
+          </TabsList>
+
+          {/* PERSONAL */}
+          <TabsContent value="personal" className="mt-5 space-y-5">
+            <SectionCard
+              title="Personal details"
+              hint="Private information — only you and Nevorai support see this."
+            >
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Full Name">
+                  <Input value={personal.full_name} onChange={(e) => setPersonal({ ...personal, full_name: e.target.value })} />
+                </Field>
+                <Field label="Phone">
+                  <Input value={personal.phone} onChange={(e) => setPersonal({ ...personal, phone: e.target.value })} />
+                </Field>
+                <Field label="City">
+                  <Input value={personal.city} onChange={(e) => setPersonal({ ...personal, city: e.target.value })} />
+                </Field>
+                <Field label="Company">
+                  <Input value={personal.company} onChange={(e) => setPersonal({ ...personal, company: e.target.value })} />
+                </Field>
+                <div className="sm:col-span-2">
+                  <Field label="Address">
+                    <Input value={personal.address} maxLength={200} onChange={(e) => setPersonal({ ...personal, address: e.target.value })} />
+                  </Field>
+                </div>
               </div>
-              <p className="text-[11px] text-muted-foreground">Free tutorials to master every feature. Watch and tick them off.</p>
+              <div className="flex justify-end">
+                <Button variant="hero" size="sm" onClick={savePersonal} disabled={savingPersonal}>
+                  {savingPersonal ? "Saving…" : "Save personal details"}
+                </Button>
+              </div>
+            </SectionCard>
+
+            <SectionCard
+              title="Login email"
+              hint="Used to sign in. Changing it sends a confirmation link to both addresses."
+            >
+              <Field label="Email">
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    value={personal.email}
+                    onChange={(e) => setPersonal({ ...personal, email: e.target.value })}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleEmailChange}
+                    disabled={emailSaving || personal.email === (profile?.email || "")}
+                  >
+                    {emailSaving ? "Saving…" : "Change"}
+                  </Button>
+                </div>
+              </Field>
+            </SectionCard>
+
+            <SectionCard title="Verification" hint="KYC unlocks payouts and the verified badge.">
+              <Row icon={FileCheck} label="Get Verified" path="/kyc" desc="Complete KYC for payouts" />
+            </SectionCard>
+          </TabsContent>
+
+          {/* PUBLIC */}
+          <TabsContent value="public" className="mt-5 space-y-5">
+            <SectionCard
+              title="Public profile"
+              hint="What your prospects see on shared videos and funnels."
+            >
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="Display Name" hint="Shown publicly on your videos.">
+                  <Input
+                    value={publicForm.display_name}
+                    maxLength={60}
+                    placeholder={personal.full_name || "Channel name"}
+                    onChange={(e) => setPublicForm({ ...publicForm, display_name: e.target.value })}
+                  />
+                </Field>
+                <Field label="Username" hint="3–20 chars, a–z, 0–9, _">
+                  <Input
+                    value={publicForm.username}
+                    onChange={(e) =>
+                      setPublicForm({ ...publicForm, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })
+                    }
+                    placeholder="yourname"
+                    maxLength={20}
+                  />
+                  {publicForm.username && (
+                    <span className={`text-[10px] ${
+                      usernameStatus === "available" ? "text-success"
+                      : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-destructive"
+                      : "text-muted-foreground"
+                    }`}>
+                      {usernameStatus === "checking" && "Checking…"}
+                      {usernameStatus === "available" && "Available ✓"}
+                      {usernameStatus === "taken" && "Taken ✗"}
+                      {usernameStatus === "invalid" && "3–20 chars, a–z, 0–9, _"}
+                    </span>
+                  )}
+                </Field>
+                <div className="sm:col-span-2">
+                  <Field label="Bio" hint={`${publicForm.bio.length}/160`}>
+                    <Textarea
+                      value={publicForm.bio}
+                      onChange={(e) => setPublicForm({ ...publicForm, bio: e.target.value.slice(0, 160) })}
+                      rows={2}
+                      maxLength={160}
+                    />
+                  </Field>
+                </div>
+                <Field label="Instagram URL">
+                  <Input
+                    value={publicForm.instagram_url}
+                    onChange={(e) => setPublicForm({ ...publicForm, instagram_url: e.target.value })}
+                  />
+                </Field>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Call-to-action button" hint="Shown as a button under every video preview.">
+              <div className="grid sm:grid-cols-2 gap-4">
+                <Field label="CTA Label">
+                  <Input
+                    value={publicForm.cta_label}
+                    maxLength={30}
+                    placeholder="e.g., Book a Call"
+                    onChange={(e) => setPublicForm({ ...publicForm, cta_label: e.target.value })}
+                  />
+                </Field>
+                <Field label="CTA URL">
+                  <Input
+                    value={publicForm.cta_url}
+                    placeholder="https://…"
+                    onChange={(e) => setPublicForm({ ...publicForm, cta_url: e.target.value })}
+                  />
+                </Field>
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Tracking pixel" hint="Optional. Meta Pixel ID for all your public pages.">
+              <MetaPixelIdField
+                scope="account"
+                value={publicForm.meta_pixel_id}
+                onChange={(v) => setPublicForm({ ...publicForm, meta_pixel_id: v })}
+              />
+            </SectionCard>
+
+            <div className="flex justify-end">
+              <Button variant="hero" size="sm" onClick={savePublic} disabled={savingPublic}>
+                {savingPublic ? "Saving…" : "Save public profile"}
+              </Button>
             </div>
-            <ChevronRight size={16} className="text-muted-foreground group-hover:text-foreground" />
-          </div>
-        </Link>
-        {cropFile && user && (
-          <ProfilePhotoCropModal
-            open={!!cropFile}
-            onClose={() => setCropFile(null)}
-            imageSrc={cropFile}
-            userId={user.id}
-            onSaved={(url: string) => { setAvatarUrl(url); refreshProfile(); }}
-          />
-        )}
+          </TabsContent>
 
-        {/* ACCOUNT */}
-        <div className="premium-card p-2 space-y-0.5">
-          <SectionLabel>Account</SectionLabel>
+          {/* ACCOUNT */}
+          <TabsContent value="account" className="mt-5 space-y-5">
+            <SectionCard title="Billing & plan">
+              <div className="space-y-1">
+                <Row icon={CreditCard} label="Billing" path="/billing" desc="Subscription, invoices, tier upgrades" />
+                {!isPro && (
+                  <Row icon={Crown} label="Upgrade Plan" path="/pricing" desc="Unlock everything Nevorai offers" />
+                )}
+                <Row icon={IndianRupee} label="Payments" path="/payments" desc="Customer payments & history" />
+              </div>
+            </SectionCard>
 
-          {/* Edit Profile — collapsible */}
-          <Collapsible open={editOpen} onOpenChange={setEditOpen}>
-            <CollapsibleTrigger asChild>
-              <button className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-muted/50 transition-colors text-left">
-                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                  <Pencil size={14} className="text-muted-foreground" />
+            <StorageUsageCard />
+            <LeaderConnectionCard />
+            <WhatsAppVerification />
+          </TabsContent>
+
+          {/* PREFERENCES + SUPPORT + ADMIN + LOGOUT */}
+          <TabsContent value="preferences" className="mt-5 space-y-5">
+            <SectionCard title="Appearance">
+              <div className="flex items-center justify-between rounded-lg px-1 py-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                    {theme === "dark" ? <Moon size={15} className="text-foreground/70" /> : <Sun size={15} className="text-foreground/70" />}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
+                    <p className="text-[11px] text-muted-foreground">Switch your interface theme</p>
+                  </div>
+                </div>
+                <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="App preferences">
+              <div className="space-y-1">
+                <Row icon={Bell} label="Notifications" path="/notifications" desc="Alerts & updates" />
+                <Row icon={Settings} label="Settings" path="/settings" desc="App preferences" />
+              </div>
+            </SectionCard>
+
+            <SectionCard title="Help & learning">
+              <div className="space-y-1">
+                <Row icon={GraduationCap} label="Nevorai Academy" path="/help" desc="Tutorials, FAQs and contact support" />
+                <Row icon={Download} label="Install App" path="/install" desc="Add to home screen" />
+                <Row icon={LifeBuoy} label="Contact Support" path="/help" desc="We're here to help" />
+              </div>
+            </SectionCard>
+
+            {isAdmin && (
+              <SectionCard title="Admin">
+                <Row icon={Shield} label="Admin Panel" path="/admin" desc="Manage users, plans, and system settings" />
+              </SectionCard>
+            )}
+
+            <div className="rounded-2xl border border-border bg-card p-2">
+              <button
+                onClick={async () => { await signOut(); }}
+                className="flex w-full items-center gap-3 px-3 py-3 rounded-lg hover:bg-destructive/10 transition-colors text-left"
+              >
+                <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
+                  <LogOut size={15} className="text-destructive" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">Edit Profile</p>
-                  <p className="text-[10px] text-muted-foreground">Name, phone, bio and socials</p>
+                  <p className="text-sm font-medium text-destructive">Logout</p>
+                  <p className="text-[11px] text-muted-foreground">Sign out of your account</p>
                 </div>
-                <ChevronDown size={14} className={`text-muted-foreground transition-transform ${editOpen ? "rotate-180" : ""}`} />
               </button>
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="px-4 pb-4 pt-2 space-y-4 border-t border-border mt-2">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div><Label className="text-xs">Full Name</Label><Input value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div>
-                    <Label className="text-xs">Display Name <span className="text-muted-foreground">(shown publicly)</span></Label>
-                    <Input value={form.display_name} maxLength={60} placeholder={form.full_name || "Channel name"} onChange={(e) => setForm({ ...form, display_name: e.target.value })} className="mt-1 bg-muted border-border" />
-                  </div>
-                  <div><Label className="text-xs">Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div><Label className="text-xs">City</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div className="sm:col-span-2"><Label className="text-xs">Address</Label><Input value={form.address} maxLength={200} onChange={(e) => setForm({ ...form, address: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div><Label className="text-xs">Company</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div className="sm:col-span-2 text-[11px] text-muted-foreground bg-muted/40 rounded-md px-3 py-2">
-                    Verified badge is granted after KYC review.
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Label className="text-xs">Email <span className="text-muted-foreground">(used for login)</span></Label>
-                    <div className="flex gap-2 mt-1">
-                      <Input
-                        type="email"
-                        value={form.email}
-                        onChange={(e) => setForm({ ...form, email: e.target.value })}
-                        className="bg-muted border-border"
-                      />
-                      <Button variant="outline" size="sm" onClick={handleEmailChange} disabled={emailSaving || form.email === (profile?.email || "")}>
-                        {emailSaving ? "Saving…" : "Change"}
-                      </Button>
-                    </div>
-                    <p className="text-[10px] text-muted-foreground mt-1">Supabase will email a confirmation link to both addresses.</p>
-                  </div>
-
-                  <div><Label className="text-xs">Instagram URL</Label><Input value={form.instagram_url} onChange={(e) => setForm({ ...form, instagram_url: e.target.value })} className="mt-1 bg-muted border-border" /></div>
-                  <div>
-                    <Label className="text-xs">Username</Label>
-                    <Input
-                      value={form.username}
-                      onChange={(e) => setForm({ ...form, username: e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, "") })}
-                      placeholder="yourname"
-                      maxLength={20}
-                      className="mt-1 bg-muted border-border"
-                    />
-                    {form.username && (
-                      <span className={`text-[10px] ${usernameStatus === "available" ? "text-success" : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-destructive" : "text-muted-foreground"}`}>
-                        {usernameStatus === "checking" && "Checking…"}
-                        {usernameStatus === "available" && "Available ✓"}
-                        {usernameStatus === "taken" && "Taken ✗"}
-                        {usernameStatus === "invalid" && "3–20 chars, a–z, 0–9, _"}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div><Label className="text-xs">Bio</Label><Textarea value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value.slice(0, 160) })} className="mt-1 bg-muted border-border" rows={2} maxLength={160} /><span className="text-[10px] text-muted-foreground">{form.bio.length}/160</span></div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <Label className="text-xs">CTA Label</Label>
-                    <Input value={form.cta_label} maxLength={30} placeholder="e.g., Book a Call" onChange={(e) => setForm({ ...form, cta_label: e.target.value })} className="mt-1 bg-muted border-border" />
-                  </div>
-                  <div>
-                    <Label className="text-xs">CTA URL</Label>
-                    <Input value={form.cta_url} placeholder="https://…" onChange={(e) => setForm({ ...form, cta_url: e.target.value })} className="mt-1 bg-muted border-border" />
-                  </div>
-                </div>
-                <p className="text-[10px] text-muted-foreground -mt-2">Shown as a button on all your video previews.</p>
-                <MetaPixelIdField
-                  scope="account"
-                  value={form.meta_pixel_id}
-                  onChange={(v) => setForm({ ...form, meta_pixel_id: v })}
-                />
-
-                <Button variant="hero" size="sm" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Profile"}</Button>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-
-          {accountItems.map((item) => <Row key={item.path} {...item} />)}
-        </div>
-
-        {/* Storage Usage */}
-        <StorageUsageCard />
-
-        {/* Leader connection */}
-        <LeaderConnectionCard />
-
-        {/* WhatsApp Notifications */}
-        <WhatsAppVerification />
-
-        {/* PREFERENCES */}
-        <div className="premium-card p-2 space-y-0.5">
-          <SectionLabel>Preferences</SectionLabel>
-          <div className="flex items-center justify-between rounded-lg px-4 py-2.5">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                {theme === "dark" ? <Moon size={14} className="text-muted-foreground" /> : <Sun size={14} className="text-muted-foreground" />}
-              </div>
-              <div>
-                <p className="text-sm font-medium">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
-                <p className="text-[10px] text-muted-foreground">Switch your interface theme</p>
-              </div>
             </div>
-            <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
-          </div>
-          {preferenceItems.map((item) => <Row key={item.path} {...item} />)}
-        </div>
+          </TabsContent>
+        </Tabs>
 
-        {/* SUPPORT */}
-        <div className="premium-card p-2 space-y-0.5">
-          <SectionLabel>Support</SectionLabel>
-          {supportItems.map((item) => <Row key={item.path} {...item} />)}
-        </div>
-
-        {/* ADMIN — only for admins */}
-        {isAdmin && (
-          <div className="premium-card p-2 space-y-0.5">
-            <SectionLabel>Admin</SectionLabel>
-            <Row icon={Shield} label="Admin Panel" path="/admin" desc="Manage users, plans, and system settings" />
-          </div>
-        )}
-
-        {/* LOGOUT */}
-        <div className="premium-card p-2">
-          <button
-            onClick={async () => { await signOut(); }}
-            className="flex w-full items-center gap-3 px-4 py-2.5 rounded-lg hover:bg-destructive/10 transition-colors text-left"
-          >
-            <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center shrink-0">
-              <LogOut size={14} className="text-destructive" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-destructive">Logout</p>
-              <p className="text-[10px] text-muted-foreground">Sign out of your account</p>
-            </div>
-          </button>
-        </div>
-
-        {/* FOOTER */}
-        <p className="pt-2 pb-6 text-center text-[11px] text-muted-foreground">
+        <p className="pt-4 text-center text-[11px] text-muted-foreground">
           Nevorai · v1.0 · Made with <span aria-hidden>❤️</span> in India
         </p>
-
-        {/* Floating Upgrade CTA removed — duplicate of inline "Upgrade for more storage" in StorageUsageCard */}
       </div>
     </DashboardLayout>
   );
