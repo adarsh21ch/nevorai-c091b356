@@ -106,6 +106,8 @@ const PublicVideoPage = () => {
     refetchOnWindowFocus: false,
   });
 
+  const { isActive: ownerActive } = useOwnerActive(video?.owner_id);
+
   const { data: creatorProfile } = useQuery({
     queryKey: ["public-video-creator", video?.owner_id],
     queryFn: async () => {
