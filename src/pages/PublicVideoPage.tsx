@@ -27,6 +27,8 @@ import {
 } from "@/lib/format";
 import { toast } from "sonner";
 import { VideoReactions } from "@/components/video/VideoReactions";
+import { PlanInactiveScreen } from "@/components/PlanInactiveScreen";
+import { useOwnerActive } from "@/hooks/useOwnerActive";
 
 const TitleBlock = ({ title }: { title: string }) => {
   const [expanded, setExpanded] = useState(false);
