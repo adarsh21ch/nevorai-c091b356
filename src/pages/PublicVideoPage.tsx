@@ -295,6 +295,12 @@ const PublicVideoPage = () => {
     );
   }
 
+  // Owner's plan disabled (e.g. Free tier turned off by admin, subscription lapsed):
+  // show a neutral "temporarily unavailable" screen to the prospect.
+  if (video?.owner_id && ownerActive === false) {
+    return <PlanInactiveScreen />;
+  }
+
   const showDescToggle = !!video.description && video.description.length > 200;
   const showVerifiedBadge = verifiedBadgeEnabled && !!creatorProfile?.is_verified;
 
