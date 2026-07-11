@@ -49,6 +49,7 @@ const PublicLandingPage = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | null>>({});
   const [ownerPixelId, setOwnerPixelId] = useState<string | undefined>(undefined);
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({});
+  const { isActive: ownerActive } = useOwnerActive(page?.owner_id);
 
   useEffect(() => {
     if (!slug) return;
