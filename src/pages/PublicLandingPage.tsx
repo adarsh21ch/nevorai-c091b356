@@ -30,6 +30,8 @@ import {
   scrollToFirstError,
 } from "@/lib/leadInputs";
 import { NPhoneInput } from "@/components/ui/PhoneInput";
+import { PlanInactiveScreen } from "@/components/PlanInactiveScreen";
+import { useOwnerActive } from "@/hooks/useOwnerActive";
 
 
 const PublicLandingPage = () => {
