@@ -19,6 +19,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useTrialStatus } from "@/hooks/useTrialStatus";
 import { TrialExpiredGate } from "@/components/TrialExpiredGate";
 import { TrialBanner } from "@/components/TrialBanner";
+import { AccessStateBanner } from "@/components/AccessStateBanner";
 import { usePlan } from "@/hooks/usePlan";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { PlanFeatureBadge } from "@/components/PlanFeatureBadge";
@@ -274,6 +275,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
           )}
 
           <TrialBanner />
+          <AccessStateBanner />
           <div className={cn(
             "gradient-bg-subtle flex-1 overflow-x-hidden overflow-y-auto",
             editorMode
