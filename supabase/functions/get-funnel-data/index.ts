@@ -316,14 +316,21 @@ Deno.serve(async (req) => {
         .then((r) => ({ key: "subscription", data: r.data }))
     );
 
-    // Trial settings (platform-wide)
+    // Trial + free-access settings (platform-wide)
     promises.push(
       supabase
         .from("app_settings")
         .select("key, value")
-        .in("key", ["trial_enabled", "trial_days"])
+        .in("key", [
+          "trial_enabled",
+          "trial_days",
+          "free_access_enabled",
+          "free_access_grace_days",
+          "free_access_disabled_at",
+        ])
         .then((r) => ({ key: "trialSettings", data: r.data || [] }))
     );
+
 
     // Atomic view count increment — fire-and-forget, non-blocking
     if (funnel.is_published === true) {
@@ -360,17 +367,41 @@ Deno.serve(async (req) => {
     // Manual/free billing types are also treated as active (admin-granted).
     const manualGrant = !!sub && sub.status === "active" && sub.billing_type === "manual";
 
-    // Default to ACTIVE unless we can prove the creator's access has lapsed.
-    // Quota / view-limit gating is handled separately by is_funnel_over_monthly_limit
-    // above, so we should never block legit free-tier or unsubscribed creators
-    // here. Only an explicit "expired"/"cancelled" status counts as inactive.
+    // ─── Free-access master toggle (admin controlled) ──────────
+    // Default behavior: freeAccessEnabled=true → free / trial-expired creators
+    // keep working, exactly like before this feature. When admin flips it off,
+    // creators without a paid sub / active trial / manual grant get blocked
+    // AFTER a grace window measured from free_access_disabled_at.
+    const freeAccessEnabled = (trialMap.free_access_enabled ?? "true") !== "false";
+    const graceDays = parseInt(trialMap.free_access_grace_days || "3", 10);
+    const disabledAtRaw = trialMap.free_access_disabled_at || "";
+    const disabledAt = disabledAtRaw ? Date.parse(disabledAtRaw) : null;
+    const graceEndsAtMs =
+      disabledAt && !isNaN(disabledAt) ? disabledAt + graceDays * 86_400_000 : null;
+    const graceActive =
+      !freeAccessEnabled && !!graceEndsAtMs && now < graceEndsAtMs;
+    const freeCreatorAllowed = freeAccessEnabled || graceActive;
+
     const explicitlyInactive =
       creator.subscription_status === "expired" ||
       creator.subscription_status === "cancelled" ||
       (sub && sub.status === "payment_failed");
 
+    // Positive-reason model once free access is off & grace elapsed:
+    //   paid OR trial OR manual OR (freeCreatorAllowed && !explicitlyInactive)
     const creatorActive =
-      hasPaidSub || trialActive || manualGrant || !explicitlyInactive;
+      hasPaidSub ||
+      trialActive ||
+      manualGrant ||
+      (freeCreatorAllowed && !explicitlyInactive);
+
+    // Access state for the frontend banner / diagnostics.
+    let creatorAccessState: "active" | "grace" | "blocked" = "active";
+    if (!(hasPaidSub || trialActive || manualGrant)) {
+      if (freeAccessEnabled) creatorAccessState = "active";
+      else if (graceActive) creatorAccessState = "grace";
+      else creatorAccessState = "blocked";
+    }
 
     const payload = {
       funnel,
@@ -380,7 +411,10 @@ Deno.serve(async (req) => {
       priceOptions: resultMap.priceOptions,
       steps: resultMap.steps,
       creatorActive,
+      creatorAccessState,
+      graceEndsAt: graceEndsAtMs ? new Date(graceEndsAtMs).toISOString() : null,
     };
+
 
     return new Response(JSON.stringify(payload), {
       status: 200,
