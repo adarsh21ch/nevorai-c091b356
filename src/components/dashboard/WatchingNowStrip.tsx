@@ -2,19 +2,18 @@ import { Link, useNavigate } from "@/lib/router-compat";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Eye, ArrowRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 export const WatchingNowStrip = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: liveViewers = [] } = useQuery({
     queryKey: ["watching-now", user?.id],
     enabled: !!user,
     refetchInterval: 60000,
     queryFn: async () => {
-      // Active = analytics events recorded in the last 60s for any of my funnels
       const { data: funnels } = await supabase
         .from("funnels")
         .select("id, title, slug")
@@ -56,7 +55,26 @@ export const WatchingNowStrip = () => {
     },
   });
 
-  const navigate = useNavigate();
+  // Empty state — slim one-liner, no wasted vertical space
+  if (liveViewers.length === 0) {
+    return (
+      <button
+        type="button"
+        onClick={() => navigate("/insights")}
+        className="flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card/50 px-4 py-2.5 text-left transition hover:bg-card"
+      >
+        <div className="flex min-w-0 items-center gap-2.5">
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-muted-foreground/40" />
+          </span>
+          <span className="truncate text-xs text-muted-foreground">
+            No one watching right now · share a link to go live
+          </span>
+        </div>
+        <ArrowRight size={12} className="shrink-0 text-muted-foreground" />
+      </button>
+    );
+  }
 
   return (
     <section className="rounded-2xl border border-border bg-card/50 p-4 sm:p-5">
@@ -66,56 +84,43 @@ export const WatchingNowStrip = () => {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
           </span>
-          <h2 className="text-sm font-heading font-semibold">Watching right now</h2>
+          <h2 className="text-sm font-heading font-semibold">
+            Watching now · {liveViewers.length}
+          </h2>
         </div>
         <Link to="/insights" className="flex items-center gap-1 text-xs text-primary hover:underline">
-          See all in Activity <ArrowRight size={12} />
+          Activity <ArrowRight size={12} />
         </Link>
       </div>
 
-      {liveViewers.length === 0 ? (
-        <div className="rounded-xl bg-muted/30 p-5 text-center">
-          <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-muted">
-            <Eye size={18} className="text-muted-foreground" />
-          </div>
-          <p className="text-sm font-medium">No one watching right now</p>
-          <p className="mx-auto mt-1 max-w-xs text-xs text-muted-foreground">
-            Share your link to start seeing real-time viewers.
-          </p>
-          <Button size="sm" variant="outline" className="mt-3" onClick={() => navigate("/videos")}>
-            Open My Videos <ArrowRight size={14} />
-          </Button>
-        </div>
-      ) : (
-        <ul className="space-y-2">
-          {liveViewers.map((v) => (
-            <li
-              key={v.sessionId}
-              className="flex items-center gap-3 rounded-xl border border-border bg-background/40 p-3"
-            >
-              <span className="relative flex h-2 w-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{v.viewerName}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {v.funnelTitle} · {formatDistanceToNow(new Date(v.when), { addSuffix: true })}
-                </p>
+      <ul className="space-y-2">
+        {liveViewers.map((v) => (
+          <li
+            key={v.sessionId}
+            className="flex items-center gap-3 rounded-xl border border-border bg-background/40 p-3"
+          >
+            <span className="relative flex h-2 w-2 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{v.viewerName}</p>
+              <p className="truncate text-xs text-muted-foreground">
+                {v.funnelTitle} · {formatDistanceToNow(new Date(v.when), { addSuffix: true })}
+              </p>
+            </div>
+            <div className="w-20 shrink-0">
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full bg-emerald-500 transition-all"
+                  style={{ width: `${v.progress}%` }}
+                />
               </div>
-              <div className="w-20 shrink-0">
-                <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-emerald-500 transition-all"
-                    style={{ width: `${v.progress}%` }}
-                  />
-                </div>
-                <p className="mt-1 text-right text-[10px] text-muted-foreground">{v.progress}%</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              <p className="mt-1 text-right text-[10px] text-muted-foreground">{v.progress}%</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 };
