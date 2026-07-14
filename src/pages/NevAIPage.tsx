@@ -126,7 +126,7 @@ const NevAIPage = () => {
                     <Sparkles size={16} className="text-primary" />
                   </div>
                   <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 text-sm">
-                    Hi! I'm <span className="font-semibold">Nev AI</span> — your data co-pilot. Ask me about views, leads, conversion rates, drop-offs, or what to improve. I read from your real funnels and landing pages.
+                    Hi! I'm <span className="font-semibold">Nev AI</span> — your Nevorai helper. Ask me <span className="font-medium">how to use anything</span> in the app (upload video, create funnel, add team, payments, tracking…) or about <span className="font-medium">your numbers</span> (views, leads, conversions). I'm here so you never have to text support.
                   </div>
                 </div>
                 <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">
