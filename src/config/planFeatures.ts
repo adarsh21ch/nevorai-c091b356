@@ -83,7 +83,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: "max_landing_pages", label: "Max Landing Pages", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_landing_pages" },
   { key: "max_live_sessions", label: "Max Live Sessions", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_live_sessions" },
   { key: "max_leads", label: "Max Leads Stored", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_leads" },
-  { key: "max_team_members", label: "Max Team Members", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_team_members" },
+  { key: "max_team_members", label: "Max Downline Seats", type: "number", category: "Limits", hint: "Sub-members under a Leader. -1 = unlimited", dbField: "max_team_members" },
   { key: "max_custom_form_fields", label: "Custom Form Fields per Funnel", type: "number", category: "Limits", hint: "-1 = unlimited · 0 = blocked", dbField: "max_custom_form_fields" },
 
   // ─── FEATURES ─────────────────────────────────────────────
