@@ -13,10 +13,18 @@ UPDATE public.user_subscriptions SET tier = 'starter' WHERE tier = 'basic';
 UPDATE public.user_subscriptions SET tier = 'growth'  WHERE tier = 'pro';
 UPDATE public.user_subscriptions SET tier = 'leader'  WHERE tier = 'team';
 
--- Same for profiles.subscription_tier if that column is used
-UPDATE public.profiles SET subscription_tier = 'starter' WHERE subscription_tier = 'basic';
-UPDATE public.profiles SET subscription_tier = 'growth'  WHERE subscription_tier = 'pro';
-UPDATE public.profiles SET subscription_tier = 'leader'  WHERE subscription_tier = 'team';
+-- Same for profiles.subscription_tier IF that column exists
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema='public' AND table_name='profiles' AND column_name='subscription_tier'
+  ) THEN
+    EXECUTE $sql$UPDATE public.profiles SET subscription_tier = 'starter' WHERE subscription_tier = 'basic'$sql$;
+    EXECUTE $sql$UPDATE public.profiles SET subscription_tier = 'growth'  WHERE subscription_tier = 'pro'$sql$;
+    EXECUTE $sql$UPDATE public.profiles SET subscription_tier = 'leader'  WHERE subscription_tier = 'team'$sql$;
+  END IF;
+END $$;
 
 -- 2. Migrate plan_tiers rows to the canonical plan_name ----------------
 UPDATE public.plan_tiers SET plan_name = 'starter' WHERE plan_name = 'basic';
