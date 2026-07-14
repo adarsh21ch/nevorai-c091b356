@@ -60,6 +60,24 @@ CREATE TABLE IF NOT EXISTS public.team_members (
   UNIQUE (leader_id, member_id)
 );
 
+-- Reconcile legacy shapes (previous partial run may have used owner_id)
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.columns
+             WHERE table_schema='public' AND table_name='team_members' AND column_name='owner_id')
+     AND NOT EXISTS (SELECT 1 FROM information_schema.columns
+             WHERE table_schema='public' AND table_name='team_members' AND column_name='leader_id') THEN
+    EXECUTE 'ALTER TABLE public.team_members RENAME COLUMN owner_id TO leader_id';
+  END IF;
+END $$;
+
+ALTER TABLE public.team_members ADD COLUMN IF NOT EXISTS leader_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public.team_members ADD COLUMN IF NOT EXISTS member_id uuid REFERENCES auth.users(id) ON DELETE CASCADE;
+ALTER TABLE public.team_members ADD COLUMN IF NOT EXISTS invited_at timestamptz DEFAULT now();
+ALTER TABLE public.team_members ADD COLUMN IF NOT EXISTS accepted_at timestamptz;
+ALTER TABLE public.team_members ADD COLUMN IF NOT EXISTS status text DEFAULT 'pending';
+ALTER TABLE public.team_members ADD COLUMN IF NOT EXISTS invite_email text;
+
 CREATE INDEX IF NOT EXISTS idx_team_members_leader ON public.team_members(leader_id);
 CREATE INDEX IF NOT EXISTS idx_team_members_member ON public.team_members(member_id);
 
