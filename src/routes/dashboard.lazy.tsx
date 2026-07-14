@@ -131,7 +131,6 @@ function DashboardPage() {
         )}
 
         <MonthlyViewsBanner />
-        <GettingStartedChecklist />
 
         {(() => {
           const hour = new Date().getHours();
@@ -148,8 +147,17 @@ function DashboardPage() {
                 <p className="mt-1 text-sm text-muted-foreground">Here's what's happening on Nevorai today.</p>
               </div>
               <div className="flex gap-2">
-                <Link to="/funnels/create"><Button variant="hero" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
-                <Link to="/videos"><Button variant="outline" size="sm"><Eye size={14} /> Add Video</Button></Link>
+                <input
+                  ref={uploadInputRef}
+                  type="file"
+                  accept={VIDEO_UPLOAD_ACCEPT}
+                  className="hidden"
+                  onChange={handleUploadPicked}
+                />
+                <Button variant="hero" size="sm" onClick={openUploadFlow}>
+                  <Upload size={14} /> Upload Video
+                </Button>
+                <Link to="/funnels/create"><Button variant="outline" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
               </div>
             </div>
           );
