@@ -59,8 +59,18 @@ function DashboardPage() {
   useDocumentTitle("Dashboard");
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
 
-
+  const openUploadFlow = () => uploadInputRef.current?.click();
+  const handleUploadPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null;
+    e.target.value = "";
+    if (!f) return;
+    setPendingFile(f);
+    setUploadOpen(true);
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
