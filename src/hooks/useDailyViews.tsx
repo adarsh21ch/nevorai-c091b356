@@ -2,10 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 import { usePlanLimits } from "./usePlanLimits";
+import { useEffectiveAccess } from "./useEffectiveAccess";
 
 export const useDailyViews = () => {
   const { user } = useAuth();
   const { config } = usePlanLimits();
+  const { access } = useEffectiveAccess();
+  // Leader-plan rebuild: trial users are storage-gated only, no view limits.
+  const isTrialUnlimited = access?.source === "trial";
 
   const { data: profile } = useQuery({
     queryKey: ["profile-daily-views-override", user?.id],
@@ -41,7 +45,7 @@ export const useDailyViews = () => {
 
   const planLimit = (config as any)?.daily_view_limit ?? 20;
   const customLimit = profile?.custom_daily_views_limit;
-  const effectiveLimit = customLimit ?? planLimit;
+  const effectiveLimit = isTrialUnlimited ? -1 : (customLimit ?? planLimit);
 
   const used = row?.total_views ?? 0;
   const isUnlimited = effectiveLimit === -1;
