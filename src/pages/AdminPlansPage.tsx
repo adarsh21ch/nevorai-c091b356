@@ -468,7 +468,10 @@ const AdminPlansPage = () => {
   }, [tabPlans]);
   const tabLabel = (p: PlanConfigRow) => {
     const base = planLabel(p);
-    return labelCounts[base] > 1 ? `${base} (${p.plan_name})` : base;
+    if (labelCounts[base] > 1) {
+      return p.plan_name.charAt(0).toUpperCase() + p.plan_name.slice(1);
+    }
+    return base;
   };
 
   const visiblePlans = planFilter === "all"
