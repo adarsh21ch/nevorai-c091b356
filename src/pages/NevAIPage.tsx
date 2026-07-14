@@ -109,7 +109,7 @@ const NevAIPage = () => {
             <div>
               <h1 className="text-xl font-heading font-bold sm:text-2xl">Nev AI</h1>
               <p className="text-xs text-muted-foreground sm:text-sm">
-                Ask anything about your analytics — views, leads, funnels, conversion.
+                Your helping hand — ask anything about the app or your numbers.
               </p>
             </div>
           </div>
