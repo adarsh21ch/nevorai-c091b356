@@ -31,7 +31,6 @@ type DashboardSummary = {
   total_leads: number;
   active_live_session: { id: string; title: string } | null;
 };
-import { GettingStartedChecklist } from "@/components/dashboard/GettingStartedChecklist";
 import { WatchingNowStrip } from "@/components/dashboard/WatchingNowStrip";
 
 export const Route = createLazyFileRoute("/dashboard")({ component: DashboardPage });
