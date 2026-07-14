@@ -456,23 +456,7 @@ const AdminPlansPage = () => {
     [planConfigs, showDisabled],
   );
 
-  // Disambiguate colliding display names (e.g. two "Growth") by appending
-  // the raw plan_name so admins can tell them apart.
-  const labelCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    tabPlans.forEach((p) => {
-      const l = planLabel(p);
-      counts[l] = (counts[l] || 0) + 1;
-    });
-    return counts;
-  }, [tabPlans]);
-  const tabLabel = (p: PlanConfigRow) => {
-    const base = planLabel(p);
-    if (labelCounts[base] > 1) {
-      return p.plan_name.charAt(0).toUpperCase() + p.plan_name.slice(1);
-    }
-    return base;
-  };
+  const tabLabel = (p: PlanConfigRow) => planLabel(p);
 
   const visiblePlans = planFilter === "all"
     ? tabPlans
