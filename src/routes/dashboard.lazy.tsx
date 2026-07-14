@@ -230,6 +230,13 @@ function DashboardPage() {
             </div>
           </div>
         )}
+
+        <VideoUploadModal
+          open={uploadOpen}
+          onClose={() => { setUploadOpen(false); setPendingFile(null); }}
+          onSuccess={() => { /* handled inside modal */ }}
+          initialFile={pendingFile}
+        />
       </div>
     </DashboardLayout>
   );
