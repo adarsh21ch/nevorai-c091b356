@@ -456,7 +456,6 @@ const AdminPlansPage = () => {
     [planConfigs, showDisabled],
   );
 
-  // Disambiguate colliding display names (e.g. two "Growth") by appending
   const tabLabel = (p: PlanConfigRow) => planLabel(p);
 
   const visiblePlans = planFilter === "all"
