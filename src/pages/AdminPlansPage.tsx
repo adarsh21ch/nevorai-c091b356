@@ -448,8 +448,31 @@ const AdminPlansPage = () => {
     );
   };
 
+  const [showDisabled, setShowDisabled] = useState(false);
+
+  // Hide disabled plans from tabs by default (cuts clutter — Free etc.).
+  const tabPlans = useMemo(
+    () => (showDisabled ? planConfigs : planConfigs.filter((p) => p.is_enabled !== false)),
+    [planConfigs, showDisabled],
+  );
+
+  // Disambiguate colliding display names (e.g. two "Growth") by appending
+  // the raw plan_name so admins can tell them apart.
+  const labelCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tabPlans.forEach((p) => {
+      const l = planLabel(p);
+      counts[l] = (counts[l] || 0) + 1;
+    });
+    return counts;
+  }, [tabPlans]);
+  const tabLabel = (p: PlanConfigRow) => {
+    const base = planLabel(p);
+    return labelCounts[base] > 1 ? `${base} (${p.plan_name})` : base;
+  };
+
   const visiblePlans = planFilter === "all"
-    ? planConfigs
+    ? tabPlans
     : planConfigs.filter((p) => p.plan_name === planFilter);
 
   const nextDisplayOrder = useMemo(() => {
@@ -467,35 +490,40 @@ const AdminPlansPage = () => {
               Edit limits, features, and pricing for each plan. Changes apply instantly across the app.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 text-xs overflow-x-auto max-w-[60vw]">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 text-xs overflow-x-auto max-w-[70vw]">
               <button
                 key="all"
                 onClick={() => setPlanFilter("all")}
-                className={`px-3 py-1 rounded-md transition-colors ${
+                className={`px-3 py-1 rounded-md transition-colors whitespace-nowrap ${
                   planFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                All Plans
+                All
               </button>
-              {planConfigs.map((p) => (
+              {tabPlans.map((p) => (
                 <button
                   key={p.plan_name}
                   onClick={() => setPlanFilter(p.plan_name)}
-                  className={`px-3 py-1 rounded-md transition-colors capitalize whitespace-nowrap ${
+                  className={`px-3 py-1 rounded-md transition-colors whitespace-nowrap ${
                     planFilter === p.plan_name ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {planLabel(p)}
+                  {tabLabel(p)}
                 </button>
               ))}
             </div>
+            <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer">
+              <Switch checked={showDisabled} onCheckedChange={setShowDisabled} />
+              Show disabled
+            </label>
             <CreatePlanDialog
               existingPlanNames={planConfigs.map((p) => p.plan_name)}
               nextDisplayOrder={nextDisplayOrder}
             />
           </div>
         </div>
+
 
         <div className={`grid gap-3 ${planFilter === "all" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
           {visiblePlans.map((p) => renderPlanCard(p.plan_name, p))}

@@ -23,6 +23,20 @@ const EnterpriseInquiriesTab = lazy(() => import("@/components/admin/EnterpriseI
 
 const adminTabFallback = <div className="glass-card p-4 text-sm text-muted-foreground">Loading…</div>;
 
+/**
+ * Derived subscription status — treats any row whose expires_at is in the past
+ * as "expired" regardless of the stored status. Single source of truth for the
+ * admin UI so expired subscribers never render as green "active".
+ */
+const isSubExpired = (s: { expires_at?: string | null }) =>
+  !!s.expires_at && new Date(s.expires_at).getTime() <= Date.now();
+const effectiveSubStatus = (s: { status: string | null; expires_at?: string | null }) =>
+  isSubExpired(s) && s.status === "active" ? "expired" : (s.status || "unknown");
+const isSubActive = (s: { status: string | null; expires_at?: string | null }) =>
+  s.status === "active" && !isSubExpired(s);
+
+
+
 
 const PlanField = ({ planName, field, label, type = "number", disabled = false, hint, value: initialValue, onSave }: {
   planName: string; field: string; label: string; type?: string; disabled?: boolean; hint?: string;
@@ -252,11 +266,13 @@ const AdminSubscriptionsPage = () => {
   const totalRevenue = subscriptions
     .filter((s) => s.billing_type !== "free" && s.billing_type !== "manual" && s.billing_type !== "nevorai_member")
     .reduce((a, s) => a + (s.amount_paid || 0), 0);
-  const activeCount = subscriptions.filter((s) => s.status === "active" && s.tier !== "free").length;
-  const basicCount = subscriptions.filter((s) => s.status === "active" && s.tier === "basic").length;
-  const proCount = subscriptions.filter((s) => s.status === "active" && s.tier === "pro").length;
-  const freeCount = subscriptions.filter((s) => s.status === "active" && s.tier === "free").length;
+  const activeCount = subscriptions.filter((s) => isSubActive(s) && s.tier !== "free").length;
+  const basicCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "basic").length;
+  const proCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "pro").length;
+  const freeCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "free").length;
   const failedCount = subscriptions.filter((s) => s.status === "payment_failed").length;
+  const expiredCount = subscriptions.filter((s) => isSubExpired(s) && s.status === "active").length;
+  void expiredCount;
 
   const handleManualGrant = async (userId: string, tier: string) => {
     const now = new Date();
@@ -535,26 +551,32 @@ const AdminSubscriptionsPage = () => {
                             }`}>{s.tier}</span>
                           </td>
                           <td className="p-4">
-                            <span className={`px-2 py-0.5 rounded-full text-xs inline-flex items-center gap-1 ${
-                              s.status === "active" ? "bg-green-500/10 text-green-600" :
-                              s.status === "payment_failed" ? "bg-destructive/10 text-destructive" :
-                              "bg-muted text-muted-foreground"
-                            }`}>
-                              {s.status === "active" ? <CheckCircle2 size={10} /> : s.status === "payment_failed" ? <XCircle size={10} /> : null}
-                              {s.status}
-                            </span>
+                            {(() => {
+                              const es = effectiveSubStatus(s);
+                              return (
+                                <span className={`px-2 py-0.5 rounded-full text-xs inline-flex items-center gap-1 ${
+                                  es === "active" ? "bg-green-500/10 text-green-600" :
+                                  es === "expired" ? "bg-amber-500/10 text-amber-600" :
+                                  es === "payment_failed" ? "bg-destructive/10 text-destructive" :
+                                  "bg-muted text-muted-foreground"
+                                }`}>
+                                  {es === "active" ? <CheckCircle2 size={10} /> : es === "payment_failed" || es === "expired" ? <XCircle size={10} /> : null}
+                                  {es}
+                                </span>
+                              );
+                            })()}
                           </td>
                           <td className="p-4">₹{(s.amount_paid || 0).toLocaleString("en-IN")}</td>
                           <td className="p-4 text-xs text-muted-foreground">
                             {s.expires_at ? new Date(s.expires_at).toLocaleDateString("en-IN") : "—"}
                           </td>
                           <td className="p-4 space-x-1">
-                            {s.status === "active" && s.tier !== "free" && (
+                            {isSubActive(s) && s.tier !== "free" && (
                               <Button size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => handleRevoke(s.id)}>
                                 <Ban size={12} /> Revoke
                               </Button>
                             )}
-                            {(s.status !== "active" || s.tier === "free") && (
+                            {(!isSubActive(s) || s.tier === "free") && (
                               <div className="flex gap-1">
                                 <Button size="sm" variant="outline" className="text-xs h-7 gap-1" onClick={() => handleManualGrant(s.user_id, "basic")}>
                                   Basic
@@ -565,6 +587,7 @@ const AdminSubscriptionsPage = () => {
                               </div>
                             )}
                           </td>
+
                         </tr>
                       );
                     })}
@@ -591,10 +614,11 @@ const AdminSubscriptionsPage = () => {
                           "bg-muted text-muted-foreground"
                         }`}>{s.tier}</span>
                         <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                          s.status === "active" ? "bg-green-500/10 text-green-600" :
-                          s.status === "payment_failed" ? "bg-destructive/10 text-destructive" :
+                          effectiveSubStatus(s) === "active" ? "bg-green-500/10 text-green-600" :
+                          effectiveSubStatus(s) === "expired" ? "bg-amber-500/10 text-amber-600" :
+                          effectiveSubStatus(s) === "payment_failed" ? "bg-destructive/10 text-destructive" :
                           "bg-muted text-muted-foreground"
-                        }`}>{s.status}</span>
+                        }`}>{effectiveSubStatus(s)}</span>
                       </div>
                     </div>
                     <div className="flex items-center justify-between border-t border-border pt-2">
@@ -602,12 +626,12 @@ const AdminSubscriptionsPage = () => {
                         ₹{(s.amount_paid || 0).toLocaleString("en-IN")} · {s.expires_at ? new Date(s.expires_at).toLocaleDateString("en-IN") : "—"}
                       </div>
                       <div className="flex gap-1">
-                        {s.status === "active" && s.tier !== "free" && (
+                        {isSubActive(s) && s.tier !== "free" && (
                           <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => handleRevoke(s.id)}>
                             <Ban size={10} />
                           </Button>
                         )}
-                        {(s.status !== "active" || s.tier === "free") && (
+                        {(!isSubActive(s) || s.tier === "free") && (
                           <>
                             <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => handleManualGrant(s.user_id, "basic")}>Basic</Button>
                             <Button size="sm" variant="outline" className="text-[10px] h-7 px-2" onClick={() => handleManualGrant(s.user_id, "pro")}>Pro</Button>
@@ -615,6 +639,7 @@ const AdminSubscriptionsPage = () => {
                         )}
                       </div>
                     </div>
+
                   </div>
                 );
               })}
