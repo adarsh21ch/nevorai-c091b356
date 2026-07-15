@@ -247,8 +247,18 @@ const AdminSubscriptionsPage = () => {
   const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
   const [tierFilter, setTierFilter] = useState<"all" | "paid" | "basic" | "pro">("paid");
+  const [statusFilter, setStatusFilter] = useState<"active" | "expired">("active");
 
-  const filtered = subscriptions.filter((s) => {
+  // Hide superseded/failed rows from the admin list entirely — user only wants
+  // one row per subscriber, grouped by current lifecycle status.
+  const visibleSubs = subscriptions.filter(
+    (s) => s.status !== "replaced" && s.status !== "payment_failed",
+  );
+
+  const filtered = visibleSubs.filter((s) => {
+    // Status tab: Active vs Expired
+    if (statusFilter === "active" && !isSubActive(s)) return false;
+    if (statusFilter === "expired" && isSubActive(s)) return false;
     // Tier filter
     if (tierFilter === "paid" && (s.tier === "free" || !s.tier)) return false;
     if (tierFilter === "basic" && s.tier !== "basic") return false;
@@ -261,18 +271,17 @@ const AdminSubscriptionsPage = () => {
       s.plan_key.toLowerCase().includes(q);
   });
 
-  // Revenue: only count actually paid subs (active or cancelled but had a paid period),
-  // exclude free/manual/replaced rows that have amount_paid = 0 or null.
-  const totalRevenue = subscriptions
+  // Revenue: only count actually paid subs, excluding free/manual and the
+  // duplicate "replaced" / failed rows already filtered from visibleSubs.
+  const totalRevenue = visibleSubs
     .filter((s) => s.billing_type !== "free" && s.billing_type !== "manual" && s.billing_type !== "nevorai_member")
     .reduce((a, s) => a + (s.amount_paid || 0), 0);
-  const activeCount = subscriptions.filter((s) => isSubActive(s) && s.tier !== "free").length;
-  const basicCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "basic").length;
-  const proCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "pro").length;
-  const freeCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "free").length;
-  const failedCount = subscriptions.filter((s) => s.status === "payment_failed").length;
-  const expiredCount = subscriptions.filter((s) => isSubExpired(s) && s.status === "active").length;
-  void expiredCount;
+  const activeCount = visibleSubs.filter((s) => isSubActive(s) && s.tier !== "free").length;
+  const basicCount = visibleSubs.filter((s) => isSubActive(s) && s.tier === "basic").length;
+  const proCount = visibleSubs.filter((s) => isSubActive(s) && s.tier === "pro").length;
+  const freeCount = visibleSubs.filter((s) => isSubActive(s) && s.tier === "free").length;
+  const expiredCount = visibleSubs.filter((s) => !isSubActive(s) && s.tier !== "free").length;
+
 
   const handleManualGrant = async (userId: string, tier: string) => {
     const now = new Date();
