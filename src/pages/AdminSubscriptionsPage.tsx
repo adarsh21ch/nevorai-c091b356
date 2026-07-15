@@ -525,9 +525,26 @@ const AdminSubscriptionsPage = () => {
                 ))}
               </div>
             </div>
+
+            {/* Active / Expired tabs — one row per subscriber, grouped by lifecycle */}
+            <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 text-xs">
+              {([
+                { k: "active", label: `Active (${activeCount})` },
+                { k: "expired", label: `Expired (${expiredCount})` },
+              ] as const).map(({ k, label }) => (
+                <button key={k} onClick={() => setStatusFilter(k)}
+                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                    statusFilter === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <p className="text-[11px] text-muted-foreground">
-              Subscription records only. Use the <strong>Users</strong> tab to manage all accounts (including free signups).
+              Showing one row per subscriber. Renewals extend the existing row — old/replaced and failed attempts are hidden.
             </p>
+
 
             {/* Desktop table */}
             <div className="hidden sm:block glass-card overflow-hidden">
