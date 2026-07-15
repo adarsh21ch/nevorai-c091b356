@@ -489,7 +489,7 @@ const AdminSubscriptionsPage = () => {
             { label: "Free", value: freeCount, color: "text-muted-foreground" },
             { label: "Basic", value: basicCount, color: "text-primary" },
             { label: "Pro", value: proCount, color: "text-success" },
-            { label: "Failed", value: failedCount, color: "text-destructive" },
+            { label: "Expired", value: expiredCount, color: "text-amber-500" },
           ].map((stat) => (
             <div key={stat.label} className="glass-card p-2.5 sm:p-4">
               <p className="text-[10px] text-muted-foreground mb-0.5 sm:text-xs sm:mb-1">{stat.label}</p>
