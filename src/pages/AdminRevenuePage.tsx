@@ -43,11 +43,21 @@ const AdminRevenuePage = () => {
     [profiles],
   );
 
-  // Paid transactions only
+  // Paid transactions only — exclude superseded ("replaced") and failed rows so a
+  // single user who renewed doesn't get counted multiple times, and failed
+  // charges never inflate revenue.
   const paidTx = useMemo(
-    () => subs.filter((s: any) => (s.amount_paid || 0) > 0 && s.tier !== "free"),
+    () =>
+      subs.filter(
+        (s: any) =>
+          (s.amount_paid || 0) > 0 &&
+          s.tier !== "free" &&
+          s.status !== "replaced" &&
+          s.status !== "payment_failed",
+      ),
     [subs],
   );
+
 
   const now = new Date();
   const startToday = new Date(now); startToday.setHours(0, 0, 0, 0);

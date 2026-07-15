@@ -247,8 +247,18 @@ const AdminSubscriptionsPage = () => {
   const profileMap = Object.fromEntries(profiles.map((p) => [p.id, p]));
 
   const [tierFilter, setTierFilter] = useState<"all" | "paid" | "basic" | "pro">("paid");
+  const [statusFilter, setStatusFilter] = useState<"active" | "expired">("active");
 
-  const filtered = subscriptions.filter((s) => {
+  // Hide superseded/failed rows from the admin list entirely — user only wants
+  // one row per subscriber, grouped by current lifecycle status.
+  const visibleSubs = subscriptions.filter(
+    (s) => s.status !== "replaced" && s.status !== "payment_failed",
+  );
+
+  const filtered = visibleSubs.filter((s) => {
+    // Status tab: Active vs Expired
+    if (statusFilter === "active" && !isSubActive(s)) return false;
+    if (statusFilter === "expired" && isSubActive(s)) return false;
     // Tier filter
     if (tierFilter === "paid" && (s.tier === "free" || !s.tier)) return false;
     if (tierFilter === "basic" && s.tier !== "basic") return false;
@@ -261,18 +271,17 @@ const AdminSubscriptionsPage = () => {
       s.plan_key.toLowerCase().includes(q);
   });
 
-  // Revenue: only count actually paid subs (active or cancelled but had a paid period),
-  // exclude free/manual/replaced rows that have amount_paid = 0 or null.
-  const totalRevenue = subscriptions
+  // Revenue: only count actually paid subs, excluding free/manual and the
+  // duplicate "replaced" / failed rows already filtered from visibleSubs.
+  const totalRevenue = visibleSubs
     .filter((s) => s.billing_type !== "free" && s.billing_type !== "manual" && s.billing_type !== "nevorai_member")
     .reduce((a, s) => a + (s.amount_paid || 0), 0);
-  const activeCount = subscriptions.filter((s) => isSubActive(s) && s.tier !== "free").length;
-  const basicCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "basic").length;
-  const proCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "pro").length;
-  const freeCount = subscriptions.filter((s) => isSubActive(s) && s.tier === "free").length;
-  const failedCount = subscriptions.filter((s) => s.status === "payment_failed").length;
-  const expiredCount = subscriptions.filter((s) => isSubExpired(s) && s.status === "active").length;
-  void expiredCount;
+  const activeCount = visibleSubs.filter((s) => isSubActive(s) && s.tier !== "free").length;
+  const basicCount = visibleSubs.filter((s) => isSubActive(s) && s.tier === "basic").length;
+  const proCount = visibleSubs.filter((s) => isSubActive(s) && s.tier === "pro").length;
+  const freeCount = visibleSubs.filter((s) => isSubActive(s) && s.tier === "free").length;
+  const expiredCount = visibleSubs.filter((s) => !isSubActive(s) && s.tier !== "free").length;
+
 
   const handleManualGrant = async (userId: string, tier: string) => {
     const now = new Date();
@@ -480,7 +489,7 @@ const AdminSubscriptionsPage = () => {
             { label: "Free", value: freeCount, color: "text-muted-foreground" },
             { label: "Basic", value: basicCount, color: "text-primary" },
             { label: "Pro", value: proCount, color: "text-success" },
-            { label: "Failed", value: failedCount, color: "text-destructive" },
+            { label: "Expired", value: expiredCount, color: "text-amber-500" },
           ].map((stat) => (
             <div key={stat.label} className="glass-card p-2.5 sm:p-4">
               <p className="text-[10px] text-muted-foreground mb-0.5 sm:text-xs sm:mb-1">{stat.label}</p>
@@ -516,9 +525,26 @@ const AdminSubscriptionsPage = () => {
                 ))}
               </div>
             </div>
+
+            {/* Active / Expired tabs — one row per subscriber, grouped by lifecycle */}
+            <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 text-xs">
+              {([
+                { k: "active", label: `Active (${activeCount})` },
+                { k: "expired", label: `Expired (${expiredCount})` },
+              ] as const).map(({ k, label }) => (
+                <button key={k} onClick={() => setStatusFilter(k)}
+                  className={`px-3 py-1.5 rounded-md transition-colors ${
+                    statusFilter === k ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
+                  }`}>
+                  {label}
+                </button>
+              ))}
+            </div>
+
             <p className="text-[11px] text-muted-foreground">
-              Subscription records only. Use the <strong>Users</strong> tab to manage all accounts (including free signups).
+              Showing one row per subscriber. Renewals extend the existing row — old/replaced and failed attempts are hidden.
             </p>
+
 
             {/* Desktop table */}
             <div className="hidden sm:block glass-card overflow-hidden">
