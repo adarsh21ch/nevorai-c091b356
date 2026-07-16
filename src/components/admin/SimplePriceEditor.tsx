@@ -71,14 +71,15 @@ export const SimplePriceEditor = ({ planName }: { planName: string }) => {
       const { error: e1 } = await adminWrite(() =>
         (supabase.from("subscription_plans") as any)
           .update({
-            price_monthly: monthly,
-            price_yearly: y,
+            monthly_price: monthly,
+            yearly_price: y,
             updated_at: new Date().toISOString(),
           })
           .eq("plan_name", planName)
           .select(),
       );
       if (e1) throw e1;
+
 
       // Mirror to plan_tiers base row so legacy readers keep working.
       if (data?.tierId) {
