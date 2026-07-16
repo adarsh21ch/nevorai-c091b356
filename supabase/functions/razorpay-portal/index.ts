@@ -240,26 +240,26 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "plan_key required" }, 400);
       }
 
-      // SECURITY: Always look up authoritative price server-side. Never trust client amount.
-      // admin_subscription_plans is metadata only (active flag, billing interval, cycle days).
-      // PRICING source of truth = plan_tiers (the table the admin panel edits and the UI displays).
+      const baseTier = plan_key.split("_")[0]; // e.g. starter_monthly -> starter
+
+      // SOURCE OF TRUTH = subscription_plans (the table admin manages).
+      // We no longer read admin_subscription_plans (legacy) since new plans
+      // like starter / growth / leader are only registered in subscription_plans.
       const { data: planData } = await serviceClient
-        .from("admin_subscription_plans")
-        .select("plan_key, price_inr, is_active, billing_type, duration_days")
-        .eq("plan_key", plan_key)
-        .eq("is_active", true)
+        .from("subscription_plans")
+        .select("plan_name, is_enabled, is_purchasable, monthly_price, yearly_price")
+        .eq("plan_name", baseTier)
         .maybeSingle();
 
-      if (!planData) {
+      if (!planData || planData.is_enabled === false || planData.is_purchasable === false) {
         return jsonResponse({ error: "Invalid or inactive plan" }, 400);
       }
 
-      const targetBillingInterval = getBillingInterval(plan_key, planData.billing_type);
-      const targetCycleDays = getDefaultCycleDays(targetBillingInterval, Number(planData.duration_days || 0));
+      const targetBillingInterval = getBillingInterval(plan_key, null);
+      const targetCycleDays = getDefaultCycleDays(targetBillingInterval, null);
       let authoritativeAmount = 0;
       let resolvedTierId: string | null = null;
       let resolvedDailyViews: number | null = null;
-      const baseTier = plan_key.split("_")[0]; // basic_monthly -> basic
 
       // If a tier_id was provided, validate it belongs to this plan and use its price.
       if (tier_id && typeof tier_id === "string") {
@@ -288,8 +288,8 @@ Deno.serve(async (req) => {
         authoritativeAmount = pickTierPrice(tierRow, targetBillingInterval);
         resolvedTierId = tierRow.id;
         resolvedDailyViews = tierRow.daily_views;
-      } else if (baseTier === "basic" || baseTier === "pro") {
-        // Auto-resolve the base tier for the plan when no tier_id was supplied.
+      } else {
+        // Auto-resolve the base tier for this plan from plan_tiers first.
         const { data: baseRow } = await serviceClient
           .from("plan_tiers")
           .select("id, daily_views, monthly_price, yearly_price")
@@ -297,20 +297,18 @@ Deno.serve(async (req) => {
           .eq("is_active", true)
           .eq("is_base", true)
           .maybeSingle();
-        if (!baseRow) {
-          // NO SILENT FALLBACK: refuse rather than charge a stale price from admin_subscription_plans.
-          console.error("create_order: no active base tier for plan", { plan_key, baseTier });
-          return jsonResponse({
-            error: "Pricing not configured for this plan. Please contact support.",
-          }, 400);
+        if (baseRow) {
+          authoritativeAmount = pickTierPrice(baseRow, targetBillingInterval);
+          resolvedTierId = baseRow.id;
+          resolvedDailyViews = baseRow.daily_views;
+        } else {
+          // No plan_tiers row — fall back to subscription_plans price columns.
+          authoritativeAmount = targetBillingInterval === "yearly"
+            ? Number(planData.yearly_price || 0)
+            : Number(planData.monthly_price || 0);
         }
-        authoritativeAmount = pickTierPrice(baseRow, targetBillingInterval);
-        resolvedTierId = baseRow.id;
-        resolvedDailyViews = baseRow.daily_views;
-      } else {
-        // Unknown plan tier (not basic/pro and no tier_id) — refuse.
-        return jsonResponse({ error: "Pricing not configured for this plan." }, 400);
       }
+
 
       if (!authoritativeAmount || authoritativeAmount <= 0) {
         return jsonResponse({ error: "Pricing not configured for this plan." }, 400);
