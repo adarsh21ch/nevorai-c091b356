@@ -602,6 +602,8 @@ const PricingFullPage = () => {
             </ul>
             {isCurrent ? (
               <Button disabled className="w-full">Current Plan</Button>
+            ) : (getPrice(config) || 0) <= 0 ? (
+              <Button disabled variant="outline" className="w-full">Coming soon</Button>
             ) : (
               <>
                 <GuaranteePill />
@@ -614,6 +616,7 @@ const PricingFullPage = () => {
                 </p>
               </>
             )}
+
           </motion.div>
         ),
       };
