@@ -513,7 +513,7 @@ export const PricingSection = () => {
                   if (lname === "pro" && onPro) {
                     return <Button disabled className="w-full">Current Plan</Button>;
                   }
-                  const isUpgrade = lname === "pro" && onBasic;
+                  const isUpgrade = onBasic && (lname === "pro" || lname === "growth" || lname === "leader");
                   return (
                     <Button
                       variant={plan.variant}
@@ -522,7 +522,7 @@ export const PricingSection = () => {
                       disabled={loadingPlan === `${lname}_monthly`}
                     >
                       {loadingPlan === `${lname}_monthly` && <Loader2 size={16} className="animate-spin" />}
-                      {isUpgrade ? <><ArrowUp size={14} /> Upgrade to Pro</> : plan.cta}
+                      {isUpgrade ? <><ArrowUp size={14} /> Upgrade to {plan.name}</> : plan.cta}
                     </Button>
                   );
                 })()}

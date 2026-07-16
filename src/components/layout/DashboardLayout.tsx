@@ -39,7 +39,7 @@ const baseNavItems = [
   { icon: Target, label: "Tracking", path: "/tracking" },
 ];
 const tailNavItems = [
-  { icon: Crown, label: "Upgrade to Pro", path: "/billing" },
+  { icon: Crown, label: "Upgrade Plan", path: "/billing" },
   { icon: IndianRupee, label: "Payments", path: "/payments" },
 ];
 

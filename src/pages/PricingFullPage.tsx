@@ -198,12 +198,19 @@ const PricingFullPage = () => {
   };
 
   const freeConfig = planConfigs.find((c: any) => c.plan_name === "free");
-  const basicConfig = withBasePrice(planConfigs.find((c: any) => c.plan_name === "basic"), "basic");
+  // Legacy configs kept only for the dynamic comparison table below.
+  // All paid plan CARDS now render through the generic `extraCards` path
+  // so admin-managed plans (starter/growth/leader) show up automatically.
+  const basicConfig = withBasePrice(planConfigs.find((c: any) => c.plan_name === "basic" || c.plan_name === "starter"), "basic");
   const growthConfig = withBasePrice(planConfigs.find((c: any) => c.plan_name === "growth"), "growth");
-  const proConfig = withBasePrice(planConfigs.find((c: any) => c.plan_name === "pro"), "pro");
-  const basicEnabled = basicConfig?.is_enabled !== false;
-  const growthEnabled = !!growthConfig && growthConfig?.is_enabled !== false;
-  const proEnabled = proConfig?.is_enabled !== false;
+  const proConfig = withBasePrice(planConfigs.find((c: any) => c.plan_name === "pro" || c.plan_name === "leader"), "pro");
+  // Legacy hardcoded basic/pro cards are now DISABLED — the generic paid-plan
+  // renderer below picks up all enabled plans from `subscription_plans`,
+  // which means renaming plans in admin propagates without code changes.
+  const basicEnabled = false;
+  const growthEnabled = false;
+  const proEnabled = false;
+  const hasAnyPaidPlan = planConfigs.some((c: any) => c.plan_name !== "free" && c.is_enabled !== false);
 
   const getPrice = (config: any) => {
     if (!config) return 0;
@@ -609,7 +616,7 @@ const PricingFullPage = () => {
                 <GuaranteePill />
                 <Button className="w-full gap-2" onClick={() => handlePayment(planName)} disabled={loading === loadingKey}>
                   {loading === loadingKey ? <Loader2 size={16} className="animate-spin" /> : null}
-                  Subscribe — {formatPrice(getPrice(config), currency)}/{billing === "monthly" ? "mo" : "yr"}
+                  {plan.isExpired ? "Renew" : "Subscribe"} — {formatPrice(getPrice(config), currency)}/{billing === "monthly" ? "mo" : "yr"}
                 </Button>
                 <p className="text-[11px] text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">
                   <Shield size={10} className="text-emerald-500" /> Secure payment via Razorpay · UPI · Cards · NetBanking
@@ -646,23 +653,31 @@ const PricingFullPage = () => {
         <div className="container-app">
           <motion.div className="text-center mb-10" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-3xl md:text-5xl font-heading font-bold mb-4">
-              {isDashboardUpgradeView ? <>Upgrade to <span className="gradient-text">Pro</span></> : <>Choose Your <span className="gradient-text">Growth Plan</span></>}
+              {plan.isExpired
+                ? <>Renew <span className="gradient-text">your plan</span></>
+                : isDashboardUpgradeView
+                  ? <>Upgrade <span className="gradient-text">your plan</span></>
+                  : <>Choose Your <span className="gradient-text">Growth Plan</span></>}
             </h1>
             <p className="text-muted-foreground max-w-lg mx-auto mb-6">
-              {isDashboardUpgradeView ? "Manage your subscription without leaving your account." : "Start free forever with usage limits. Upgrade when you grow."}
+              {plan.isExpired
+                ? "Pick a plan below to restore access instantly."
+                : isDashboardUpgradeView
+                  ? "Manage your subscription without leaving your account."
+                  : "Start free forever with usage limits. Upgrade when you grow."}
             </p>
             {plan.isExpired && (
               <p className="text-sm text-destructive font-medium">Your plan has expired. Renew to restore access.</p>
             )}
             {isNevoraiMember && !plan.isPaid && (
               <div className="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-sm text-emerald-600 dark:text-emerald-400">
-                <Sparkles size={14} /> You have free Individual access via your Nevorai Pro membership
+                <Sparkles size={14} /> You have free access via your Nevorai membership
               </div>
             )}
           </motion.div>
 
           {/* Billing toggle */}
-          {(basicEnabled || proEnabled) && (
+          {hasAnyPaidPlan && (
             <div className="flex items-center justify-center gap-3 mb-10">
               <button
                 onClick={() => setBilling("monthly")}
@@ -676,7 +691,7 @@ const PricingFullPage = () => {
               >
                 Yearly
                 {(() => {
-                  const refConfig = basicEnabled ? basicConfig : proConfig;
+                  const refConfig = basicConfig || growthConfig || proConfig;
                   if (refConfig && refConfig.monthly_price > 0) {
                     const pct = Math.round((1 - refConfig.yearly_price / (refConfig.monthly_price * 12)) * 100);
                     if (pct > 0) return (

@@ -39,8 +39,6 @@ export const LimitGate = ({ resource, children }: LimitGateProps) => {
     return <>{children}</>;
   }
 
-  const tierLabel = plan.tier === "free" ? "Basic or Pro" : plan.tier === "basic" ? "Pro" : "";
-
   return (
     <div className="glass-card p-6 text-center space-y-3 border-dashed border-2 border-primary/20 max-w-md mx-auto">
       <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
@@ -52,8 +50,7 @@ export const LimitGate = ({ resource, children }: LimitGateProps) => {
       <p className="text-sm text-muted-foreground">
         You've used <span className="font-semibold text-foreground">{currentCount}</span> of{" "}
         <span className="font-semibold text-foreground">{limit === 0 ? "0" : limit}</span> {l.plural.toLowerCase()} on your{" "}
-        <span className="capitalize">{plan.tier}</span> plan.
-        {tierLabel && <> Upgrade to <span className="text-primary font-medium">{tierLabel}</span> for more.</>}
+        <span className="capitalize">{plan.tier}</span> plan. Upgrade for more.
       </p>
       <Link to="/upgrade">
         <Button variant="default" size="sm" className="gap-2 mt-2">
