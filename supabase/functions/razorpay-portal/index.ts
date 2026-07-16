@@ -357,7 +357,7 @@ Deno.serve(async (req) => {
         activePaidSub &&
         currentBasePlan &&
         (PLAN_RANK[baseTier] ?? -1) > (PLAN_RANK[currentBasePlan] ?? -1) &&
-        (currentBasePlan === "basic" || currentBasePlan === "pro")
+        PAID_PLANS.has(currentBasePlan)
       ) {
         // Resolve current plan's base monthly price
         const { data: currentBaseRow } = await serviceClient
