@@ -25,8 +25,8 @@ export const faqs: FAQ[] = [
     a: "Vimeo is a video hosting service for filmmakers and starts around ₹10,000 per month for the features Indian businesses actually need. Google Drive has no analytics, no lead capture and no follow-up — it's a file locker. Nevorai is purpose-built for sales: unskippable player, lead forms, WhatsApp share previews, real-time tracking, video funnels and live sessions, all for a fraction of Vimeo's price.",
   },
   {
-    q: "Is Nevorai free to use?",
-    a: "Yes. The free plan gives you 1 GB of storage, two funnels and basic lead capture — enough to share your first sales video and see real results. You only pay when you outgrow it. No credit card required to start, and you can cancel anytime if you upgrade.",
+    q: "How much does Nevorai cost?",
+    a: "Nevorai starts at just ₹249/month for the Starter plan — cheaper than one lunch, and enough for individual network marketers to run smart video follow-ups. Growth (₹699) and Leader plans unlock more storage, unlimited funnels and team features. All plans are cancel-anytime with a 7-day refund window.",
   },
   {
     q: "What is a video funnel and how do I create one?",
