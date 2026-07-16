@@ -1,6 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "./useAuth";
+// Per-plan view limits removed from product — hook returns unlimited.
 
 export interface MonthlyViewsStats {
   used: number;
