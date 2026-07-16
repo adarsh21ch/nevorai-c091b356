@@ -878,38 +878,8 @@ const PublicFunnel = () => {
     whatsapp: !!((formConfig as any)?.show_whatsapp ?? legacyRequired.whatsapp),
   };
 
-  const [dailyLimitState, setDailyLimitState] = useState<"unknown" | "allowed" | "blocked">("unknown");
-  useEffect(() => {
-    if (!funnel?.id) return;
-    const todayIST = new Date(Date.now() + 5.5 * 60 * 60 * 1000).toISOString().slice(0, 10);
-    const sessionKey = `nf_view_check_${funnel.owner_id || funnel.id}_${todayIST}`;
-    if (sessionStorage.getItem(sessionKey)) {
-      setDailyLimitState("allowed");
-      return;
-    }
-    let visitorSession = localStorage.getItem("nf_visitor_session");
-    if (!visitorSession) {
-      visitorSession = crypto.randomUUID();
-      localStorage.setItem("nf_visitor_session", visitorSession);
-    }
-    const sessionId = `${visitorSession}_${funnel.owner_id || funnel.id}_${todayIST}`;
-
-    (async () => {
-      try {
-        const { data } = await supabase.functions.invoke("check-funnel-view-limit", {
-          body: { funnelId: funnel.id, sessionId },
-        });
-        if (data?.allowed === false) {
-          setDailyLimitState("blocked");
-        } else {
-          setDailyLimitState("allowed");
-          sessionStorage.setItem(sessionKey, "1");
-        }
-      } catch {
-        setDailyLimitState("allowed");
-      }
-    })();
-  }, [funnel?.id, funnel?.owner_id]);
+// Per-plan view limits were removed — prospects are never blocked.
+const [dailyLimitState] = useState<"unknown" | "allowed" | "blocked">("allowed");
 
   useEffect(() => {
     if (!funnel?.id) return;
