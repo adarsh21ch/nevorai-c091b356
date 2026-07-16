@@ -305,7 +305,7 @@ async function provisionSubscriptionFromOrder(
   const { error: insertErr } = await serviceClient.from("user_subscriptions").insert({
     user_id: userId,
     plan_key: planKey,
-    tier: planData?.tier || "pro",
+    tier: planData?.tier || planKeyBase || "starter",
     status: "active",
     billing_type: planData?.billing_type || "one_time",
     amount_paid: Math.round(amountPaise / 100),
