@@ -377,7 +377,7 @@ const AdminSubscriptionsPage = () => {
 
   const basicConfig = planConfigs.find(c => c.plan_name === "basic") as any;
   const proConfig = planConfigs.find(c => c.plan_name === "pro") as any;
-  const enterpriseConfig = planConfigs.find(c => c.plan_name === "enterprise") as any;
+
 
   const [editingSettings, setEditingSettings] = useState<Record<string, string>>({});
 
