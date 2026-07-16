@@ -261,7 +261,14 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (!planData || planData.is_enabled === false || planData.is_purchasable === false) {
-        return jsonResponse({ error: "Invalid or inactive plan" }, 400);
+        return jsonResponse({
+          error: `Invalid or inactive plan: ${baseTier}`,
+          debug: {
+            found: !!planData,
+            is_enabled: planData?.is_enabled,
+            is_purchasable: planData?.is_purchasable,
+          },
+        }, 400);
       }
 
       const targetBillingInterval = getBillingInterval(plan_key, null);
