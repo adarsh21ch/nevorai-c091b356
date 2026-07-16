@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { getSupabaseFunctionErrorMessage } from "@/lib/supabase-function-error";
+import { getPlanRank } from "@/lib/planRank";
 import { CheckoutDialog } from "@/components/checkout/CheckoutDialog";
 
 
