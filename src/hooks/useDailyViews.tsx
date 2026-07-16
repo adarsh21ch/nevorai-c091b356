@@ -9,7 +9,7 @@ export const useDailyViews = () => {
     limit: -1,
     isUnlimited: true,
     percent: 0,
-    status: "ok" as const,
+    status: "ok" as "ok" | "warning" | "limit",
     hasCustomOverride: false,
   };
 };
