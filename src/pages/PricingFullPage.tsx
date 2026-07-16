@@ -28,6 +28,7 @@ import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
 import { getSupabaseFunctionErrorMessage } from "@/lib/supabase-function-error";
+import { getPlanRank } from "@/lib/planRank";
 import { CheckoutDialog } from "@/components/checkout/CheckoutDialog";
 
 
@@ -593,22 +594,27 @@ const PricingFullPage = () => {
             <ul className="space-y-2.5 mb-6 max-h-[260px] md:max-h-[360px] overflow-y-auto pr-1 md:flex-1">
               {features.map((item, i) => <FeatureRow key={i} item={item} />)}
             </ul>
-            {isCurrent ? (
-              <Button disabled className="w-full">Current Plan</Button>
-            ) : (getPrice(config) || 0) <= 0 ? (
-              <Button disabled variant="outline" className="w-full">Coming soon</Button>
-            ) : (
-              <>
-                <GuaranteePill />
-                <Button className="w-full gap-2" onClick={() => handlePayment(planName)} disabled={loading === loadingKey}>
-                  {loading === loadingKey ? <Loader2 size={16} className="animate-spin" /> : null}
-                  {plan.isExpired ? "Renew" : "Subscribe"} — {formatPrice(getPrice(config), currency)}/{billing === "monthly" ? "mo" : "yr"}
-                </Button>
-                <p className="text-[11px] text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">
-                  <Shield size={10} className="text-emerald-500" /> Secure payment via Razorpay · UPI · Cards · NetBanking
-                </p>
-              </>
-            )}
+            {(() => {
+              const currentRank = getPlanRank(plan.tier, planConfigs);
+              const thisRank = getPlanRank(planName, planConfigs);
+              const isDowngrade = plan.isPaid && !plan.isExpired && thisRank < currentRank;
+              if (isCurrent) return <Button disabled className="w-full">Current Plan</Button>;
+              if (isDowngrade) return <Button disabled variant="outline" className="w-full">Included in your plan</Button>;
+              if ((getPrice(config) || 0) <= 0) return <Button disabled variant="outline" className="w-full">Coming soon</Button>;
+              const isUpgrade = plan.isPaid && !plan.isExpired && thisRank > currentRank;
+              return (
+                <>
+                  <GuaranteePill />
+                  <Button className="w-full gap-2" onClick={() => handlePayment(planName)} disabled={loading === loadingKey}>
+                    {loading === loadingKey ? <Loader2 size={16} className="animate-spin" /> : isUpgrade ? <ArrowUp size={16} /> : null}
+                    {plan.isExpired ? "Renew" : isUpgrade ? `Upgrade to ${displayName}` : "Subscribe"} — {formatPrice(getPrice(config), currency)}/{billing === "monthly" ? "mo" : "yr"}
+                  </Button>
+                  <p className="text-[11px] text-muted-foreground text-center mt-2 flex items-center justify-center gap-1">
+                    <Shield size={10} className="text-emerald-500" /> Secure payment via Razorpay · UPI · Cards · NetBanking
+                  </p>
+                </>
+              );
+            })()}
 
           </motion.div>
         ),
