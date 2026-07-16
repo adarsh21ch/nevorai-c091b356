@@ -131,7 +131,7 @@ export const ConversionCalculator = () => {
                 size="xl"
                 className="rounded-full text-white font-semibold border-0 bg-gradient-brand shadow-glow-brand min-h-11"
               >
-                Start Free — Get These Results
+                Get Started — See These Results
               </Button>
             </Link>
           </div>

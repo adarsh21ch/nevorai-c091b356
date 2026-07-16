@@ -29,11 +29,11 @@ const statusConfig: Record<string, { label: string; icon: any; color: string; bg
   replaced:      { label: "Replaced",       icon: RefreshCw,    color: "text-muted-foreground", bg: "bg-muted/30 border-border" },
 };
 
-const PLAN_LABEL: Record<string, string> = { free: "Free", basic: "Basic", pro: "Individual", trial: "Trial" };
+import { planName as planDisplayName } from "@/config/planDisplay";
 
 interface PlanRow {
   plan_name: string;
-  price_monthly: number | null;
+  monthly_price: number | null;
   max_storage_mb: number | null;
   max_funnels: number | null;
   max_landing_pages: number | null;
@@ -46,6 +46,7 @@ interface PlanRow {
   feature_advanced_analytics?: boolean | null;
   feature_analytics?: boolean | null;
 }
+
 
 const fmtStorage = (mb: number | null) => {
   if (!mb || mb <= 0) return "—";
@@ -82,7 +83,7 @@ const BillingPage = () => {
 
   const status = statusConfig[plan.status] || statusConfig.active;
   const StatusIcon = status.icon;
-  const planLabel = PLAN_LABEL[plan.tier] || plan.tier;
+  const planLabel = planDisplayName(plan.tier);
 
   const { data: existingRefund, refetch: refetchRefund } = useQuery({
     queryKey: ["refund-request", user?.id],
@@ -101,21 +102,51 @@ const BillingPage = () => {
     enabled: !!user,
   });
 
+  type PlanRowExt = PlanRow & {
+    display_name?: string | null;
+    display_order?: number | null;
+    is_enabled?: boolean | null;
+  };
+
   const { data: tierPlans } = useQuery({
     queryKey: ["billing-tier-plans"],
     queryFn: async () => {
-      const { data } = await (supabase as any)
+      // Load every enabled non-free plan dynamically. When admin renames or
+      // adds plans (starter/growth/leader), they show up here without code
+      // changes. We also join the base plan_tiers row so the card price
+      // still resolves when `subscription_plans.monthly_price` is null
+      // (legacy rows where pricing lived only in plan_tiers).
+      const { data: plans } = await (supabase as any)
         .from("subscription_plans")
         .select("*")
-        .in("plan_name", ["basic", "growth", "pro"]);
-      return (data ?? []) as PlanRow[];
+        .neq("plan_name", "free")
+        .eq("is_enabled", true)
+        .order("display_order", { ascending: true });
+      const rows = (plans ?? []) as PlanRowExt[];
+      if (rows.length === 0) return rows;
+      const names = rows.map((r) => r.plan_name);
+      const { data: tiers } = await (supabase.from("plan_tiers" as any) as any)
+        .select("plan_name, monthly_price, yearly_price, is_base, display_order")
+        .in("plan_name", names);
+      const priceByPlan = new Map<string, { monthly: number | null; yearly: number | null }>();
+      for (const t of (tiers ?? []) as any[]) {
+        const cur = priceByPlan.get(t.plan_name);
+        // Prefer explicit is_base row; else lowest display_order.
+        if (!cur || t.is_base) {
+          priceByPlan.set(t.plan_name, { monthly: t.monthly_price, yearly: t.yearly_price });
+        }
+      }
+      return rows.map((r) => {
+        if (r.monthly_price && r.monthly_price > 0) return r;
+        const fallback = priceByPlan.get(r.plan_name);
+        return {
+          ...r,
+          monthly_price: fallback?.monthly ?? r.monthly_price ?? null,
+        };
+      });
     },
     staleTime: 5 * 60 * 1000,
   });
-
-  const basicPlan = tierPlans?.find(p => p.plan_name === "basic");
-  const growthPlan = tierPlans?.find(p => p.plan_name === "growth");
-  const proPlan = tierPlans?.find(p => p.plan_name === "pro");
 
   const startedAt = plan.startedAt ? new Date(plan.startedAt) : null;
   const guaranteeExpiresAt = startedAt ? new Date(startedAt.getTime() + 7 * 86400_000) : null;
@@ -142,24 +173,47 @@ const BillingPage = () => {
     );
   }
 
-  const currentTier = plan.tier; // free | basic | pro | trial
+  const currentTier = plan.tier;
 
-  // Plan ordering for upgrade/downgrade logic
-  const TIER_RANK: Record<string, number> = { free: 0, basic: 1, growth: 2, pro: 3, trial: 3 };
+  // Plan ordering — new plan names first, legacy aliases mapped for back-compat.
+  const TIER_RANK: Record<string, number> = {
+    free: 0,
+    basic: 1, starter: 1,
+    growth: 2,
+    pro: 3, leader: 4,
+    trial: 3,
+  };
   const currentRank = TIER_RANK[currentTier] ?? 0;
+  const isTopTierUser = !plan.isExpired && (currentTier === "leader" || currentTier === "pro");
 
-  const renderTierCard = (p: PlanRow | undefined, label: string, accent: boolean) => {
-    if (!p) return null;
-    const planRank = TIER_RANK[p.plan_name] ?? 0;
+  const cardLabel = (p: PlanRowExt): string =>
+    (p.display_name && p.display_name.trim())
+      || planDisplayName(p.plan_name)
+      || (p.plan_name.charAt(0).toUpperCase() + p.plan_name.slice(1));
+
+  const renderTierCard = (p: PlanRowExt) => {
+    const label = cardLabel(p);
+    const planRank = TIER_RANK[p.plan_name] ?? (p.display_order ?? 99);
     const isCurrent =
-      (p.plan_name === currentTier) ||
-      (p.plan_name === "pro" && currentTier === "trial");
+      !plan.isExpired &&
+      ((p.plan_name === currentTier) ||
+        (currentTier === "trial" && (p.plan_name === "growth" || p.plan_name === "pro")));
     const features = buildFeatures(p);
-    // Hide cards strictly below the user's current paid tier (e.g. on Pro, don't show Basic/Growth)
-    const isBelowCurrent = planRank < currentRank && currentTier !== "free" && currentTier !== "trial";
+    // Only hide strictly-lower tiers when user is on an ACTIVE paid plan.
+    // Expired users should see every option (including lower tiers) so they
+    // can renew on any plan.
+    const isBelowCurrent =
+      !plan.isExpired &&
+      planRank < currentRank &&
+      currentTier !== "free" &&
+      currentTier !== "trial";
+
+    // Highlight the top-ranked plan we're rendering as "recommended".
+    const accent = planRank >= 3;
 
     return (
       <div
+        key={p.plan_name}
         className={cn(
           "glass-card p-6 flex flex-col gap-4 relative",
           accent && "border-primary/30 bg-gradient-to-br from-primary/[0.04] to-transparent",
@@ -173,7 +227,7 @@ const BillingPage = () => {
         <div>
           <h3 className="font-heading font-bold text-lg">{label}</h3>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-3xl font-heading font-bold">₹{p.price_monthly ?? "—"}</span>
+            <span className="text-3xl font-heading font-bold">₹{p.monthly_price ?? "—"}</span>
             <span className="text-sm text-muted-foreground">/ month</span>
           </div>
         </div>
@@ -192,9 +246,9 @@ const BillingPage = () => {
             <CheckCircle2 size={13} className="mr-1.5" /> Current Plan
           </Badge>
         ) : isBelowCurrent ? null : (
-          <Link to="/upgrade">
+          <Link to={`/pricing?plan=${p.plan_name}`}>
             <Button className="w-full gap-1.5" variant={accent ? "default" : "outline"}>
-              Upgrade to {label}
+              {plan.isExpired ? `Renew on ${label}` : `Upgrade to ${label}`}
               <ArrowRight size={14} />
             </Button>
           </Link>
@@ -302,27 +356,53 @@ const BillingPage = () => {
           </div>
         </div>
 
-        {/* Choose Your Plan — two tier cards */}
+        {/* Choose Your Plan — rendered dynamically from subscription_plans */}
         <div className="space-y-3">
           <div>
-            <h2 className="text-lg font-heading font-bold">Choose your plan</h2>
+            <h2 className="text-lg font-heading font-bold">
+              {plan.isExpired ? "Renew your subscription" : "Choose your plan"}
+            </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Storage-based pricing. No view limits. Cancel anytime.
+              {plan.isExpired
+                ? "Your access has ended. Pick any plan below to restore it instantly."
+                : "Storage-based pricing. Cancel anytime."}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {renderTierCard(basicPlan, "Basic", false)}
-            {renderTierCard(growthPlan, "Growth", false)}
-            {renderTierCard(proPlan, "Pro", true)}
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-4",
+              (tierPlans?.length ?? 0) >= 3 ? "md:grid-cols-3" : "md:grid-cols-2",
+            )}
+          >
+            {(tierPlans ?? []).map((p) => renderTierCard(p))}
           </div>
 
-          {currentTier === "pro" && (
+          {isTopTierUser && (
             <p className="text-xs text-center text-muted-foreground pt-1">
-              You're on our highest tier. 🎉 Thanks for being a Pro member.
+              You're on our highest tier. 🎉 Thanks for being a {planLabel} member.
             </p>
           )}
         </div>
+
+        {/* Expired-plan renew prompt */}
+        {plan.isExpired && (
+          <div className="glass-card p-4 border border-destructive/20 bg-destructive/5 space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-destructive" />
+              <p className="font-medium text-destructive text-sm">Your {planLabel} plan has expired</p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Your funnels, landing pages and view tracking are paused until you renew.
+            </p>
+            <div className="flex gap-2">
+              <Link to="/pricing"><Button size="sm">Renew Plan</Button></Link>
+              <Button size="sm" variant="outline" onClick={() => openSupport("Hi, my Nevorai plan expired. Can you help me renew?")}>
+                <MessageCircle size={13} className="mr-1.5" /> Talk to support
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Payment failure prompt */}
         {plan.status === "payment_failed" && (

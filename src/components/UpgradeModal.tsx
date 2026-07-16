@@ -18,12 +18,12 @@ interface UpgradeModalProps {
 }
 
 const REASON_COPY: Record<UpgradeReason, { title: string; desc: (planLabel: string, limit?: number) => string; icon: any }> = {
-  views: { title: "You've used all your monthly funnel views", desc: (p, l) => `Your ${p} plan includes ${l?.toLocaleString("en-IN")} funnel views/month. Upgrade to Pro for 20,000 monthly views.`, icon: Eye },
-  funnels: { title: "You've reached your funnel limit", desc: (p, l) => `Your ${p} plan allows ${l} funnels. Upgrade to Pro to create more.`, icon: Layers },
-  videos: { title: "You've reached your video upload limit", desc: (p, l) => `Your ${p} plan allows ${l} videos. Upgrade to Pro for more storage.`, icon: Video },
-  live: { title: "You've reached your live sessions limit", desc: (p, l) => `Your ${p} plan allows ${l} live sessions. Upgrade to Pro to host more.`, icon: Radio },
-  leads: { title: "You've reached the leads export limit", desc: (p, l) => `Your ${p} plan exports up to ${l} leads at a time. Upgrade to Pro for higher exports.`, icon: Download },
-  team: { title: "Team members are a Pro feature", desc: () => `Invite your team and collaborate. Available on the Pro plan.`, icon: UserPlus },
+  views: { title: "You've used all your monthly funnel views", desc: (p, l) => `Your ${p} plan includes ${l?.toLocaleString("en-IN")} funnel views/month. Upgrade your plan for more monthly views.`, icon: Eye },
+  funnels: { title: "You've reached your funnel limit", desc: (p, l) => `Your ${p} plan allows ${l} funnels. Upgrade your plan to create more.`, icon: Layers },
+  videos: { title: "You've reached your video upload limit", desc: (p, l) => `Your ${p} plan allows ${l} videos. Upgrade your plan for more storage.`, icon: Video },
+  live: { title: "You've reached your live sessions limit", desc: (p, l) => `Your ${p} plan allows ${l} live sessions. Upgrade your plan to host more.`, icon: Radio },
+  leads: { title: "You've reached the leads export limit", desc: (p, l) => `Your ${p} plan exports up to ${l} leads at a time. Upgrade your plan for higher exports.`, icon: Download },
+  team: { title: "Team members are a paid feature", desc: () => `Invite your team and collaborate. Available on higher plans.`, icon: UserPlus },
 };
 
 export const UpgradeModal = ({ open, onClose, type, resource, currentCount, limit, tier, reason }: UpgradeModalProps) => {
@@ -36,7 +36,7 @@ export const UpgradeModal = ({ open, onClose, type, resource, currentCount, limi
   const title = copy ? copy.title : type === "upgrade" ? "This feature requires a subscription" : "You've reached your limit";
   const description = copy ? copy.desc(planLabel, limit) : type === "upgrade"
     ? "Free accounts can only view shared content. Subscribe to start creating."
-    : `Your ${planLabel} plan allows up to ${limit} ${resource || "items"}. Upgrade to Pro to create more.`;
+    : `Your ${planLabel} plan allows up to ${limit} ${resource || "items"}. Upgrade your plan to create more.`;
 
   return (
     <Dialog open={open} onOpenChange={onClose}>

@@ -83,7 +83,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: "max_landing_pages", label: "Max Landing Pages", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_landing_pages" },
   { key: "max_live_sessions", label: "Max Live Sessions", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_live_sessions" },
   { key: "max_leads", label: "Max Leads Stored", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_leads" },
-  { key: "max_team_members", label: "Max Team Members", type: "number", category: "Limits", hint: "-1 = unlimited", dbField: "max_team_members" },
+  { key: "max_team_members", label: "Max Downline Seats", type: "number", category: "Limits", hint: "Sub-members under a Leader. -1 = unlimited", dbField: "max_team_members" },
   { key: "max_custom_form_fields", label: "Custom Form Fields per Funnel", type: "number", category: "Limits", hint: "-1 = unlimited · 0 = blocked", dbField: "max_custom_form_fields" },
 
   // ─── FEATURES ─────────────────────────────────────────────
@@ -108,7 +108,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: "feature_prospect_analytics", label: "Per-Prospect Watch Analytics", type: "boolean", category: "Features", dbField: "feature_prospect_analytics" },
   { key: "feature_insights", label: "Insights Dashboard", type: "boolean", category: "Features", dbField: "feature_insights" },
   { key: "multilevel_funnel_enabled", label: "Multi-Step Funnels", type: "boolean", category: "Features", dbField: "multilevel_funnel_enabled" },
-  { key: "feature_team_analytics", label: "Team Dashboard", type: "boolean", category: "Features", dbField: "feature_team_analytics" },
+  { key: "feature_team_analytics", label: "Leader Dashboard", type: "boolean", category: "Features", hint: "Leader-only view of downline performance", dbField: "feature_team_analytics" },
   { key: "feature_custom_branding", label: "Custom Branding", type: "boolean", category: "Features", dbField: "feature_custom_branding" },
   { key: "feature_show_branding", label: "Show Nevorai Watermark", type: "boolean", category: "Features", hint: "If on, public funnel/landing/video pages show 'Made with Nevorai' badge", dbField: "feature_show_branding" },
   { key: "feature_priority_support", label: "Priority Support", type: "boolean", category: "Features", dbField: "feature_priority_support" },
@@ -124,7 +124,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
  * driven by `subscription_plans.display_order`. Kept only as a fallback ordering for
  * code that has no access to React Query state.
  */
-export const PLAN_KEYS_ORDER: PlanKey[] = ["free", "basic", "growth", "pro"];
+export const PLAN_KEYS_ORDER: PlanKey[] = ["free", "starter", "basic", "growth", "pro", "leader"] as any;
 
 /**
  * @deprecated Use `display_name` from `subscription_plans` (via `useAllPlans()` /

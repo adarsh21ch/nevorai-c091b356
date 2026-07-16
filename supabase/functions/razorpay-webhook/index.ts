@@ -202,7 +202,13 @@ async function provisionSubscriptionFromOrder(
   }
   const order = await orderRes.json();
 
-  if (order.notes?.user_id && order.notes.user_id !== userId) {
+  // Require user_id in order notes and match the webhook's derived userId.
+  // Absent user_id previously fell through and provisioned to the wrong user.
+  if (!order.notes?.user_id) {
+    console.error("[webhook fallback] order missing notes.user_id — refusing to provision");
+    return { provisioned: false, reason: "missing_user_id_note" };
+  }
+  if (order.notes.user_id !== userId) {
     console.error("[webhook fallback] order user mismatch");
     return { provisioned: false, reason: "user_mismatch" };
   }
@@ -210,12 +216,40 @@ async function provisionSubscriptionFromOrder(
   const planKey: string | null = order.notes?.plan_key || null;
   if (!planKey) return { provisioned: false, reason: "no_plan_key" };
 
-  const { data: planData } = await serviceClient
-    .from("admin_subscription_plans")
+  // Resolve plan definition. Prefer canonical `subscription_plans` (which
+  // contains new tiers like starter/growth/leader). Fall back to legacy
+  // `admin_subscription_plans` only for older plan_keys.
+  const planKeyBase = String(planKey).split("_")[0].toLowerCase();
+  const intervalGuess = planKey.toLowerCase().includes("year") ? "yearly" : "monthly";
+
+  let planData: any = null;
+  const { data: subPlanRow } = await serviceClient
+    .from("subscription_plans")
     .select("*")
-    .eq("plan_key", planKey)
-    .eq("is_active", true)
+    .eq("plan_name", planKeyBase)
     .maybeSingle();
+
+  if (subPlanRow && subPlanRow.is_enabled !== false) {
+    planData = {
+      plan_key: planKey,
+      tier: planKeyBase,
+      billing_type: intervalGuess,
+      duration_days: intervalGuess === "yearly"
+        ? Number((subPlanRow as any).yearly_validity_days || 365)
+        : 30,
+      monthly_price: Number((subPlanRow as any).monthly_price ?? (subPlanRow as any).price_monthly ?? 0),
+      yearly_price: Number((subPlanRow as any).yearly_price ?? (subPlanRow as any).price_yearly ?? 0),
+    };
+  } else {
+    const { data: legacy } = await serviceClient
+      .from("admin_subscription_plans")
+      .select("*")
+      .eq("plan_key", planKey)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (legacy) planData = legacy;
+  }
+
   if (!planData) return { provisioned: false, reason: "plan_not_found" };
 
   const isPlanUpgrade = order.notes?.kind === "plan_upgrade_prorated";
@@ -232,6 +266,24 @@ async function provisionSubscriptionFromOrder(
       .maybeSingle();
     tierRow = tr;
   }
+
+  // Verify paid amount matches the expected plan/tier price. Prorated upgrades
+  // carry their own precomputed amount in notes.expected_amount_paise; if that
+  // is absent we fall back to the tier's monthly/yearly price. Any mismatch
+  // beyond ₹1 (rounding tolerance) refuses to provision.
+  const expectedPaise = (() => {
+    const fromNotes = Number(order.notes?.expected_amount_paise || 0);
+    if (fromNotes > 0) return fromNotes;
+    const price = interval === "yearly"
+      ? Number(tierRow?.yearly_price ?? planData?.yearly_price ?? 0)
+      : Number(tierRow?.monthly_price ?? planData?.monthly_price ?? 0);
+    return Math.round(price * 100);
+  })();
+  if (expectedPaise > 0 && Math.abs(amountPaise - expectedPaise) > 100) {
+    console.error("[webhook fallback] amount mismatch", { amountPaise, expectedPaise, planKey });
+    return { provisioned: false, reason: "amount_mismatch" };
+  }
+
 
   const now = new Date();
   let expiresAt: string;
@@ -253,7 +305,7 @@ async function provisionSubscriptionFromOrder(
   const { error: insertErr } = await serviceClient.from("user_subscriptions").insert({
     user_id: userId,
     plan_key: planKey,
-    tier: planData?.tier || "pro",
+    tier: planData?.tier || planKeyBase || "starter",
     status: "active",
     billing_type: planData?.billing_type || "one_time",
     amount_paid: Math.round(amountPaise / 100),

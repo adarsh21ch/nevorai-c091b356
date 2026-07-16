@@ -162,10 +162,10 @@ export default function MyTeamPage() {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold flex items-center gap-2">
-              <Users className="h-6 w-6 text-primary" /> My Team
+              <Users className="h-6 w-6 text-primary" /> My Downline
             </h1>
             <p className="text-sm text-muted-foreground">
-              Share your connect link. When team members join, all your funnels
+              Share your connect link. When downline members join, all your funnels
               get a personal tracking link for each of them.
             </p>
           </div>
@@ -180,7 +180,7 @@ export default function MyTeamPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <LinkIcon className="h-4 w-4 text-primary" /> Invite someone to your team
+              <LinkIcon className="h-4 w-4 text-primary" /> Invite someone to your downline
             </CardTitle>
             <CardDescription>
               Same link forever — anyone who opens it and signs in joins your team.
@@ -199,7 +199,7 @@ export default function MyTeamPage() {
                   variant="outline"
                   onClick={() =>
                     shareWa(
-                      `Join my team on ${BRAND.name} — you'll instantly get your personal funnel links to send to prospects.\n\n${connectLink}`,
+                      `Join my downline on ${BRAND.name} — you'll instantly get your personal funnel links to send to prospects.\n\n${connectLink}`,
                     )
                   }
                 >
@@ -233,8 +233,8 @@ export default function MyTeamPage() {
 
         <Tabs defaultValue="members">
           <TabsList>
-            <TabsTrigger value="members">Team Members ({members.length})</TabsTrigger>
-            <TabsTrigger value="tracking">Team Tracking</TabsTrigger>
+            <TabsTrigger value="members">Downline Members ({members.length})</TabsTrigger>
+            <TabsTrigger value="tracking">Downline Tracking</TabsTrigger>
           </TabsList>
 
           {/* MEMBERS TAB */}
