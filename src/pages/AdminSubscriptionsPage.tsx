@@ -19,7 +19,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
 const RefundsTab = lazy(() => import("@/components/admin/RefundsTab").then((m) => ({ default: m.RefundsTab })));
 const MemberGatewayTab = lazy(() => import("@/components/admin/MemberGatewayTab").then((m) => ({ default: m.MemberGatewayTab })));
-const EnterpriseInquiriesTab = lazy(() => import("@/components/admin/EnterpriseInquiriesTab").then((m) => ({ default: m.EnterpriseInquiriesTab })));
+
 
 const adminTabFallback = <div className="glass-card p-4 text-sm text-muted-foreground">Loading…</div>;
 
