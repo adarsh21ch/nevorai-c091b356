@@ -832,13 +832,13 @@ Deno.serve(async (req) => {
 
       if (!activeSub || !activeSub.expires_at) {
         return jsonResponse({
-          error: "No active paid subscription. Please subscribe to Basic or Pro before upgrading view capacity.",
+          error: "No active paid subscription. Please subscribe to a plan before upgrading view capacity.",
         }, 400);
       }
 
       const basePlan = (activeSub.tier || activeSub.plan_key || "").split("_")[0];
-      if (basePlan !== "basic" && basePlan !== "pro") {
-        return jsonResponse({ error: "Only Basic and Pro subscriptions support tier upgrades" }, 400);
+      if (!PAID_PLANS.has(basePlan)) {
+        return jsonResponse({ error: "This subscription does not support tier upgrades" }, 400);
       }
 
       // Self-heal stale profile state: if the user has an active paid sub,
