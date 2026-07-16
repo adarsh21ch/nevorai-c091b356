@@ -767,7 +767,7 @@ Deno.serve(async (req) => {
       await serviceClient.from("user_subscriptions").insert({
         user_id: user.id,
         plan_key: pKey,
-        tier: planData?.tier || "pro",
+        tier: planData?.tier || pKeyBase || "starter",
         status: "active",
         billing_type: planData?.billing_type || "one_time",
         amount_paid: expectedAmountInr,
