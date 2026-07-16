@@ -32,7 +32,7 @@ const content: CompareContent = {
     { feature: "WhatsApp-optimised share preview", nevorai: true, other: "Generic preview" },
     { feature: "Scheduled live sessions from recorded video", nevorai: true, other: "Live only, no scheduling of recordings" },
     { feature: "Built for Indian business (₹, UPI, WhatsApp)", nevorai: true, other: false },
-    { feature: "Free hosting", nevorai: "1 GB free, ₹ Indian pricing", other: "Unlimited free" },
+    { feature: "Pricing model", nevorai: "₹249/mo Starter — Indian pricing", other: "Unlimited free (ad-supported)" },
     { feature: "Audience discovery / SEO traffic", nevorai: false, other: true },
     { feature: "Comments and community features", nevorai: false, other: true },
   ],
