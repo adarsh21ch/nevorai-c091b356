@@ -235,6 +235,10 @@ const PricingFullPage = () => {
 
     const planKey = `${planName}_${billing}`;
     const displayPrice = getPrice(config);
+    if (!displayPrice || Number(displayPrice) <= 0) {
+      toast.error("Pricing for this plan is not configured yet. Please contact support.");
+      return;
+    }
     setCheckoutCtx({
       planName,
       planKey,
@@ -242,6 +246,7 @@ const PricingFullPage = () => {
       tierId: null,  // server resolves base tier when null
     });
   }, [user, navigate, billing, planConfigs]);
+
 
   // Step 2: actually charge via Razorpay, optionally with coupon.
   const proceedPayment = useCallback(async (args: { couponCode: string | null; finalPrice: number }) => {
@@ -597,6 +602,8 @@ const PricingFullPage = () => {
             </ul>
             {isCurrent ? (
               <Button disabled className="w-full">Current Plan</Button>
+            ) : (getPrice(config) || 0) <= 0 ? (
+              <Button disabled variant="outline" className="w-full">Coming soon</Button>
             ) : (
               <>
                 <GuaranteePill />
@@ -609,6 +616,7 @@ const PricingFullPage = () => {
                 </p>
               </>
             )}
+
           </motion.div>
         ),
       };
