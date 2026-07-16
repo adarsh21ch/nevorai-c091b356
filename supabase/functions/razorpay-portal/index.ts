@@ -54,7 +54,16 @@ function jsonResponse(data: unknown, status = 200) {
   });
 }
 
-const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2 };
+// Plan hierarchy — higher rank = higher tier. Includes both legacy
+// (basic/pro) and current (starter/growth/leader) plan names so that
+// upgrade proration works for any paid → higher-paid transition.
+const PLAN_RANK: Record<string, number> = {
+  free: 0,
+  basic: 1, starter: 1,
+  pro: 2, growth: 2,
+  leader: 3,
+};
+const PAID_PLANS = new Set(["basic", "pro", "starter", "growth", "leader"]);
 
 function getBasePlanName(value: string | null | undefined) {
   return (value || "").split("_")[0]?.toLowerCase() || "";
@@ -348,7 +357,7 @@ Deno.serve(async (req) => {
         activePaidSub &&
         currentBasePlan &&
         (PLAN_RANK[baseTier] ?? -1) > (PLAN_RANK[currentBasePlan] ?? -1) &&
-        (currentBasePlan === "basic" || currentBasePlan === "pro")
+        PAID_PLANS.has(currentBasePlan)
       ) {
         // Resolve current plan's base monthly price
         const { data: currentBaseRow } = await serviceClient
@@ -637,8 +646,49 @@ Deno.serve(async (req) => {
       const pKey = order.notes?.plan_key || verifyPlanKey;
       if (!pKey) return jsonResponse({ error: "Plan key missing on order" }, 400);
 
-      const { data: planData } = await serviceClient.from("admin_subscription_plans")
-        .select("*").eq("plan_key", pKey).eq("is_active", true).maybeSingle();
+      // Resolve plan definition. New tiers (starter/growth/leader) live in
+      // `subscription_plans`; legacy plans (basic/pro) also have a matching
+      // row there. We fall back to `admin_subscription_plans` only if the
+      // canonical row is missing so old orders keep verifying.
+      const pKeyBase = String(pKey).split("_")[0].toLowerCase();
+      const pKeyInterval = getBillingInterval(pKey, null);
+
+      let planData: any = null;
+      const { data: subPlanRow } = await serviceClient
+        .from("subscription_plans")
+        .select("*")
+        .eq("plan_name", pKeyBase)
+        .maybeSingle();
+
+      if (subPlanRow && subPlanRow.is_enabled !== false) {
+        // Best-effort price from subscription_plans; falls back to plan_tiers base row.
+        let priceFromPlan = pKeyInterval === "yearly"
+          ? Number((subPlanRow as any).yearly_price ?? (subPlanRow as any).price_yearly ?? 0)
+          : Number((subPlanRow as any).monthly_price ?? (subPlanRow as any).price_monthly ?? 0);
+        if (!priceFromPlan) {
+          const { data: baseTierRow } = await serviceClient
+            .from("plan_tiers")
+            .select("monthly_price, yearly_price")
+            .eq("plan_name", pKeyBase)
+            .eq("is_base", true)
+            .eq("is_active", true)
+            .maybeSingle();
+          if (baseTierRow) priceFromPlan = pickTierPrice(baseTierRow, pKeyInterval);
+        }
+        planData = {
+          plan_key: pKey,
+          tier: pKeyBase,
+          billing_type: pKeyInterval,
+          duration_days: pKeyInterval === "yearly"
+            ? Number((subPlanRow as any).yearly_validity_days || 365)
+            : 30,
+          price_inr: priceFromPlan,
+        };
+      } else {
+        const { data: legacy } = await serviceClient.from("admin_subscription_plans")
+          .select("*").eq("plan_key", pKey).eq("is_active", true).maybeSingle();
+        if (legacy) planData = legacy;
+      }
 
       if (!planData) return jsonResponse({ error: "Plan not found or inactive" }, 400);
 
@@ -717,7 +767,7 @@ Deno.serve(async (req) => {
       await serviceClient.from("user_subscriptions").insert({
         user_id: user.id,
         plan_key: pKey,
-        tier: planData?.tier || "pro",
+        tier: planData?.tier || pKeyBase || "starter",
         status: "active",
         billing_type: planData?.billing_type || "one_time",
         amount_paid: expectedAmountInr,
@@ -782,13 +832,13 @@ Deno.serve(async (req) => {
 
       if (!activeSub || !activeSub.expires_at) {
         return jsonResponse({
-          error: "No active paid subscription. Please subscribe to Basic or Pro before upgrading view capacity.",
+          error: "No active paid subscription. Please subscribe to a plan before upgrading view capacity.",
         }, 400);
       }
 
       const basePlan = (activeSub.tier || activeSub.plan_key || "").split("_")[0];
-      if (basePlan !== "basic" && basePlan !== "pro") {
-        return jsonResponse({ error: "Only Basic and Pro subscriptions support tier upgrades" }, 400);
+      if (!PAID_PLANS.has(basePlan)) {
+        return jsonResponse({ error: "This subscription does not support tier upgrades" }, 400);
       }
 
       // Self-heal stale profile state: if the user has an active paid sub,

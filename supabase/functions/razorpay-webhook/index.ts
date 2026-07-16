@@ -216,12 +216,40 @@ async function provisionSubscriptionFromOrder(
   const planKey: string | null = order.notes?.plan_key || null;
   if (!planKey) return { provisioned: false, reason: "no_plan_key" };
 
-  const { data: planData } = await serviceClient
-    .from("admin_subscription_plans")
+  // Resolve plan definition. Prefer canonical `subscription_plans` (which
+  // contains new tiers like starter/growth/leader). Fall back to legacy
+  // `admin_subscription_plans` only for older plan_keys.
+  const planKeyBase = String(planKey).split("_")[0].toLowerCase();
+  const intervalGuess = planKey.toLowerCase().includes("year") ? "yearly" : "monthly";
+
+  let planData: any = null;
+  const { data: subPlanRow } = await serviceClient
+    .from("subscription_plans")
     .select("*")
-    .eq("plan_key", planKey)
-    .eq("is_active", true)
+    .eq("plan_name", planKeyBase)
     .maybeSingle();
+
+  if (subPlanRow && subPlanRow.is_enabled !== false) {
+    planData = {
+      plan_key: planKey,
+      tier: planKeyBase,
+      billing_type: intervalGuess,
+      duration_days: intervalGuess === "yearly"
+        ? Number((subPlanRow as any).yearly_validity_days || 365)
+        : 30,
+      monthly_price: Number((subPlanRow as any).monthly_price ?? (subPlanRow as any).price_monthly ?? 0),
+      yearly_price: Number((subPlanRow as any).yearly_price ?? (subPlanRow as any).price_yearly ?? 0),
+    };
+  } else {
+    const { data: legacy } = await serviceClient
+      .from("admin_subscription_plans")
+      .select("*")
+      .eq("plan_key", planKey)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (legacy) planData = legacy;
+  }
+
   if (!planData) return { provisioned: false, reason: "plan_not_found" };
 
   const isPlanUpgrade = order.notes?.kind === "plan_upgrade_prorated";
@@ -277,7 +305,7 @@ async function provisionSubscriptionFromOrder(
   const { error: insertErr } = await serviceClient.from("user_subscriptions").insert({
     user_id: userId,
     plan_key: planKey,
-    tier: planData?.tier || "pro",
+    tier: planData?.tier || planKeyBase || "starter",
     status: "active",
     billing_type: planData?.billing_type || "one_time",
     amount_paid: Math.round(amountPaise / 100),
