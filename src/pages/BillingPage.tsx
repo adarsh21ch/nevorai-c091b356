@@ -29,7 +29,7 @@ const statusConfig: Record<string, { label: string; icon: any; color: string; bg
   replaced:      { label: "Replaced",       icon: RefreshCw,    color: "text-muted-foreground", bg: "bg-muted/30 border-border" },
 };
 
-const PLAN_LABEL: Record<string, string> = { free: "Free", basic: "Basic", pro: "Individual", trial: "Trial" };
+import { planName as planDisplayName } from "@/config/planDisplay";
 
 interface PlanRow {
   plan_name: string;
