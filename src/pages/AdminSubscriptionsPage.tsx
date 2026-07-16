@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import type { PlanConfig } from "@/hooks/usePlanLimits";
-import { EnterpriseCardSettings } from "@/components/admin/EnterpriseCardSettings";
+
 import { TrialSettingsStrip } from "@/components/admin/TrialSettingsStrip";
 import { AdminOverrideAuditTable } from "@/components/admin/AdminOverrideAuditTable";
 import { adminWrite } from "@/lib/adminWrite";
@@ -19,7 +19,7 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
 const RefundsTab = lazy(() => import("@/components/admin/RefundsTab").then((m) => ({ default: m.RefundsTab })));
 const MemberGatewayTab = lazy(() => import("@/components/admin/MemberGatewayTab").then((m) => ({ default: m.MemberGatewayTab })));
-const EnterpriseInquiriesTab = lazy(() => import("@/components/admin/EnterpriseInquiriesTab").then((m) => ({ default: m.EnterpriseInquiriesTab })));
+
 
 const adminTabFallback = <div className="glass-card p-4 text-sm text-muted-foreground">Loading…</div>;
 
@@ -377,7 +377,7 @@ const AdminSubscriptionsPage = () => {
 
   const basicConfig = planConfigs.find(c => c.plan_name === "basic") as any;
   const proConfig = planConfigs.find(c => c.plan_name === "pro") as any;
-  const enterpriseConfig = planConfigs.find(c => c.plan_name === "enterprise") as any;
+
 
   const [editingSettings, setEditingSettings] = useState<Record<string, string>>({});
 
@@ -395,8 +395,8 @@ const AdminSubscriptionsPage = () => {
     free: { label: "Free", badge: "bg-muted text-muted-foreground", desc: "Forever free · entry tier" },
     basic: { label: "Basic", badge: "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400", desc: "For Individuals" },
     pro: { label: "Pro", badge: "bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400", desc: "For Team Leaders" },
-    enterprise: { label: "Enterprise", badge: "bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400", desc: "For Large Networks" },
   };
+
 
   const freeConfig = planConfigs.find(c => c.plan_name === "free") as any;
   const [planFilter, setPlanFilter] = useState<"all" | "free" | "basic" | "pro">("all");
@@ -499,14 +499,14 @@ const AdminSubscriptionsPage = () => {
         </div>
 
         <Tabs defaultValue="subscriptions">
-          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-6 h-9">
+          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-5 h-9">
             <TabsTrigger value="subscriptions" className="text-[10px] sm:text-sm">Subs</TabsTrigger>
             <TabsTrigger value="refunds" className="text-[10px] sm:text-sm">Refunds</TabsTrigger>
             <TabsTrigger value="gateway" className="text-[10px] sm:text-sm">Gateway</TabsTrigger>
-            <TabsTrigger value="enterprise" className="text-[10px] sm:text-sm">Enterprise</TabsTrigger>
             <TabsTrigger value="audit" className="text-[10px] sm:text-sm">Audit</TabsTrigger>
             <TabsTrigger value="settings" className="text-[10px] sm:text-sm">Settings</TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="subscriptions" className="space-y-3 pt-1">
             <div className="flex flex-wrap items-center gap-2">
@@ -684,22 +684,7 @@ const AdminSubscriptionsPage = () => {
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="enterprise" className="space-y-3 pt-1">
-            <Tabs defaultValue="inquiries" className="space-y-3">
-              <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
-                <TabsTrigger value="inquiries" className="text-xs sm:text-sm">Inquiries</TabsTrigger>
-                <TabsTrigger value="card" className="text-xs sm:text-sm">Card Settings</TabsTrigger>
-              </TabsList>
-              <TabsContent value="inquiries" className="space-y-3 pt-1">
-                <Suspense fallback={adminTabFallback}>
-                  <EnterpriseInquiriesTab />
-                </Suspense>
-              </TabsContent>
-              <TabsContent value="card" className="space-y-3 pt-1">
-                <EnterpriseCardSettings />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
+
 
           <TabsContent value="audit" className="space-y-3 pt-1">
             <AdminOverrideAuditTable />

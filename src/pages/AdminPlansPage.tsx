@@ -520,9 +520,6 @@ const AdminPlansPage = () => {
           <p className="text-sm text-muted-foreground italic">No plans match this filter.</p>
         )}
 
-        <p className="text-[11px] text-muted-foreground italic mt-2">
-          Enterprise plan is managed separately in Subscriptions → Enterprise.
-        </p>
 
         <div className="pt-4 border-t border-border">
           <Suspense fallback={fallback}>

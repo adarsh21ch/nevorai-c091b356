@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Check, X, Crown, Info, Loader2, Sparkles, ArrowUp } from "lucide-react";
-import { Link, useNavigate } from "@/lib/router-compat";
+import { Check, X, Info, Loader2, Sparkles, ArrowUp } from "lucide-react";
+import { useNavigate } from "@/lib/router-compat";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -284,7 +284,7 @@ export const PricingSection = () => {
   // explicitly enabled in admin — with Free disabled we hide the card so
   // the landing page matches the app (no free tier advertised).
   const enabledPlans = [...planConfigs]
-    .filter((c: any) => c && c.is_enabled !== false && c.plan_name !== "free")
+    .filter((c: any) => c && c.is_enabled !== false && c.plan_name !== "free" && c.plan_name !== "enterprise")
     .sort((a: any, b: any) => (a.display_order ?? 100) - (b.display_order ?? 100));
 
   const cards: {
@@ -356,48 +356,7 @@ export const PricingSection = () => {
     });
   }
 
-  // Enterprise card content (DB-driven)
-  const { data: enterpriseConfig } = useQuery({
-    queryKey: ["enterprise-plan-config-public"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("enterprise_plan_config" as any)
-        .select("*")
-        .eq("id", 1)
-        .maybeSingle();
-      return data as any;
-    },
-    staleTime: 120_000, // 2-minute cache per spec
-  });
-
-  // Enterprise WhatsApp contact settings (admin-controlled)
-  const { data: enterpriseWa } = useQuery({
-    queryKey: ["enterprise-whatsapp-settings-public"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("app_settings" as any)
-        .select("key, value")
-        .in("key", ["enterprise_whatsapp_number", "enterprise_whatsapp_message"]);
-      const map: Record<string, string> = {};
-      (data || []).forEach((s: any) => { map[s.key] = s.value || ""; });
-      return {
-        number: (map.enterprise_whatsapp_number || "").replace(/\D/g, ""),
-        message: map.enterprise_whatsapp_message
-          || "Hi! I'm interested in the Enterprise plan for Nevorai. I want to build a dedicated app for my network team. Can you share more details?",
-      };
-    },
-    staleTime: 120_000,
-  });
-
-  const enterpriseVisible = enterpriseConfig?.is_visible !== false;
-  const enterpriseFeaturesRaw: { text: string; enabled: boolean }[] = Array.isArray(
-    enterpriseConfig?.features,
-  )
-    ? enterpriseConfig.features
-    : [];
-  const enterpriseFeatures = enterpriseFeaturesRaw.filter((f) => f?.enabled && f?.text);
-
-  const totalCards = cards.length + (enterpriseVisible ? 1 : 0);
+  const totalCards = cards.length;
   const gridCols =
     totalCards === 1
       ? "max-w-md mx-auto"
@@ -408,6 +367,7 @@ export const PricingSection = () => {
       : totalCards === 4
       ? "md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto"
       : "md:grid-cols-2 lg:grid-cols-5 max-w-7xl mx-auto";
+
 
   return (
     <section id="pricing" className="py-24 relative">
@@ -531,87 +491,8 @@ export const PricingSection = () => {
             ),
           }));
 
-          const enterpriseNode: ReactNode = enterpriseVisible ? (
-            <motion.div
-              className="relative flex flex-col h-full p-6 rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/[0.06] via-background to-background shadow-[0_0_40px_-15px_rgba(245,158,11,0.4)]"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: cards.length * 0.1 }}
-            >
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-yellow-500 text-xs font-semibold text-background flex items-center gap-1 whitespace-nowrap shadow-md z-10">
-                <Crown size={12} /> {enterpriseConfig?.badge_text || "For Large Networks"}
-              </div>
-              <div className="mb-5">
-                <h3 className="text-lg font-heading font-semibold mb-1">Enterprise</h3>
-                <p className="text-[11px] text-amber-500 font-medium mb-2">
-                  {enterpriseConfig?.subheading || "100+ active team members"}
-                </p>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-heading font-bold">
-                    ₹{(enterpriseConfig?.monthly_price ?? 5999).toLocaleString("en-IN")}
-                  </span>
-                  <span className="text-sm text-muted-foreground">/month</span>
-                </div>
-                {enterpriseConfig?.price_note ? (
-                  <p className="text-xs text-amber-500 mt-1">{enterpriseConfig.price_note}</p>
-                ) : (
-                  <p className="text-xs text-muted-foreground mt-1">&nbsp;</p>
-                )}
-              </div>
-              {/* Same height cap on desktop so all four cards stay aligned. */}
-              <ul className="space-y-3 mb-6 max-h-[260px] md:max-h-[340px] overflow-y-auto pr-1 md:flex-1">
-                {(enterpriseFeatures.length > 0
-                  ? enterpriseFeatures
-                  : [{ text: "Loading…", enabled: true }]
-                ).map((f, idx) => (
-                  <li key={`${f.text}-${idx}`} className="flex items-center gap-2 text-sm">
-                    <Check size={16} className="text-amber-500 shrink-0" />
-                    <span className="text-foreground">{f.text}</span>
-                  </li>
-                ))}
-              </ul>
-              {(() => {
-                const num = enterpriseWa?.number || "";
-                const msg = enterpriseWa?.message || "";
-                const waLink = num
-                  ? `https://wa.me/${num}?text=${encodeURIComponent(msg)}`
-                  : null;
-                const ctaLabel = enterpriseConfig?.cta_text || "Chat on WhatsApp";
-                if (!waLink) {
-                  return (
-                    <Link to="/enterprise">
-                      <Button
-                        variant="outline"
-                        className="w-full border-amber-500/50 hover:bg-amber-500/10 hover:text-amber-500"
-                      >
-                        {ctaLabel}
-                      </Button>
-                    </Link>
-                  );
-                }
-                return (
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-xl font-semibold text-white text-sm transition-all hover:opacity-90 bg-gradient-to-br from-[#25D366] to-[#128C7E] min-h-11"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z" />
-                      <path fillRule="evenodd" d="M12 0C5.373 0 0 5.373 0 12c0 2.126.554 4.122 1.522 5.854L0 24l6.336-1.49A11.93 11.93 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.838 9.838 0 01-5.011-1.369l-.36-.214-3.732.878.944-3.641-.235-.374A9.834 9.834 0 012.118 12C2.118 6.53 6.53 2.118 12 2.118 17.47 2.118 21.882 6.53 21.882 12c0 5.47-4.412 9.882-9.882 9.882z" />
-                    </svg>
-                    {ctaLabel.toLowerCase().includes("whatsapp") ? ctaLabel : "Chat on WhatsApp"} →
-                  </a>
-                );
-              })()}
-            </motion.div>
-          ) : null;
+          const allNodes: { key: string; node: ReactNode }[] = [...planNodes];
 
-          const allNodes: { key: string; node: ReactNode }[] = [
-            ...planNodes,
-            ...(enterpriseNode ? [{ key: "enterprise", node: enterpriseNode }] : []),
-          ];
 
           return (
             <>

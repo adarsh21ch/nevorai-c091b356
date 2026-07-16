@@ -214,7 +214,7 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   if (req.method === "GET" || url.searchParams.get("ping") === "1") {
     return jsonResponse({
-        build: "v=2026-05-11h-upgradefix2",
+        build: "v=2026-07-16-cleanup",
       key_id_prefix: RAZORPAY_KEY_ID ? RAZORPAY_KEY_ID.slice(0, 8) : null,
       key_id_len: RAZORPAY_KEY_ID.length,
       key_secret_len: RAZORPAY_KEY_SECRET.length,
@@ -261,7 +261,14 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       if (!planData || planData.is_enabled === false || planData.is_purchasable === false) {
-        return jsonResponse({ error: "Invalid or inactive plan" }, 400);
+        return jsonResponse({
+          error: `Invalid or inactive plan: ${baseTier}`,
+          debug: {
+            found: !!planData,
+            is_enabled: planData?.is_enabled,
+            is_purchasable: planData?.is_purchasable,
+          },
+        }, 400);
       }
 
       const targetBillingInterval = getBillingInterval(plan_key, null);

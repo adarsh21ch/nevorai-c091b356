@@ -42,7 +42,6 @@ import { Route as HelpRouteImport } from './routes/help'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
-import { Route as EnterpriseRouteImport } from './routes/enterprise'
 import { Route as DownlineRouteImport } from './routes/downline'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -279,11 +278,6 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/faq.lazy').then((d) => d.Route))
-const EnterpriseRoute = EnterpriseRouteImport.update({
-  id: '/enterprise',
-  path: '/enterprise',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/enterprise.lazy').then((d) => d.Route))
 const DownlineRoute = DownlineRouteImport.update({
   id: '/downline',
   path: '/downline',
@@ -668,7 +662,6 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/downline': typeof DownlineRoute
-  '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -770,7 +763,6 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/downline': typeof DownlineRoute
-  '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -871,7 +863,6 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
   '/downline': typeof DownlineRoute
-  '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -975,7 +966,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/downline'
-    | '/enterprise'
     | '/faq'
     | '/features'
     | '/forgot-password'
@@ -1077,7 +1067,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/downline'
-    | '/enterprise'
     | '/faq'
     | '/features'
     | '/forgot-password'
@@ -1177,7 +1166,6 @@ export interface FileRouteTypes {
     | '/contact'
     | '/dashboard'
     | '/downline'
-    | '/enterprise'
     | '/faq'
     | '/features'
     | '/forgot-password'
@@ -1280,7 +1268,6 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
   DownlineRoute: typeof DownlineRoute
-  EnterpriseRoute: typeof EnterpriseRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -1590,13 +1577,6 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof FaqRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/enterprise': {
-      id: '/enterprise'
-      path: '/enterprise'
-      fullPath: '/enterprise'
-      preLoaderRoute: typeof EnterpriseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/downline': {
@@ -2174,7 +2154,6 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
   DownlineRoute: DownlineRoute,
-  EnterpriseRoute: EnterpriseRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
@@ -2255,13 +2234,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

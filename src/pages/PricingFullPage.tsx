@@ -558,7 +558,7 @@ const PricingFullPage = () => {
 
   // Generic card builder for any plan not explicitly designed above (free/basic/pro).
   // Renders new plans created via Admin → "+ Create Plan" without code changes.
-  const KNOWN = new Set(["free", "basic", "pro"]);
+  const KNOWN = new Set(["free", "basic", "pro", "enterprise"]);
   const extraCards: { key: string; node: ReactNode }[] = planConfigs
     .filter((c: any) => c?.is_enabled !== false && !KNOWN.has(c.plan_name))
     .sort((a: any, b: any) => (a.display_order ?? 100) - (b.display_order ?? 100))
