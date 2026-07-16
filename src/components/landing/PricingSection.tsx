@@ -280,10 +280,11 @@ export const PricingSection = () => {
 
 
   // Dynamically build a card for every enabled plan in subscription_plans,
-  // ordered by display_order. No special-casing per plan_name — the Free plan
-  // is identified by zero pricing, not by a hardcoded key.
+  // ordered by display_order. Free plan is only shown when it's still
+  // explicitly enabled in admin — with Free disabled we hide the card so
+  // the landing page matches the app (no free tier advertised).
   const enabledPlans = [...planConfigs]
-    .filter((c: any) => c && c.is_enabled !== false)
+    .filter((c: any) => c && c.is_enabled !== false && c.plan_name !== "free")
     .sort((a: any, b: any) => (a.display_order ?? 100) - (b.display_order ?? 100));
 
   const cards: {
