@@ -80,7 +80,7 @@ export const HeroSection = () => {
           >
             <Link to="/auth?tab=signup" className="w-full sm:w-auto">
               <button className="btn-saffron-premium w-full sm:w-auto">
-                Start Free
+                Get Started
               </button>
             </Link>
             <a
