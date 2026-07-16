@@ -356,48 +356,7 @@ export const PricingSection = () => {
     });
   }
 
-  // Enterprise card content (DB-driven)
-  const { data: enterpriseConfig } = useQuery({
-    queryKey: ["enterprise-plan-config-public"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("enterprise_plan_config" as any)
-        .select("*")
-        .eq("id", 1)
-        .maybeSingle();
-      return data as any;
-    },
-    staleTime: 120_000, // 2-minute cache per spec
-  });
-
-  // Enterprise WhatsApp contact settings (admin-controlled)
-  const { data: enterpriseWa } = useQuery({
-    queryKey: ["enterprise-whatsapp-settings-public"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("app_settings" as any)
-        .select("key, value")
-        .in("key", ["enterprise_whatsapp_number", "enterprise_whatsapp_message"]);
-      const map: Record<string, string> = {};
-      (data || []).forEach((s: any) => { map[s.key] = s.value || ""; });
-      return {
-        number: (map.enterprise_whatsapp_number || "").replace(/\D/g, ""),
-        message: map.enterprise_whatsapp_message
-          || "Hi! I'm interested in the Enterprise plan for Nevorai. I want to build a dedicated app for my network team. Can you share more details?",
-      };
-    },
-    staleTime: 120_000,
-  });
-
-  const enterpriseVisible = enterpriseConfig?.is_visible !== false;
-  const enterpriseFeaturesRaw: { text: string; enabled: boolean }[] = Array.isArray(
-    enterpriseConfig?.features,
-  )
-    ? enterpriseConfig.features
-    : [];
-  const enterpriseFeatures = enterpriseFeaturesRaw.filter((f) => f?.enabled && f?.text);
-
-  const totalCards = cards.length + (enterpriseVisible ? 1 : 0);
+  const totalCards = cards.length;
   const gridCols =
     totalCards === 1
       ? "max-w-md mx-auto"
@@ -408,6 +367,7 @@ export const PricingSection = () => {
       : totalCards === 4
       ? "md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto"
       : "md:grid-cols-2 lg:grid-cols-5 max-w-7xl mx-auto";
+
 
   return (
     <section id="pricing" className="py-24 relative">
