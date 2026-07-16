@@ -334,7 +334,8 @@ const PricingFullPage = () => {
     const planParam = searchParams.get("plan");
     if (!planParam || !user || planConfigs.length === 0) return;
     const target = planParam.toLowerCase();
-    if (target !== "basic" && target !== "growth" && target !== "pro") return;
+    // Auto-trigger for any admin-managed paid plan (starter, growth, leader,
+    // basic, pro, etc.). The plan just has to exist and be enabled.
     const config = planConfigs.find((c: any) => c.plan_name === target);
     if (!config || config.is_enabled === false) return;
     autoTriggeredRef.current = true;
@@ -624,15 +625,19 @@ const PricingFullPage = () => {
     ...(proCard ? [{ key: "pro", node: proCard }] : []),
   ];
 
-  const enabledPaidPlans = [basicEnabled, proEnabled].filter(Boolean).length + extraCards.length;
+  // Grid sizing follows the actual card count so 3 cards never leave a
+  // gap on the right on lg. Free card is included when shown.
+  const totalCards = cards.length;
   const desktopGridCols =
-    enabledPaidPlans === 0
+    totalCards <= 1
       ? "md:grid-cols-1 max-w-md mx-auto"
-      : enabledPaidPlans === 1
+      : totalCards === 2
       ? "md:grid-cols-2 max-w-3xl mx-auto"
-      : enabledPaidPlans === 2
+      : totalCards === 3
       ? "md:grid-cols-3 max-w-5xl mx-auto"
-      : "md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto";
+      : totalCards === 4
+      ? "md:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto"
+      : "md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 max-w-7xl mx-auto";
 
   const pageBody = (
     <>
