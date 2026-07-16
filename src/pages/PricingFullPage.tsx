@@ -334,7 +334,8 @@ const PricingFullPage = () => {
     const planParam = searchParams.get("plan");
     if (!planParam || !user || planConfigs.length === 0) return;
     const target = planParam.toLowerCase();
-    if (target !== "basic" && target !== "growth" && target !== "pro") return;
+    // Auto-trigger for any admin-managed paid plan (starter, growth, leader,
+    // basic, pro, etc.). The plan just has to exist and be enabled.
     const config = planConfigs.find((c: any) => c.plan_name === target);
     if (!config || config.is_enabled === false) return;
     autoTriggeredRef.current = true;
