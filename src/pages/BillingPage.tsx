@@ -112,14 +112,37 @@ const BillingPage = () => {
     queryFn: async () => {
       // Load every enabled non-free plan dynamically. When admin renames or
       // adds plans (starter/growth/leader), they show up here without code
-      // changes.
-      const { data } = await (supabase as any)
+      // changes. We also join the base plan_tiers row so the card price
+      // still resolves when `subscription_plans.price_monthly` is null
+      // (legacy rows where pricing lived only in plan_tiers).
+      const { data: plans } = await (supabase as any)
         .from("subscription_plans")
         .select("*")
         .neq("plan_name", "free")
         .eq("is_enabled", true)
         .order("display_order", { ascending: true });
-      return (data ?? []) as PlanRowExt[];
+      const rows = (plans ?? []) as PlanRowExt[];
+      if (rows.length === 0) return rows;
+      const names = rows.map((r) => r.plan_name);
+      const { data: tiers } = await (supabase.from("plan_tiers" as any) as any)
+        .select("plan_name, monthly_price, yearly_price, is_base, display_order")
+        .in("plan_name", names);
+      const priceByPlan = new Map<string, { monthly: number | null; yearly: number | null }>();
+      for (const t of (tiers ?? []) as any[]) {
+        const cur = priceByPlan.get(t.plan_name);
+        // Prefer explicit is_base row; else lowest display_order.
+        if (!cur || t.is_base) {
+          priceByPlan.set(t.plan_name, { monthly: t.monthly_price, yearly: t.yearly_price });
+        }
+      }
+      return rows.map((r) => {
+        if (r.price_monthly && r.price_monthly > 0) return r;
+        const fallback = priceByPlan.get(r.plan_name);
+        return {
+          ...r,
+          price_monthly: fallback?.monthly ?? r.price_monthly ?? null,
+        };
+      });
     },
     staleTime: 5 * 60 * 1000,
   });

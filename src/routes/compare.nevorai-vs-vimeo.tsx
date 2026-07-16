@@ -31,7 +31,7 @@ const content: CompareContent = {
     { feature: "Indian pricing in ₹", nevorai: true, other: false },
     { feature: "UPI / Razorpay payments", nevorai: true, other: false },
     { feature: "Hindi-friendly support", nevorai: true, other: false },
-    { feature: "Free plan for actual business use", nevorai: "1 GB free", other: "500 MB total, no business features" },
+    { feature: "Starter plan for actual business use", nevorai: "₹249/mo — full sales toolkit", other: "500 MB total, no business features" },
     { feature: "Pricing for tracking + lead capture", nevorai: "₹499/month", other: "₹2,500-25,000/month equivalent" },
     { feature: "OTT / streaming app builder", nevorai: false, other: true },
     { feature: "Filmmaker community & showcases", nevorai: false, other: true },

@@ -112,7 +112,7 @@ const content: UseCaseContent = {
     { to: "/features", label: "All features" },
     { to: "/pricing", label: "Pricing" },
   ],
-  ctaLabel: "Start Free — Built for Coaches",
+  ctaLabel: "Get Started — Built for Coaches",
 };
 
 export const Route = createFileRoute("/use-cases/coaches")({

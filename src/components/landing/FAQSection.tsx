@@ -16,8 +16,8 @@ const faqs = [
     a: "No. You can create and manage your funnels easily without any technical knowledge.",
   },
   {
-    q: "Is there a free plan?",
-    a: "Yes. You can explore shared funnels and public content for free.",
+    q: "How much does Nevorai cost?",
+    a: "Plans start at ₹249/month. All plans are cancel-anytime with a 7-day refund window.",
   },
   {
     q: "Who is Nevorai for?",

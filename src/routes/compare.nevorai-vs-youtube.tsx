@@ -32,7 +32,7 @@ const content: CompareContent = {
     { feature: "WhatsApp-optimised share preview", nevorai: true, other: "Generic preview" },
     { feature: "Scheduled live sessions from recorded video", nevorai: true, other: "Live only, no scheduling of recordings" },
     { feature: "Built for Indian business (₹, UPI, WhatsApp)", nevorai: true, other: false },
-    { feature: "Free hosting", nevorai: "1 GB free, ₹ Indian pricing", other: "Unlimited free" },
+    { feature: "Pricing model", nevorai: "₹249/mo Starter — Indian pricing", other: "Unlimited free (ad-supported)" },
     { feature: "Audience discovery / SEO traffic", nevorai: false, other: true },
     { feature: "Comments and community features", nevorai: false, other: true },
   ],
@@ -74,7 +74,7 @@ const content: CompareContent = {
     },
     {
       q: "What if YouTube is free and Nevorai isn't?",
-      a: "Nevorai's free plan covers 1 GB which is enough for two or three sales videos — most agents and coaches never need to upgrade. Even the Pro plan at ₹499/month is cheaper than the value of one extra closed deal per month.",
+      a: "Nevorai starts at just ₹249/month for the Starter plan — cheaper than one lunch, and less than the value of a single extra closed deal.",
     },
   ],
 };

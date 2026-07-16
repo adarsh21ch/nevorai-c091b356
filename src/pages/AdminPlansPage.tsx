@@ -15,7 +15,7 @@ import { CreatePlanDialog } from "@/components/admin/CreatePlanDialog";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useAllPlans, planLabel, type PlanConfigRow } from "@/hooks/usePlans";
 
-const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
+const SimplePriceEditor = lazy(() => import("@/components/admin/SimplePriceEditor").then((m) => ({ default: m.SimplePriceEditor })));
 const CouponsTab = lazy(() => import("@/components/admin/CouponsTab").then((m) => ({ default: m.CouponsTab })));
 
 const fallback = <div className="glass-card p-4 text-sm text-muted-foreground">Loading…</div>;
@@ -393,7 +393,7 @@ const AdminPlansPage = () => {
           <TabsContent value="pricing" className="pt-2 space-y-2">
             {planName !== "free" ? (
               <Suspense fallback={fallback}>
-                <ViewTiersManager planName={planName} />
+                <SimplePriceEditor planName={planName} />
               </Suspense>
             ) : (
               <p className="text-[11px] text-muted-foreground italic px-1">No pricing fields for the Free plan.</p>
