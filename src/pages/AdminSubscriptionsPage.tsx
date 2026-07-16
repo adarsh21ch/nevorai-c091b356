@@ -684,22 +684,7 @@ const AdminSubscriptionsPage = () => {
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="enterprise" className="space-y-3 pt-1">
-            <Tabs defaultValue="inquiries" className="space-y-3">
-              <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-flex">
-                <TabsTrigger value="inquiries" className="text-xs sm:text-sm">Inquiries</TabsTrigger>
-                <TabsTrigger value="card" className="text-xs sm:text-sm">Card Settings</TabsTrigger>
-              </TabsList>
-              <TabsContent value="inquiries" className="space-y-3 pt-1">
-                <Suspense fallback={adminTabFallback}>
-                  <EnterpriseInquiriesTab />
-                </Suspense>
-              </TabsContent>
-              <TabsContent value="card" className="space-y-3 pt-1">
-                <EnterpriseCardSettings />
-              </TabsContent>
-            </Tabs>
-          </TabsContent>
+
 
           <TabsContent value="audit" className="space-y-3 pt-1">
             <AdminOverrideAuditTable />
