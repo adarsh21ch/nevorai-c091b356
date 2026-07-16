@@ -33,7 +33,7 @@ import { planName as planDisplayName } from "@/config/planDisplay";
 
 interface PlanRow {
   plan_name: string;
-  price_monthly: number | null;
+  monthly_price: number | null;
   max_storage_mb: number | null;
   max_funnels: number | null;
   max_landing_pages: number | null;
@@ -46,6 +46,7 @@ interface PlanRow {
   feature_advanced_analytics?: boolean | null;
   feature_analytics?: boolean | null;
 }
+
 
 const fmtStorage = (mb: number | null) => {
   if (!mb || mb <= 0) return "—";
