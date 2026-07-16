@@ -80,7 +80,7 @@ export const HeroSection = () => {
           >
             <Link to="/auth?tab=signup" className="w-full sm:w-auto">
               <button className="btn-saffron-premium w-full sm:w-auto">
-                Get Started
+                Start Free
               </button>
             </Link>
             <a
@@ -99,7 +99,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.75 }}
             style={{ color: "var(--text-tertiary)" }}
           >
-            Plans from ₹249/mo. 7-day refund. Setup in 2 minutes.
+            No credit card. 1 GB free forever. Setup in 2 minutes.
           </motion.p>
 
           <motion.div

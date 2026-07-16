@@ -56,7 +56,7 @@ const content: UseCaseContent = {
     steps: [
       {
         title: "Upload your plan video",
-        body: "Drag your existing plan video — the one you already share on WhatsApp — into Nevorai. The Starter plan gives you enough storage for your core plan videos, and you can upgrade anytime.",
+        body: "Drag your existing plan video — the one you already share on WhatsApp — into Nevorai. Free plan supports 1 GB which is enough for two or three videos.",
       },
       {
         title: "Configure the lead form",
@@ -91,7 +91,7 @@ const content: UseCaseContent = {
     },
     {
       q: "Can my whole downline use the same Nevorai account?",
-      a: "We recommend each leader get their own account so they see their own prospect activity. Starter covers your first funnel, Growth adds more, and Leader lets top performers create branded funnel templates their downline can copy.",
+      a: "We recommend each leader get their own free account so they see their own prospect activity. The free plan covers two funnels which is enough for most direct sellers. If you're a top leader, the Pro plan lets you create branded funnel templates your downline can copy.",
     },
     {
       q: "Will my company allow lead capture from a plan video?",
@@ -112,7 +112,7 @@ const content: UseCaseContent = {
     { to: "/features", label: "All features" },
     { to: "/pricing", label: "Pricing" },
   ],
-  ctaLabel: "Get Started — Built for Indian MLM Leaders",
+  ctaLabel: "Start Free — Built for Indian MLM Leaders",
 };
 
 export const Route = createFileRoute("/use-cases/network-marketing")({

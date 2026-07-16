@@ -6,18 +6,16 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Sparkles, Send, Loader2, Upload, Layers, Users, CreditCard, BarChart3, HelpCircle } from "lucide-react";
+import { Sparkles, Send, Loader2, TrendingUp, BarChart3, Target, Lightbulb } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type ChatMsg = { role: "user" | "assistant"; content: string };
 
 const QUICK_PROMPTS: { icon: React.ComponentType<{ size?: number; className?: string }>; label: string; prompt: string }[] = [
-  { icon: Upload, label: "How do I upload a video?", prompt: "How do I upload a video? Give me the exact steps." },
-  { icon: Layers, label: "How do I create a funnel?", prompt: "How do I create a funnel and share it with my prospects?" },
-  { icon: Users, label: "How do I add my team?", prompt: "How do I invite my team / downline and share leads with them?" },
-  { icon: CreditCard, label: "How do I upgrade / pay?", prompt: "How do I upgrade my plan and add a payment method?" },
-  { icon: BarChart3, label: "How are my numbers today?", prompt: "Give me a summary of my views, leads, and conversion rate today and this week." },
-  { icon: HelpCircle, label: "Where do I see my leads?", prompt: "Where do I see and export the leads I have captured?" },
+  { icon: BarChart3, label: "This week's numbers", prompt: "Give me a summary of my views, leads, and conversion rate this week." },
+  { icon: TrendingUp, label: "Best performing funnel", prompt: "Which funnel is performing best right now and why?" },
+  { icon: Target, label: "Where am I losing leads?", prompt: "Where are visitors dropping off in my funnels? Show me the biggest drop-off points." },
+  { icon: Lightbulb, label: "Suggest improvements", prompt: "Look at my data from the last 7 days and suggest 3 concrete improvements I can make today." },
 ];
 
 const NevAIPage = () => {
@@ -109,7 +107,7 @@ const NevAIPage = () => {
             <div>
               <h1 className="text-xl font-heading font-bold sm:text-2xl">Nev AI</h1>
               <p className="text-xs text-muted-foreground sm:text-sm">
-                Your helping hand — ask anything about the app or your numbers.
+                Ask anything about your analytics — views, leads, funnels, conversion.
               </p>
             </div>
           </div>
@@ -126,7 +124,7 @@ const NevAIPage = () => {
                     <Sparkles size={16} className="text-primary" />
                   </div>
                   <div className="rounded-2xl rounded-tl-sm bg-muted px-4 py-3 text-sm">
-                    Hi! I'm <span className="font-semibold">Nev AI</span> — your Nevorai helper. Ask me <span className="font-medium">how to use anything</span> in the app (upload video, create funnel, add team, payments, tracking…) or about <span className="font-medium">your numbers</span> (views, leads, conversions). I'm here so you never have to text support.
+                    Hi! I'm <span className="font-semibold">Nev AI</span> — your data co-pilot. Ask me about views, leads, conversion rates, drop-offs, or what to improve. I read from your real funnels and landing pages.
                   </div>
                 </div>
                 <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2">

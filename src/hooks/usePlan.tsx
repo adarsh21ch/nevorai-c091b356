@@ -67,7 +67,7 @@ export const usePlan = () => {
     gcTime: 10 * 60 * 1000,
   });
 
-  const activePlanKey = trialActive ? "growth_monthly" : (subscription?.plan_key || "free");
+  const activePlanKey = trialActive ? "pro_monthly" : (subscription?.plan_key || "free");
   const { data: planConfig } = useQuery({
     queryKey: ["plan-config", activePlanKey],
     queryFn: async () => {
@@ -117,20 +117,21 @@ export const usePlan = () => {
   const isPaid = isActive && subscription?.tier && subscription.tier !== "free";
   const tier = trialActive ? "trial" : (isActive ? (subscription?.tier || "free") : "free");
 
-  // SINGLE SOURCE OF TRUTH: `subscription_plans` (the admin "Plans & Features"
-  // editor). Read limits AND feature toggles from there for ALL tiers so
-  // admin changes take effect immediately for every user.
-  const lookupTierForConfig = tier === "trial" ? "growth" : (isPaid ? (subscription?.tier || "free") : "free");
+  // SINGLE SOURCE OF TRUTH: subscription_plans is what the admin "Plans & Features"
+  // editor writes to. Read multi_step from there for ALL tiers (free + paid)
+  // so admin toggles take effect immediately for every user without needing
+  // a duplicate column on admin_subscription_plans.
+  const lookupTierForConfig = tier === "trial" ? "pro" : (isPaid ? (subscription?.tier || "free") : "free");
   const tierPlanCfg = allPlanCfgs.find((c: any) => c.plan_name === lookupTierForConfig);
   const multiStepEnabled = tierPlanCfg
     ? !!(tierPlanCfg as any).multilevel_funnel_enabled
     : freeLimits.multi_step_funnel_enabled;
 
-  const limits: PlanLimits = tierPlanCfg ? {
-    funnel_limit: (tierPlanCfg as any).max_funnels ?? freeLimits.funnel_limit,
-    video_max_size_mb: (tierPlanCfg as any).max_storage_mb ?? freeLimits.video_max_size_mb,
-    landing_page_limit: (tierPlanCfg as any).max_landing_pages ?? freeLimits.landing_page_limit,
-    live_session_limit: (tierPlanCfg as any).max_live_sessions ?? freeLimits.live_session_limit,
+  const limits: PlanLimits = (isPaid || trialActive) && planConfig ? {
+    funnel_limit: planConfig.funnel_limit,
+    video_max_size_mb: planConfig.video_max_size_mb,
+    landing_page_limit: (planConfig as any).landing_page_limit ?? null,
+    live_session_limit: (planConfig as any).live_session_limit ?? null,
     multi_step_funnel_enabled: multiStepEnabled,
   } : { ...freeLimits, multi_step_funnel_enabled: multiStepEnabled };
 
@@ -153,8 +154,10 @@ export const usePlan = () => {
   };
 
   // Deprecated: use `usePlanLimits().features.<feature>` directly.
+  // Kept only so legacy call sites compile; always returns true for paid
+  // tiers and defers to false for free users on unknown keys.
   const canAccess = useCallback((_feature: string): boolean => {
-    return ["pro", "trial", "basic", "starter", "growth", "leader"].includes(tier);
+    return tier === "pro" || tier === "trial" || tier === "basic";
   }, [tier]);
 
   const canCreate = useCallback((resource: "funnel" | "landing_page" | "live_session", currentCount: number): boolean => {
@@ -165,11 +168,8 @@ export const usePlan = () => {
     };
     const limit = limitMap[resource];
     if (limit === null || limit === undefined) return true;
-    if (limit === -1) return true; // -1 = unlimited
-    if (limit === 0) return false; // 0 = disabled
     return currentCount < limit;
   }, [limits]);
-
 
   const canUseMultiStep = limits.multi_step_funnel_enabled;
 

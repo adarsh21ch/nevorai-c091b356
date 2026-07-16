@@ -15,7 +15,7 @@ import { CreatePlanDialog } from "@/components/admin/CreatePlanDialog";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useAllPlans, planLabel, type PlanConfigRow } from "@/hooks/usePlans";
 
-const SimplePriceEditor = lazy(() => import("@/components/admin/SimplePriceEditor").then((m) => ({ default: m.SimplePriceEditor })));
+const ViewTiersManager = lazy(() => import("@/components/admin/ViewTiersManager").then((m) => ({ default: m.ViewTiersManager })));
 const CouponsTab = lazy(() => import("@/components/admin/CouponsTab").then((m) => ({ default: m.CouponsTab })));
 
 const fallback = <div className="glass-card p-4 text-sm text-muted-foreground">Loading…</div>;
@@ -393,7 +393,7 @@ const AdminPlansPage = () => {
           <TabsContent value="pricing" className="pt-2 space-y-2">
             {planName !== "free" ? (
               <Suspense fallback={fallback}>
-                <SimplePriceEditor planName={planName} />
+                <ViewTiersManager planName={planName} />
               </Suspense>
             ) : (
               <p className="text-[11px] text-muted-foreground italic px-1">No pricing fields for the Free plan.</p>
@@ -448,18 +448,8 @@ const AdminPlansPage = () => {
     );
   };
 
-  const [showDisabled, setShowDisabled] = useState(false);
-
-  // Hide disabled plans from tabs by default (cuts clutter — Free etc.).
-  const tabPlans = useMemo(
-    () => (showDisabled ? planConfigs : planConfigs.filter((p) => p.is_enabled !== false)),
-    [planConfigs, showDisabled],
-  );
-
-  const tabLabel = (p: PlanConfigRow) => planLabel(p);
-
   const visiblePlans = planFilter === "all"
-    ? tabPlans
+    ? planConfigs
     : planConfigs.filter((p) => p.plan_name === planFilter);
 
   const nextDisplayOrder = useMemo(() => {
@@ -477,40 +467,35 @@ const AdminPlansPage = () => {
               Edit limits, features, and pricing for each plan. Changes apply instantly across the app.
             </p>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 text-xs overflow-x-auto max-w-[70vw]">
+          <div className="flex items-center gap-2">
+            <div className="inline-flex rounded-lg border border-border bg-muted/30 p-0.5 text-xs overflow-x-auto max-w-[60vw]">
               <button
                 key="all"
                 onClick={() => setPlanFilter("all")}
-                className={`px-3 py-1 rounded-md transition-colors whitespace-nowrap ${
+                className={`px-3 py-1 rounded-md transition-colors ${
                   planFilter === "all" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                All
+                All Plans
               </button>
-              {tabPlans.map((p) => (
+              {planConfigs.map((p) => (
                 <button
                   key={p.plan_name}
                   onClick={() => setPlanFilter(p.plan_name)}
-                  className={`px-3 py-1 rounded-md transition-colors whitespace-nowrap ${
+                  className={`px-3 py-1 rounded-md transition-colors capitalize whitespace-nowrap ${
                     planFilter === p.plan_name ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  {tabLabel(p)}
+                  {planLabel(p)}
                 </button>
               ))}
             </div>
-            <label className="flex items-center gap-1.5 text-[11px] text-muted-foreground cursor-pointer">
-              <Switch checked={showDisabled} onCheckedChange={setShowDisabled} />
-              Show disabled
-            </label>
             <CreatePlanDialog
               existingPlanNames={planConfigs.map((p) => p.plan_name)}
               nextDisplayOrder={nextDisplayOrder}
             />
           </div>
         </div>
-
 
         <div className={`grid gap-3 ${planFilter === "all" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
           {visiblePlans.map((p) => renderPlanCard(p.plan_name, p))}

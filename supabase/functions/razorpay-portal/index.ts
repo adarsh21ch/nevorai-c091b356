@@ -54,16 +54,7 @@ function jsonResponse(data: unknown, status = 200) {
   });
 }
 
-// Plan hierarchy — higher rank = higher tier. Includes both legacy
-// (basic/pro) and current (starter/growth/leader) plan names so that
-// upgrade proration works for any paid → higher-paid transition.
-const PLAN_RANK: Record<string, number> = {
-  free: 0,
-  basic: 1, starter: 1,
-  pro: 2, growth: 2,
-  leader: 3,
-};
-const PAID_PLANS = new Set(["basic", "pro", "starter", "growth", "leader"]);
+const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2 };
 
 function getBasePlanName(value: string | null | undefined) {
   return (value || "").split("_")[0]?.toLowerCase() || "";
@@ -249,26 +240,26 @@ Deno.serve(async (req) => {
         return jsonResponse({ error: "plan_key required" }, 400);
       }
 
-      const baseTier = plan_key.split("_")[0]; // e.g. starter_monthly -> starter
-
-      // SOURCE OF TRUTH = subscription_plans (the table admin manages).
-      // We no longer read admin_subscription_plans (legacy) since new plans
-      // like starter / growth / leader are only registered in subscription_plans.
+      // SECURITY: Always look up authoritative price server-side. Never trust client amount.
+      // admin_subscription_plans is metadata only (active flag, billing interval, cycle days).
+      // PRICING source of truth = plan_tiers (the table the admin panel edits and the UI displays).
       const { data: planData } = await serviceClient
-        .from("subscription_plans")
-        .select("plan_name, is_enabled, is_purchasable, monthly_price, yearly_price")
-        .eq("plan_name", baseTier)
+        .from("admin_subscription_plans")
+        .select("plan_key, price_inr, is_active, billing_type, duration_days")
+        .eq("plan_key", plan_key)
+        .eq("is_active", true)
         .maybeSingle();
 
-      if (!planData || planData.is_enabled === false || planData.is_purchasable === false) {
+      if (!planData) {
         return jsonResponse({ error: "Invalid or inactive plan" }, 400);
       }
 
-      const targetBillingInterval = getBillingInterval(plan_key, null);
-      const targetCycleDays = getDefaultCycleDays(targetBillingInterval, null);
+      const targetBillingInterval = getBillingInterval(plan_key, planData.billing_type);
+      const targetCycleDays = getDefaultCycleDays(targetBillingInterval, Number(planData.duration_days || 0));
       let authoritativeAmount = 0;
       let resolvedTierId: string | null = null;
       let resolvedDailyViews: number | null = null;
+      const baseTier = plan_key.split("_")[0]; // basic_monthly -> basic
 
       // If a tier_id was provided, validate it belongs to this plan and use its price.
       if (tier_id && typeof tier_id === "string") {
@@ -297,8 +288,8 @@ Deno.serve(async (req) => {
         authoritativeAmount = pickTierPrice(tierRow, targetBillingInterval);
         resolvedTierId = tierRow.id;
         resolvedDailyViews = tierRow.daily_views;
-      } else {
-        // Auto-resolve the base tier for this plan from plan_tiers first.
+      } else if (baseTier === "basic" || baseTier === "pro") {
+        // Auto-resolve the base tier for the plan when no tier_id was supplied.
         const { data: baseRow } = await serviceClient
           .from("plan_tiers")
           .select("id, daily_views, monthly_price, yearly_price")
@@ -306,18 +297,20 @@ Deno.serve(async (req) => {
           .eq("is_active", true)
           .eq("is_base", true)
           .maybeSingle();
-        if (baseRow) {
-          authoritativeAmount = pickTierPrice(baseRow, targetBillingInterval);
-          resolvedTierId = baseRow.id;
-          resolvedDailyViews = baseRow.daily_views;
-        } else {
-          // No plan_tiers row — fall back to subscription_plans price columns.
-          authoritativeAmount = targetBillingInterval === "yearly"
-            ? Number(planData.yearly_price || 0)
-            : Number(planData.monthly_price || 0);
+        if (!baseRow) {
+          // NO SILENT FALLBACK: refuse rather than charge a stale price from admin_subscription_plans.
+          console.error("create_order: no active base tier for plan", { plan_key, baseTier });
+          return jsonResponse({
+            error: "Pricing not configured for this plan. Please contact support.",
+          }, 400);
         }
+        authoritativeAmount = pickTierPrice(baseRow, targetBillingInterval);
+        resolvedTierId = baseRow.id;
+        resolvedDailyViews = baseRow.daily_views;
+      } else {
+        // Unknown plan tier (not basic/pro and no tier_id) — refuse.
+        return jsonResponse({ error: "Pricing not configured for this plan." }, 400);
       }
-
 
       if (!authoritativeAmount || authoritativeAmount <= 0) {
         return jsonResponse({ error: "Pricing not configured for this plan." }, 400);
@@ -357,7 +350,7 @@ Deno.serve(async (req) => {
         activePaidSub &&
         currentBasePlan &&
         (PLAN_RANK[baseTier] ?? -1) > (PLAN_RANK[currentBasePlan] ?? -1) &&
-        PAID_PLANS.has(currentBasePlan)
+        (currentBasePlan === "basic" || currentBasePlan === "pro")
       ) {
         // Resolve current plan's base monthly price
         const { data: currentBaseRow } = await serviceClient
@@ -646,49 +639,8 @@ Deno.serve(async (req) => {
       const pKey = order.notes?.plan_key || verifyPlanKey;
       if (!pKey) return jsonResponse({ error: "Plan key missing on order" }, 400);
 
-      // Resolve plan definition. New tiers (starter/growth/leader) live in
-      // `subscription_plans`; legacy plans (basic/pro) also have a matching
-      // row there. We fall back to `admin_subscription_plans` only if the
-      // canonical row is missing so old orders keep verifying.
-      const pKeyBase = String(pKey).split("_")[0].toLowerCase();
-      const pKeyInterval = getBillingInterval(pKey, null);
-
-      let planData: any = null;
-      const { data: subPlanRow } = await serviceClient
-        .from("subscription_plans")
-        .select("*")
-        .eq("plan_name", pKeyBase)
-        .maybeSingle();
-
-      if (subPlanRow && subPlanRow.is_enabled !== false) {
-        // Best-effort price from subscription_plans; falls back to plan_tiers base row.
-        let priceFromPlan = pKeyInterval === "yearly"
-          ? Number((subPlanRow as any).yearly_price ?? (subPlanRow as any).price_yearly ?? 0)
-          : Number((subPlanRow as any).monthly_price ?? (subPlanRow as any).price_monthly ?? 0);
-        if (!priceFromPlan) {
-          const { data: baseTierRow } = await serviceClient
-            .from("plan_tiers")
-            .select("monthly_price, yearly_price")
-            .eq("plan_name", pKeyBase)
-            .eq("is_base", true)
-            .eq("is_active", true)
-            .maybeSingle();
-          if (baseTierRow) priceFromPlan = pickTierPrice(baseTierRow, pKeyInterval);
-        }
-        planData = {
-          plan_key: pKey,
-          tier: pKeyBase,
-          billing_type: pKeyInterval,
-          duration_days: pKeyInterval === "yearly"
-            ? Number((subPlanRow as any).yearly_validity_days || 365)
-            : 30,
-          price_inr: priceFromPlan,
-        };
-      } else {
-        const { data: legacy } = await serviceClient.from("admin_subscription_plans")
-          .select("*").eq("plan_key", pKey).eq("is_active", true).maybeSingle();
-        if (legacy) planData = legacy;
-      }
+      const { data: planData } = await serviceClient.from("admin_subscription_plans")
+        .select("*").eq("plan_key", pKey).eq("is_active", true).maybeSingle();
 
       if (!planData) return jsonResponse({ error: "Plan not found or inactive" }, 400);
 
@@ -767,7 +719,7 @@ Deno.serve(async (req) => {
       await serviceClient.from("user_subscriptions").insert({
         user_id: user.id,
         plan_key: pKey,
-        tier: planData?.tier || pKeyBase || "starter",
+        tier: planData?.tier || "pro",
         status: "active",
         billing_type: planData?.billing_type || "one_time",
         amount_paid: expectedAmountInr,
@@ -832,13 +784,13 @@ Deno.serve(async (req) => {
 
       if (!activeSub || !activeSub.expires_at) {
         return jsonResponse({
-          error: "No active paid subscription. Please subscribe to a plan before upgrading view capacity.",
+          error: "No active paid subscription. Please subscribe to Basic or Pro before upgrading view capacity.",
         }, 400);
       }
 
       const basePlan = (activeSub.tier || activeSub.plan_key || "").split("_")[0];
-      if (!PAID_PLANS.has(basePlan)) {
-        return jsonResponse({ error: "This subscription does not support tier upgrades" }, 400);
+      if (basePlan !== "basic" && basePlan !== "pro") {
+        return jsonResponse({ error: "Only Basic and Pro subscriptions support tier upgrades" }, 400);
       }
 
       // Self-heal stale profile state: if the user has an active paid sub,

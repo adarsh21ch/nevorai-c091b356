@@ -32,13 +32,13 @@ export const MonthlyViewsBanner = () => {
               You've used all {views.limit.toLocaleString("en-IN")} views this month.
             </p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Your funnels are paused until {resetDateFmt} — or upgrade for more monthly views.
+              Your funnels are paused until {resetDateFmt} — or upgrade to Pro for 20,000 views/month.
             </p>
           </div>
         </div>
         <Link to="/pricing" className="shrink-0 w-full sm:w-auto">
           <button className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90 px-4 py-2 rounded-lg text-sm font-medium inline-flex items-center justify-center gap-1.5">
-            Upgrade Plan <ArrowRight size={14} />
+            Upgrade to Pro <ArrowRight size={14} />
           </button>
         </Link>
       </div>
@@ -56,7 +56,7 @@ export const MonthlyViewsBanner = () => {
             You've used {views.used.toLocaleString("en-IN")} of {views.limit.toLocaleString("en-IN")} views this month.
           </p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Upgrade your plan for more monthly views and avoid pausing your funnels.
+            Upgrade to Pro for 20,000 views/month and avoid pausing your funnels.
           </p>
         </div>
       </div>

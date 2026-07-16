@@ -54,7 +54,7 @@ export const UseCasePage = ({ content }: { content: UseCaseContent }) => {
           </motion.p>
           <Link to="/auth?tab=signup">
             <Button size="xl" className="rounded-full text-white font-semibold border-0 bg-gradient-brand shadow-glow-brand-lg px-10 py-4">
-              {content.ctaLabel ?? "Get Started — 7-Day Refund"}
+              {content.ctaLabel ?? "Start Free — No Credit Card"}
             </Button>
           </Link>
           <p className="text-xs text-muted-foreground mt-3">🇮🇳 Made in India · Free forever for 1 GB</p>
@@ -131,10 +131,10 @@ export const UseCasePage = ({ content }: { content: UseCaseContent }) => {
       <section className="py-16 border-t border-border-subtle/10">
         <div className="container-app max-w-3xl text-center">
           <h2 className="text-2xl md:text-3xl font-heading font-bold mb-4">Ready to share videos that get watched?</h2>
-          <p className="text-muted-foreground mb-6">Plans start at ₹249/mo. 7-day refund window. Setup in under 2 minutes.</p>
+          <p className="text-muted-foreground mb-6">Free forever for 1 GB. No credit card. Start in under 2 minutes.</p>
           <Link to="/auth?tab=signup">
             <Button size="xl" className="rounded-full text-white font-semibold border-0 bg-gradient-brand shadow-glow-brand-lg px-10 py-4">
-              {content.ctaLabel ?? "Get Started — 7-Day Refund"}
+              {content.ctaLabel ?? "Start Free — No Credit Card"}
             </Button>
           </Link>
           <div className="mt-10 flex flex-wrap justify-center gap-3">
@@ -276,10 +276,10 @@ export const ComparePage = ({ content }: { content: CompareContent }) => {
       <section className="py-16 border-t border-border-subtle/10">
         <div className="container-app max-w-3xl text-center">
           <h2 className="text-2xl md:text-3xl font-heading font-bold mb-4">See the difference yourself.</h2>
-          <p className="text-muted-foreground mb-6">Plans start at ₹249/mo. 7-day refund window. Setup in under 2 minutes.</p>
+          <p className="text-muted-foreground mb-6">Free forever for 1 GB. No credit card. Start in under 2 minutes.</p>
           <Link to="/auth?tab=signup">
             <Button size="xl" className="rounded-full text-white font-semibold border-0 bg-gradient-brand shadow-glow-brand-lg px-10 py-4">
-              Get Started with Nevorai
+              Start Free with Nevorai
             </Button>
           </Link>
         </div>

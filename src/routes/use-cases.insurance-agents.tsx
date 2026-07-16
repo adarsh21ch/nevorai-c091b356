@@ -112,7 +112,7 @@ const content: UseCaseContent = {
     { to: "/use-cases/real-estate", label: "For real estate agents" },
     { to: "/pricing", label: "Pricing" },
   ],
-  ctaLabel: "Get Started — Built for Insurance Agents",
+  ctaLabel: "Start Free — Built for Insurance Agents",
 };
 
 export const Route = createFileRoute("/use-cases/insurance-agents")({

@@ -20,7 +20,7 @@ import { getSupabaseFunctionErrorMessage } from "@/lib/supabase-function-error";
 
 const VIEWS_TOOLTIP = "Total unique viewers across all your funnels per day. Resets at midnight IST.";
 
-const FREE_CTA = "Get Started";
+const FREE_CTA = "Start Free";
 const FREE_VARIANT = "outline" as const;
 
 /**
@@ -280,11 +280,10 @@ export const PricingSection = () => {
 
 
   // Dynamically build a card for every enabled plan in subscription_plans,
-  // ordered by display_order. Free plan is only shown when it's still
-  // explicitly enabled in admin — with Free disabled we hide the card so
-  // the landing page matches the app (no free tier advertised).
+  // ordered by display_order. No special-casing per plan_name — the Free plan
+  // is identified by zero pricing, not by a hardcoded key.
   const enabledPlans = [...planConfigs]
-    .filter((c: any) => c && c.is_enabled !== false && c.plan_name !== "free")
+    .filter((c: any) => c && c.is_enabled !== false)
     .sort((a: any, b: any) => (a.display_order ?? 100) - (b.display_order ?? 100));
 
   const cards: {
@@ -419,10 +418,10 @@ export const PricingSection = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
-            Simple Pricing. <span className="text-gradient-brand">Pick the Plan That Fits You.</span>
+            Start Free. <span className="text-gradient-brand">Upgrade When You Get Results.</span>
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Storage-based plans built for Indian network marketers. Cancel anytime.
+            Pick the plan that fits your network size. Start free — no credit card needed.
           </p>
         </motion.div>
 
@@ -514,7 +513,7 @@ export const PricingSection = () => {
                   if (lname === "pro" && onPro) {
                     return <Button disabled className="w-full">Current Plan</Button>;
                   }
-                  const isUpgrade = onBasic && (lname === "pro" || lname === "growth" || lname === "leader");
+                  const isUpgrade = lname === "pro" && onBasic;
                   return (
                     <Button
                       variant={plan.variant}
@@ -523,7 +522,7 @@ export const PricingSection = () => {
                       disabled={loadingPlan === `${lname}_monthly`}
                     >
                       {loadingPlan === `${lname}_monthly` && <Loader2 size={16} className="animate-spin" />}
-                      {isUpgrade ? <><ArrowUp size={14} /> Upgrade to {plan.name}</> : plan.cta}
+                      {isUpgrade ? <><ArrowUp size={14} /> Upgrade to Pro</> : plan.cta}
                     </Button>
                   );
                 })()}

@@ -7,10 +7,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { MonthlyViewsBanner } from "@/components/MonthlyViewsBanner";
 import { ViewsOverviewCard } from "@/components/dashboard/ViewsOverviewCard";
 import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
-import { Layers, Users, Eye, IndianRupee, TrendingUp, Plus, ArrowRight, Upload } from "lucide-react";
-import { useRef, useState } from "react";
-import { VideoUploadModal } from "@/components/VideoUploadModal";
-import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
+import { Layers, Users, Eye, IndianRupee, TrendingUp, Plus, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
@@ -31,6 +28,7 @@ type DashboardSummary = {
   total_leads: number;
   active_live_session: { id: string; title: string } | null;
 };
+import { GettingStartedChecklist } from "@/components/dashboard/GettingStartedChecklist";
 import { WatchingNowStrip } from "@/components/dashboard/WatchingNowStrip";
 
 export const Route = createLazyFileRoute("/dashboard")({ component: DashboardPage });
@@ -59,18 +57,8 @@ function DashboardPage() {
   useDocumentTitle("Dashboard");
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
-  const [uploadOpen, setUploadOpen] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const openUploadFlow = () => uploadInputRef.current?.click();
-  const handleUploadPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] || null;
-    e.target.value = "";
-    if (!f) return;
-    setPendingFile(f);
-    setUploadOpen(true);
-  };
+
 
   useEffect(() => {
     if (!loading && !user) navigate("/auth");
@@ -131,6 +119,7 @@ function DashboardPage() {
         )}
 
         <MonthlyViewsBanner />
+        <GettingStartedChecklist />
 
         {(() => {
           const hour = new Date().getHours();
@@ -147,17 +136,8 @@ function DashboardPage() {
                 <p className="mt-1 text-sm text-muted-foreground">Here's what's happening on Nevorai today.</p>
               </div>
               <div className="flex gap-2">
-                <input
-                  ref={uploadInputRef}
-                  type="file"
-                  accept={VIDEO_UPLOAD_ACCEPT}
-                  className="hidden"
-                  onChange={handleUploadPicked}
-                />
-                <Button variant="hero" size="sm" onClick={openUploadFlow}>
-                  <Upload size={14} /> Upload Video
-                </Button>
-                <Link to="/funnels/create"><Button variant="outline" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
+                <Link to="/funnels/create"><Button variant="hero" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
+                <Link to="/videos"><Button variant="outline" size="sm"><Eye size={14} /> Add Video</Button></Link>
               </div>
             </div>
           );
@@ -230,13 +210,6 @@ function DashboardPage() {
             </div>
           </div>
         )}
-
-        <VideoUploadModal
-          open={uploadOpen}
-          onClose={() => { setUploadOpen(false); setPendingFile(null); }}
-          onSuccess={() => { /* handled inside modal */ }}
-          initialFile={pendingFile}
-        />
       </div>
     </DashboardLayout>
   );

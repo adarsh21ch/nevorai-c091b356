@@ -133,7 +133,7 @@ export function CheckoutDialog({
             )}
           </div>
 
-          {false && !preview && (
+          {!preview && (
             <div className="space-y-2">
               <label className="text-xs font-semibold flex items-center gap-1.5 text-muted-foreground">
                 <Tag size={12} /> Coupon code (optional)
@@ -147,7 +147,12 @@ export function CheckoutDialog({
                   disabled={applying}
                   onKeyDown={(e) => { if (e.key === "Enter") handleApply(); }}
                 />
-                <Button type="button" variant="outline" onClick={handleApply} disabled={applying || !code.trim()}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleApply}
+                  disabled={applying || !code.trim()}
+                >
                   {applying ? <Loader2 size={14} className="animate-spin" /> : "Apply"}
                 </Button>
               </div>

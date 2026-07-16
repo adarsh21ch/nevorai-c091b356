@@ -14,7 +14,7 @@ export const PlanUsageWidget = () => {
   const { plan } = usePlan();
   const { config, counts } = usePlanLimits();
   const display = planDisplay(plan.tier === "trial" ? "trial" : plan.tier);
-  const isTopTier = plan.tier === "pro" || plan.tier === "growth" || plan.tier === "leader" || plan.tier === "trial";
+  const isProOrTrial = plan.tier === "pro" || plan.tier === "trial";
 
   const barClass = views.isOverLimit
     ? "bg-gradient-to-r from-amber-500 to-red-500"
@@ -44,10 +44,10 @@ export const PlanUsageWidget = () => {
             <p className="text-[11px] text-muted-foreground">This month's usage</p>
           </div>
         </div>
-        {!isTopTier && (
+        {!isProOrTrial && (
           <Link to="/pricing">
             <Button size="sm" variant="hero" className="h-8 text-xs gap-1">
-              Upgrade Plan <ArrowUpRight size={12} />
+              Upgrade to Pro <ArrowUpRight size={12} />
             </Button>
           </Link>
         )}

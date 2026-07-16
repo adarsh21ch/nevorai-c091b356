@@ -31,7 +31,7 @@ const content: CompareContent = {
     { feature: "Access codes / gated content", nevorai: true, other: "Public or invite-only only" },
     { feature: "Adaptive streaming for slow internet", nevorai: true, other: false },
     { feature: "Mobile playback experience", nevorai: "Optimised", other: "Buffers, asks to download" },
-    { feature: "Entry pricing", nevorai: "₹249/mo Starter plan", other: "15 GB free (shared with Gmail + Photos)" },
+    { feature: "Free plan", nevorai: "1 GB free", other: "15 GB free (shared with Gmail + Photos)" },
     { feature: "General file storage", nevorai: false, other: true },
     { feature: "Document collaboration", nevorai: false, other: true },
   ],

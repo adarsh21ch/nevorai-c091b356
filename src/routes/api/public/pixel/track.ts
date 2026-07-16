@@ -94,17 +94,14 @@ export const Route = createFileRoute("/api/public/pixel/track")({
         };
 
         try {
-          // Send access_token in body (not query string) so it isn't captured
-          // by proxy/CDN access logs.
           const resp = await fetch(
-            `https://graph.facebook.com/v18.0/${PIXEL_ID}/events`,
+            `https://graph.facebook.com/v18.0/${PIXEL_ID}/events?access_token=${token}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...payload, access_token: token }),
+              body: JSON.stringify(payload),
             },
           );
-
           const json = await resp.json().catch(() => ({}));
           return new Response(JSON.stringify({ ok: resp.ok, meta: json }), {
             status: 200,

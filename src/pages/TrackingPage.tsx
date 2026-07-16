@@ -383,7 +383,7 @@ export default function TrackingPage() {
                     value={diag.last_fire_at ? new Date(diag.last_fire_at).toLocaleString() : "—"}
                   />
                 </div>
-                {!diag.recent || diag.recent.length === 0 ? (
+                {diag.recent.length === 0 ? (
                   <p className="text-xs text-muted-foreground">No fires logged yet.</p>
                 ) : (
                   <div className="space-y-1.5">

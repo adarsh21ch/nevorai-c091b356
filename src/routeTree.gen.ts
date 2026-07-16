@@ -43,7 +43,6 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FeaturesRouteImport } from './routes/features'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EnterpriseRouteImport } from './routes/enterprise'
-import { Route as DownlineRouteImport } from './routes/downline'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BillingRouteImport } from './routes/billing'
@@ -284,11 +283,6 @@ const EnterpriseRoute = EnterpriseRouteImport.update({
   path: '/enterprise',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/enterprise.lazy').then((d) => d.Route))
-const DownlineRoute = DownlineRouteImport.update({
-  id: '/downline',
-  path: '/downline',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/downline.lazy').then((d) => d.Route))
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -667,7 +661,6 @@ export interface FileRoutesByFullPath {
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/downline': typeof DownlineRoute
   '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
@@ -769,7 +762,6 @@ export interface FileRoutesByTo {
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/downline': typeof DownlineRoute
   '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
@@ -870,7 +862,6 @@ export interface FileRoutesById {
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
   '/dashboard': typeof DashboardRoute
-  '/downline': typeof DownlineRoute
   '/enterprise': typeof EnterpriseRoute
   '/faq': typeof FaqRoute
   '/features': typeof FeaturesRoute
@@ -974,7 +965,6 @@ export interface FileRouteTypes {
     | '/billing'
     | '/contact'
     | '/dashboard'
-    | '/downline'
     | '/enterprise'
     | '/faq'
     | '/features'
@@ -1076,7 +1066,6 @@ export interface FileRouteTypes {
     | '/billing'
     | '/contact'
     | '/dashboard'
-    | '/downline'
     | '/enterprise'
     | '/faq'
     | '/features'
@@ -1176,7 +1165,6 @@ export interface FileRouteTypes {
     | '/billing'
     | '/contact'
     | '/dashboard'
-    | '/downline'
     | '/enterprise'
     | '/faq'
     | '/features'
@@ -1279,7 +1267,6 @@ export interface RootRouteChildren {
   BillingRoute: typeof BillingRoute
   ContactRoute: typeof ContactRoute
   DashboardRoute: typeof DashboardRoute
-  DownlineRoute: typeof DownlineRoute
   EnterpriseRoute: typeof EnterpriseRoute
   FaqRoute: typeof FaqRoute
   FeaturesRoute: typeof FeaturesRoute
@@ -1597,13 +1584,6 @@ declare module '@tanstack/react-router' {
       path: '/enterprise'
       fullPath: '/enterprise'
       preLoaderRoute: typeof EnterpriseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/downline': {
-      id: '/downline'
-      path: '/downline'
-      fullPath: '/downline'
-      preLoaderRoute: typeof DownlineRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -2173,7 +2153,6 @@ const rootRouteChildren: RootRouteChildren = {
   BillingRoute: BillingRoute,
   ContactRoute: ContactRoute,
   DashboardRoute: DashboardRoute,
-  DownlineRoute: DownlineRoute,
   EnterpriseRoute: EnterpriseRoute,
   FaqRoute: FaqRoute,
   FeaturesRoute: FeaturesRoute,
@@ -2255,13 +2234,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

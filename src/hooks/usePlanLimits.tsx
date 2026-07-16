@@ -82,16 +82,14 @@ export const usePlanLimits = () => {
         .in("status", ["pending", "active"]);
       return count || 0;
     },
-    enabled: !!user && (plan.tier === "pro" || plan.tier === "growth" || plan.tier === "leader"),
+    enabled: !!user && plan.tier === "pro",
   });
 
   const tier = plan.tier;
-  const lookupTier = tier === "trial" ? "growth" : tier;
+  const lookupTier = tier === "trial" ? "pro" : tier;
   const config = planConfigs.find(c => c.plan_name === lookupTier) || FREE_FALLBACK;
 
   const isFree = tier === "free" || (!plan.isPaid && tier !== "trial");
-
-  const teamCapableTier = tier === "pro" || tier === "growth" || tier === "leader";
 
   // Admin-allocated quotas are authoritative: if max_* > 0 (or -1 for unlimited),
   // the user can create up to that count regardless of the feature flag.
@@ -100,14 +98,14 @@ export const usePlanLimits = () => {
   const canCreateLandingPage = config.max_landing_pages === -1 || (config.max_landing_pages > 0 && counts.landing_pages < config.max_landing_pages);
   const canCreateLive = config.max_live_sessions === -1 || (config.max_live_sessions > 0 && counts.live_sessions < config.max_live_sessions);
   const canUseMultilevel = config.multilevel_funnel_enabled;
-  const canAddTeamMember = teamCapableTier && (config.max_team_members === -1 || teamCount < config.max_team_members);
+  const canAddTeamMember = tier === "pro" && (config.max_team_members === -1 || teamCount < config.max_team_members);
   // Storage is the only quota — see useStorageUsage for the enforced check.
   const canUploadVideo = config.feature_video_upload === true;
 
   const isFunnelLimitReached = config.max_funnels !== -1 && counts.funnels >= config.max_funnels;
   const isLandingPageLimitReached = config.max_landing_pages !== -1 && counts.landing_pages >= config.max_landing_pages;
   const isLiveLimitReached = config.max_live_sessions !== -1 && counts.live_sessions >= config.max_live_sessions;
-  const isTeamLimitReached = teamCapableTier && config.max_team_members !== -1 && teamCount >= config.max_team_members;
+  const isTeamLimitReached = tier === "pro" && config.max_team_members !== -1 && teamCount >= config.max_team_members;
   const isVideoLimitReached = false; // Deprecated — storage limit is enforced by useStorageUsage.
 
   const features = {
@@ -118,7 +116,7 @@ export const usePlanLimits = () => {
     prioritySupport: config.feature_priority_support === true,
     advancedAnalytics: config.feature_advanced_analytics === true,
     multilevelFunnels: config.multilevel_funnel_enabled,
-    teamMembers: teamCapableTier && config.max_team_members !== 0,
+    teamMembers: tier === "pro" && config.max_team_members !== 0,
     teamAnalytics: config.feature_team_analytics === true,
     goLive: config.feature_go_live !== false,
     landingPages: config.feature_landing_pages !== false,
