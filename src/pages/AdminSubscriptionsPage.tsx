@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import type { PlanConfig } from "@/hooks/usePlanLimits";
-import { EnterpriseCardSettings } from "@/components/admin/EnterpriseCardSettings";
+
 import { TrialSettingsStrip } from "@/components/admin/TrialSettingsStrip";
 import { AdminOverrideAuditTable } from "@/components/admin/AdminOverrideAuditTable";
 import { adminWrite } from "@/lib/adminWrite";
