@@ -33,7 +33,7 @@ import { planName as planDisplayName } from "@/config/planDisplay";
 
 interface PlanRow {
   plan_name: string;
-  price_monthly: number | null;
+  monthly_price: number | null;
   max_storage_mb: number | null;
   max_funnels: number | null;
   max_landing_pages: number | null;
@@ -46,6 +46,7 @@ interface PlanRow {
   feature_advanced_analytics?: boolean | null;
   feature_analytics?: boolean | null;
 }
+
 
 const fmtStorage = (mb: number | null) => {
   if (!mb || mb <= 0) return "—";
@@ -113,7 +114,7 @@ const BillingPage = () => {
       // Load every enabled non-free plan dynamically. When admin renames or
       // adds plans (starter/growth/leader), they show up here without code
       // changes. We also join the base plan_tiers row so the card price
-      // still resolves when `subscription_plans.price_monthly` is null
+      // still resolves when `subscription_plans.monthly_price` is null
       // (legacy rows where pricing lived only in plan_tiers).
       const { data: plans } = await (supabase as any)
         .from("subscription_plans")
@@ -136,11 +137,11 @@ const BillingPage = () => {
         }
       }
       return rows.map((r) => {
-        if (r.price_monthly && r.price_monthly > 0) return r;
+        if (r.monthly_price && r.monthly_price > 0) return r;
         const fallback = priceByPlan.get(r.plan_name);
         return {
           ...r,
-          price_monthly: fallback?.monthly ?? r.price_monthly ?? null,
+          monthly_price: fallback?.monthly ?? r.monthly_price ?? null,
         };
       });
     },
@@ -226,7 +227,7 @@ const BillingPage = () => {
         <div>
           <h3 className="font-heading font-bold text-lg">{label}</h3>
           <div className="flex items-baseline gap-1 mt-1">
-            <span className="text-3xl font-heading font-bold">₹{p.price_monthly ?? "—"}</span>
+            <span className="text-3xl font-heading font-bold">₹{p.monthly_price ?? "—"}</span>
             <span className="text-sm text-muted-foreground">/ month</span>
           </div>
         </div>
