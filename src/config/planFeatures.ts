@@ -124,7 +124,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
  * driven by `subscription_plans.display_order`. Kept only as a fallback ordering for
  * code that has no access to React Query state.
  */
-export const PLAN_KEYS_ORDER: PlanKey[] = ["free", "basic", "growth", "pro"];
+export const PLAN_KEYS_ORDER: PlanKey[] = ["free", "starter", "basic", "growth", "pro", "leader"] as any;
 
 /**
  * @deprecated Use `display_name` from `subscription_plans` (via `useAllPlans()` /

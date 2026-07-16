@@ -9,12 +9,14 @@
 export const PLAN_RANK: Record<string, number> = {
   free: 0,
   basic: 1,
+  starter: 1,
   growth: 2,
   pro: 3,
+  leader: 4,
   trial: 3,
 };
 
-export const PAID_TIERS = ["basic", "growth", "pro"] as const;
+export const PAID_TIERS = ["basic", "starter", "growth", "pro", "leader"] as const;
 export type PaidTier = (typeof PAID_TIERS)[number];
 
 export const isPaidTier = (tier: string | null | undefined): tier is PaidTier =>

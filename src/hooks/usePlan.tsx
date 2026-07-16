@@ -67,7 +67,7 @@ export const usePlan = () => {
     gcTime: 10 * 60 * 1000,
   });
 
-  const activePlanKey = trialActive ? "pro_monthly" : (subscription?.plan_key || "free");
+  const activePlanKey = trialActive ? "growth_monthly" : (subscription?.plan_key || "free");
   const { data: planConfig } = useQuery({
     queryKey: ["plan-config", activePlanKey],
     queryFn: async () => {
@@ -121,7 +121,7 @@ export const usePlan = () => {
   // editor writes to. Read multi_step from there for ALL tiers (free + paid)
   // so admin toggles take effect immediately for every user without needing
   // a duplicate column on admin_subscription_plans.
-  const lookupTierForConfig = tier === "trial" ? "pro" : (isPaid ? (subscription?.tier || "free") : "free");
+  const lookupTierForConfig = tier === "trial" ? "growth" : (isPaid ? (subscription?.tier || "free") : "free");
   const tierPlanCfg = allPlanCfgs.find((c: any) => c.plan_name === lookupTierForConfig);
   const multiStepEnabled = tierPlanCfg
     ? !!(tierPlanCfg as any).multilevel_funnel_enabled
@@ -157,7 +157,7 @@ export const usePlan = () => {
   // Kept only so legacy call sites compile; always returns true for paid
   // tiers and defers to false for free users on unknown keys.
   const canAccess = useCallback((_feature: string): boolean => {
-    return tier === "pro" || tier === "trial" || tier === "basic";
+    return ["pro", "trial", "basic", "starter", "growth", "leader"].includes(tier);
   }, [tier]);
 
   const canCreate = useCallback((resource: "funnel" | "landing_page" | "live_session", currentCount: number): boolean => {

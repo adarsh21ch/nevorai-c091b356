@@ -606,7 +606,7 @@ const FunnelEditor = () => {
         <button
           onClick={() => {
             if (!canUseMultiStep) {
-              toast.error("Multi-step funnels are not available on your plan. Upgrade to Pro to unlock.");
+              toast.error("Multi-step funnels are not available on your plan. Upgrade your plan to unlock.");
               navigate("/billing");
               return;
             }
