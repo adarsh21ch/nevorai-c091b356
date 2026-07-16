@@ -499,14 +499,14 @@ const AdminSubscriptionsPage = () => {
         </div>
 
         <Tabs defaultValue="subscriptions">
-          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-6 h-9">
+          <TabsList className="w-full grid grid-cols-3 sm:grid-cols-5 h-9">
             <TabsTrigger value="subscriptions" className="text-[10px] sm:text-sm">Subs</TabsTrigger>
             <TabsTrigger value="refunds" className="text-[10px] sm:text-sm">Refunds</TabsTrigger>
             <TabsTrigger value="gateway" className="text-[10px] sm:text-sm">Gateway</TabsTrigger>
-            <TabsTrigger value="enterprise" className="text-[10px] sm:text-sm">Enterprise</TabsTrigger>
             <TabsTrigger value="audit" className="text-[10px] sm:text-sm">Audit</TabsTrigger>
             <TabsTrigger value="settings" className="text-[10px] sm:text-sm">Settings</TabsTrigger>
           </TabsList>
+
 
           <TabsContent value="subscriptions" className="space-y-3 pt-1">
             <div className="flex flex-wrap items-center gap-2">
