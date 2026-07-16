@@ -782,19 +782,6 @@ const PricingFullPage = () => {
         </div>
       </div>
       {!isDashboardUpgradeView && <Footer />}
-      {checkoutCtx && (
-        <CheckoutDialog
-          open={!!checkoutCtx}
-          onOpenChange={(o) => { if (!o) setCheckoutCtx(null); }}
-          planName={checkoutCtx.planName.charAt(0).toUpperCase() + checkoutCtx.planName.slice(1)}
-          planKey={checkoutCtx.planKey}
-          billing={billing}
-          basePrice={checkoutCtx.price}
-          tierId={checkoutCtx.tierId}
-          loading={loading === checkoutCtx.planKey}
-          onConfirm={proceedPayment}
-        />
-      )}
     </>
 
   );
