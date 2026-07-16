@@ -82,7 +82,7 @@ const BillingPage = () => {
 
   const status = statusConfig[plan.status] || statusConfig.active;
   const StatusIcon = status.icon;
-  const planLabel = PLAN_LABEL[plan.tier] || plan.tier;
+  const planLabel = planDisplayName(plan.tier);
 
   const { data: existingRefund, refetch: refetchRefund } = useQuery({
     queryKey: ["refund-request", user?.id],
