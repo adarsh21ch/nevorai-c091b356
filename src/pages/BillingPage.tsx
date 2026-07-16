@@ -101,21 +101,28 @@ const BillingPage = () => {
     enabled: !!user,
   });
 
+  type PlanRowExt = PlanRow & {
+    display_name?: string | null;
+    display_order?: number | null;
+    is_enabled?: boolean | null;
+  };
+
   const { data: tierPlans } = useQuery({
     queryKey: ["billing-tier-plans"],
     queryFn: async () => {
+      // Load every enabled non-free plan dynamically. When admin renames or
+      // adds plans (starter/growth/leader), they show up here without code
+      // changes.
       const { data } = await (supabase as any)
         .from("subscription_plans")
         .select("*")
-        .in("plan_name", ["basic", "growth", "pro"]);
-      return (data ?? []) as PlanRow[];
+        .neq("plan_name", "free")
+        .eq("is_enabled", true)
+        .order("display_order", { ascending: true });
+      return (data ?? []) as PlanRowExt[];
     },
     staleTime: 5 * 60 * 1000,
   });
-
-  const basicPlan = tierPlans?.find(p => p.plan_name === "basic");
-  const growthPlan = tierPlans?.find(p => p.plan_name === "growth");
-  const proPlan = tierPlans?.find(p => p.plan_name === "pro");
 
   const startedAt = plan.startedAt ? new Date(plan.startedAt) : null;
   const guaranteeExpiresAt = startedAt ? new Date(startedAt.getTime() + 7 * 86400_000) : null;
