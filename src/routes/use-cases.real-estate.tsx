@@ -112,7 +112,7 @@ const content: UseCaseContent = {
     { to: "/features", label: "All features" },
     { to: "/pricing", label: "Pricing" },
   ],
-  ctaLabel: "Start Free — Built for Property Agents",
+  ctaLabel: "Get Started — Built for Property Agents",
 };
 
 export const Route = createFileRoute("/use-cases/real-estate")({

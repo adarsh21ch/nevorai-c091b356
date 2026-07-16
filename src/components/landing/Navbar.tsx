@@ -169,7 +169,7 @@ export const Navbar = () => {
             </button>
           </Link>
           <Link to="/auth?tab=signup">
-            <button className="btn-saffron-premium btn-sm">Start Free</button>
+            <button className="btn-saffron-premium btn-sm">Get Started</button>
           </Link>
         </div>
 
@@ -274,7 +274,7 @@ export const Navbar = () => {
             </button>
           </Link>
           <Link to="/auth?tab=signup" onClick={() => setOpen(false)}>
-            <button className="btn-saffron-premium w-full min-h-11">Start Free</button>
+            <button className="btn-saffron-premium w-full min-h-11">Get Started</button>
           </Link>
         </div>
       )}

@@ -4,8 +4,8 @@ import { Check } from "lucide-react";
 import { Link } from "@/lib/router-compat";
 
 const chips = [
-  "No credit card needed",
-  "1 GB free forever",
+  "Cancel anytime",
+  "7-day refund window",
   "Setup in 2 minutes",
 ];
 
@@ -28,7 +28,7 @@ export const FinalCTA = () => {
             Ready to convert twice as much?
           </h2>
           <p className="text-base md:text-lg text-white/90 mb-8">
-            Same effort. Twice the conversion. Start free in 2 minutes.
+            Same effort. Twice the conversion. Get started in 2 minutes.
           </p>
 
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8">
@@ -45,7 +45,7 @@ export const FinalCTA = () => {
 
           <Link to="/auth?tab=signup" className="block sm:inline-block">
             <button className="btn-saffron-premium w-full sm:w-auto text-base sm:text-lg">
-              Start Free →
+              Get Started →
             </button>
           </Link>
 

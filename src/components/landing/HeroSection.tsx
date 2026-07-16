@@ -99,7 +99,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.75 }}
             style={{ color: "var(--text-tertiary)" }}
           >
-            No credit card. 1 GB free forever. Setup in 2 minutes.
+            Plans from ₹249/mo. 7-day refund. Setup in 2 minutes.
           </motion.p>
 
           <motion.div

@@ -112,7 +112,7 @@ const content: UseCaseContent = {
     { to: "/features", label: "All features" },
     { to: "/pricing", label: "Pricing" },
   ],
-  ctaLabel: "Start Free — Built for Indian MLM Leaders",
+  ctaLabel: "Get Started — Built for Indian MLM Leaders",
 };
 
 export const Route = createFileRoute("/use-cases/network-marketing")({

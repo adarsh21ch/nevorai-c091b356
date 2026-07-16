@@ -20,7 +20,7 @@ import { getSupabaseFunctionErrorMessage } from "@/lib/supabase-function-error";
 
 const VIEWS_TOOLTIP = "Total unique viewers across all your funnels per day. Resets at midnight IST.";
 
-const FREE_CTA = "Start Free";
+const FREE_CTA = "Get Started";
 const FREE_VARIANT = "outline" as const;
 
 /**
