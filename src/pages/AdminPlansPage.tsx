@@ -393,7 +393,7 @@ const AdminPlansPage = () => {
           <TabsContent value="pricing" className="pt-2 space-y-2">
             {planName !== "free" ? (
               <Suspense fallback={fallback}>
-                <ViewTiersManager planName={planName} />
+                <SimplePriceEditor planName={planName} />
               </Suspense>
             ) : (
               <p className="text-[11px] text-muted-foreground italic px-1">No pricing fields for the Free plan.</p>
