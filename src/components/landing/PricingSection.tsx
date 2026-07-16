@@ -419,10 +419,10 @@ export const PricingSection = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
-            Start Free. <span className="text-gradient-brand">Upgrade When You Get Results.</span>
+            Simple Pricing. <span className="text-gradient-brand">Pick the Plan That Fits You.</span>
           </h2>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Pick the plan that fits your network size. Start free — no credit card needed.
+            Storage-based plans built for Indian network marketers. Cancel anytime.
           </p>
         </motion.div>
 
