@@ -284,7 +284,7 @@ export const PricingSection = () => {
   // explicitly enabled in admin — with Free disabled we hide the card so
   // the landing page matches the app (no free tier advertised).
   const enabledPlans = [...planConfigs]
-    .filter((c: any) => c && c.is_enabled !== false && c.plan_name !== "free")
+    .filter((c: any) => c && c.is_enabled !== false && c.plan_name !== "free" && c.plan_name !== "enterprise")
     .sort((a: any, b: any) => (a.display_order ?? 100) - (b.display_order ?? 100));
 
   const cards: {
