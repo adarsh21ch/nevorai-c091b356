@@ -149,24 +149,47 @@ const BillingPage = () => {
     );
   }
 
-  const currentTier = plan.tier; // free | basic | pro | trial
+  const currentTier = plan.tier;
 
-  // Plan ordering for upgrade/downgrade logic
-  const TIER_RANK: Record<string, number> = { free: 0, basic: 1, growth: 2, pro: 3, trial: 3 };
+  // Plan ordering — new plan names first, legacy aliases mapped for back-compat.
+  const TIER_RANK: Record<string, number> = {
+    free: 0,
+    basic: 1, starter: 1,
+    growth: 2,
+    pro: 3, leader: 4,
+    trial: 3,
+  };
   const currentRank = TIER_RANK[currentTier] ?? 0;
+  const isTopTierUser = !plan.isExpired && (currentTier === "leader" || currentTier === "pro");
 
-  const renderTierCard = (p: PlanRow | undefined, label: string, accent: boolean) => {
-    if (!p) return null;
-    const planRank = TIER_RANK[p.plan_name] ?? 0;
+  const cardLabel = (p: PlanRowExt): string =>
+    (p.display_name && p.display_name.trim())
+      || planDisplayName(p.plan_name)
+      || (p.plan_name.charAt(0).toUpperCase() + p.plan_name.slice(1));
+
+  const renderTierCard = (p: PlanRowExt) => {
+    const label = cardLabel(p);
+    const planRank = TIER_RANK[p.plan_name] ?? (p.display_order ?? 99);
     const isCurrent =
-      (p.plan_name === currentTier) ||
-      (p.plan_name === "pro" && currentTier === "trial");
+      !plan.isExpired &&
+      ((p.plan_name === currentTier) ||
+        (currentTier === "trial" && (p.plan_name === "growth" || p.plan_name === "pro")));
     const features = buildFeatures(p);
-    // Hide cards strictly below the user's current paid tier (e.g. on Pro, don't show Basic/Growth)
-    const isBelowCurrent = planRank < currentRank && currentTier !== "free" && currentTier !== "trial";
+    // Only hide strictly-lower tiers when user is on an ACTIVE paid plan.
+    // Expired users should see every option (including lower tiers) so they
+    // can renew on any plan.
+    const isBelowCurrent =
+      !plan.isExpired &&
+      planRank < currentRank &&
+      currentTier !== "free" &&
+      currentTier !== "trial";
+
+    // Highlight the top-ranked plan we're rendering as "recommended".
+    const accent = planRank >= 3;
 
     return (
       <div
+        key={p.plan_name}
         className={cn(
           "glass-card p-6 flex flex-col gap-4 relative",
           accent && "border-primary/30 bg-gradient-to-br from-primary/[0.04] to-transparent",
@@ -199,9 +222,9 @@ const BillingPage = () => {
             <CheckCircle2 size={13} className="mr-1.5" /> Current Plan
           </Badge>
         ) : isBelowCurrent ? null : (
-          <Link to="/upgrade">
+          <Link to={`/pricing?plan=${p.plan_name}`}>
             <Button className="w-full gap-1.5" variant={accent ? "default" : "outline"}>
-              Upgrade to {label}
+              {plan.isExpired ? `Renew on ${label}` : `Upgrade to ${label}`}
               <ArrowRight size={14} />
             </Button>
           </Link>
