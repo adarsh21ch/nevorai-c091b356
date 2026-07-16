@@ -230,8 +230,7 @@ const PricingFullPage = () => {
     return config.monthly_price * 12 - config.yearly_price;
   };
 
-  // Step 1: open the checkout dialog. Coupon entry happens there, then we
-  // launch Razorpay via proceedPayment with the negotiated price + coupon code.
+  // Directly launch Razorpay — no intermediate confirmation dialog.
   const handlePayment = useCallback(async (planName: string) => {
     if (!user) {
       navigate(`/auth?tab=signup&redirect=/pricing&plan=${planName}`);
@@ -239,8 +238,6 @@ const PricingFullPage = () => {
     }
     const rawConfig = planConfigs.find((c: any) => c.plan_name === planName);
     if (!rawConfig) return;
-    // Merge in base-tier price from plan_tiers so admin-managed plans
-    // (starter/growth/leader) whose prices live there resolve to a real amount.
     const config = withBasePrice(rawConfig, planName);
 
     const planKey = `${planName}_${billing}`;
@@ -249,19 +246,8 @@ const PricingFullPage = () => {
       toast.error("Pricing for this plan is not configured yet. Please contact support.");
       return;
     }
-    setCheckoutCtx({
-      planName,
-      planKey,
-      price: Number(displayPrice) || 0,
-      tierId: null,  // server resolves base tier when null
-    });
-  }, [user, navigate, billing, planConfigs, viewTiers]);
 
-
-  // Step 2: actually charge via Razorpay, optionally with coupon.
-  const proceedPayment = useCallback(async (args: { couponCode: string | null; finalPrice: number }) => {
-    if (!checkoutCtx) return;
-    const { planName, planKey } = checkoutCtx;
+    const finalPrice = Number(displayPrice) || 0;
     setLoading(planKey);
     try {
       const scriptLoaded = await loadRazorpayScript();
@@ -271,8 +257,7 @@ const PricingFullPage = () => {
         body: {
           action: "create_order",
           plan_key: planKey,
-          display_price: args.finalPrice,
-          coupon_code: args.couponCode || undefined,
+          display_price: finalPrice,
         },
       });
       if (error || !data?.order_id) {
@@ -295,9 +280,7 @@ const PricingFullPage = () => {
         name: "Nevorai",
         description: data.is_plan_upgrade
           ? `Upgrade to ${planName.charAt(0).toUpperCase() + planName.slice(1)} — pay ₹${payableToday} today for ${data.days_remaining} day${data.days_remaining === 1 ? "" : "s"} left (renews at ₹${data.target_price}${renewalLabel})`
-          : data.coupon
-            ? `${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan — ${billing} (${data.coupon.code})`
-            : `${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan — ${billing}`,
+          : `${planName.charAt(0).toUpperCase() + planName.slice(1)} Plan — ${billing}`,
         order_id: data.order_id,
         handler: async (response: any) => {
           try {
@@ -315,7 +298,6 @@ const PricingFullPage = () => {
               duration: 7000,
             });
             refreshPlan();
-            setCheckoutCtx(null);
             setTimeout(() => navigate("/billing"), 1500);
           } catch {
             toast.error("Payment received but verification pending. Contact support.");
@@ -339,10 +321,10 @@ const PricingFullPage = () => {
       rzp.open();
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
-    } finally {
       setLoading(null);
     }
-  }, [checkoutCtx, user, profile, navigate, openSupport, refreshPlan, billing, plan]);
+  }, [user, navigate, billing, planConfigs, viewTiers, profile, openSupport, refreshPlan, plan]);
+
 
 
 
@@ -800,19 +782,6 @@ const PricingFullPage = () => {
         </div>
       </div>
       {!isDashboardUpgradeView && <Footer />}
-      {checkoutCtx && (
-        <CheckoutDialog
-          open={!!checkoutCtx}
-          onOpenChange={(o) => { if (!o) setCheckoutCtx(null); }}
-          planName={checkoutCtx.planName.charAt(0).toUpperCase() + checkoutCtx.planName.slice(1)}
-          planKey={checkoutCtx.planKey}
-          billing={billing}
-          basePrice={checkoutCtx.price}
-          tierId={checkoutCtx.tierId}
-          loading={loading === checkoutCtx.planKey}
-          onConfirm={proceedPayment}
-        />
-      )}
     </>
 
   );
