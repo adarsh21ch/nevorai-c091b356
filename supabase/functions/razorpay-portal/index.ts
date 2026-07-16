@@ -646,8 +646,49 @@ Deno.serve(async (req) => {
       const pKey = order.notes?.plan_key || verifyPlanKey;
       if (!pKey) return jsonResponse({ error: "Plan key missing on order" }, 400);
 
-      const { data: planData } = await serviceClient.from("admin_subscription_plans")
-        .select("*").eq("plan_key", pKey).eq("is_active", true).maybeSingle();
+      // Resolve plan definition. New tiers (starter/growth/leader) live in
+      // `subscription_plans`; legacy plans (basic/pro) also have a matching
+      // row there. We fall back to `admin_subscription_plans` only if the
+      // canonical row is missing so old orders keep verifying.
+      const pKeyBase = String(pKey).split("_")[0].toLowerCase();
+      const pKeyInterval = getBillingInterval(pKey, null);
+
+      let planData: any = null;
+      const { data: subPlanRow } = await serviceClient
+        .from("subscription_plans")
+        .select("*")
+        .eq("plan_name", pKeyBase)
+        .maybeSingle();
+
+      if (subPlanRow && subPlanRow.is_enabled !== false) {
+        // Best-effort price from subscription_plans; falls back to plan_tiers base row.
+        let priceFromPlan = pKeyInterval === "yearly"
+          ? Number((subPlanRow as any).yearly_price ?? (subPlanRow as any).price_yearly ?? 0)
+          : Number((subPlanRow as any).monthly_price ?? (subPlanRow as any).price_monthly ?? 0);
+        if (!priceFromPlan) {
+          const { data: baseTierRow } = await serviceClient
+            .from("plan_tiers")
+            .select("monthly_price, yearly_price")
+            .eq("plan_name", pKeyBase)
+            .eq("is_base", true)
+            .eq("is_active", true)
+            .maybeSingle();
+          if (baseTierRow) priceFromPlan = pickTierPrice(baseTierRow, pKeyInterval);
+        }
+        planData = {
+          plan_key: pKey,
+          tier: pKeyBase,
+          billing_type: pKeyInterval,
+          duration_days: pKeyInterval === "yearly"
+            ? Number((subPlanRow as any).yearly_validity_days || 365)
+            : 30,
+          price_inr: priceFromPlan,
+        };
+      } else {
+        const { data: legacy } = await serviceClient.from("admin_subscription_plans")
+          .select("*").eq("plan_key", pKey).eq("is_active", true).maybeSingle();
+        if (legacy) planData = legacy;
+      }
 
       if (!planData) return jsonResponse({ error: "Plan not found or inactive" }, 400);
 
