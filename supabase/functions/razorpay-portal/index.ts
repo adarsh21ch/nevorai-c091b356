@@ -54,7 +54,16 @@ function jsonResponse(data: unknown, status = 200) {
   });
 }
 
-const PLAN_RANK: Record<string, number> = { free: 0, basic: 1, pro: 2 };
+// Plan hierarchy — higher rank = higher tier. Includes both legacy
+// (basic/pro) and current (starter/growth/leader) plan names so that
+// upgrade proration works for any paid → higher-paid transition.
+const PLAN_RANK: Record<string, number> = {
+  free: 0,
+  basic: 1, starter: 1,
+  pro: 2, growth: 2,
+  leader: 3,
+};
+const PAID_PLANS = new Set(["basic", "pro", "starter", "growth", "leader"]);
 
 function getBasePlanName(value: string | null | undefined) {
   return (value || "").split("_")[0]?.toLowerCase() || "";
