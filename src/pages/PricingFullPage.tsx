@@ -237,8 +237,11 @@ const PricingFullPage = () => {
       navigate(`/auth?tab=signup&redirect=/pricing&plan=${planName}`);
       return;
     }
-    const config = planConfigs.find((c: any) => c.plan_name === planName);
-    if (!config) return;
+    const rawConfig = planConfigs.find((c: any) => c.plan_name === planName);
+    if (!rawConfig) return;
+    // Merge in base-tier price from plan_tiers so admin-managed plans
+    // (starter/growth/leader) whose prices live there resolve to a real amount.
+    const config = withBasePrice(rawConfig, planName);
 
     const planKey = `${planName}_${billing}`;
     const displayPrice = getPrice(config);
@@ -252,7 +255,7 @@ const PricingFullPage = () => {
       price: Number(displayPrice) || 0,
       tierId: null,  // server resolves base tier when null
     });
-  }, [user, navigate, billing, planConfigs]);
+  }, [user, navigate, billing, planConfigs, viewTiers]);
 
 
   // Step 2: actually charge via Razorpay, optionally with coupon.
