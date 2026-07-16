@@ -25,7 +25,7 @@ export const SimplePriceEditor = ({ planName }: { planName: string }) => {
     queryFn: async () => {
       const [{ data: planRow }, { data: tierRow }] = await Promise.all([
         (supabase.from("subscription_plans") as any)
-          .select("price_monthly, price_yearly")
+          .select("monthly_price, yearly_price")
           .eq("plan_name", planName)
           .maybeSingle(),
         (supabase.from("plan_tiers" as any) as any)
@@ -37,13 +37,14 @@ export const SimplePriceEditor = ({ planName }: { planName: string }) => {
           .maybeSingle(),
       ]);
       return {
-        monthly: planRow?.price_monthly ?? tierRow?.monthly_price ?? 0,
-        yearly: planRow?.price_yearly ?? tierRow?.yearly_price ?? 0,
+        monthly: planRow?.monthly_price ?? tierRow?.monthly_price ?? 0,
+        yearly: planRow?.yearly_price ?? tierRow?.yearly_price ?? 0,
         tierId: tierRow?.id ?? null,
       };
     },
     staleTime: 30_000,
   });
+
 
   const [monthly, setMonthly] = useState<number | "">("");
   const [yearly, setYearly] = useState<number | "">("");
