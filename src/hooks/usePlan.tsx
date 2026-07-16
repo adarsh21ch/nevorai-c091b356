@@ -117,21 +117,20 @@ export const usePlan = () => {
   const isPaid = isActive && subscription?.tier && subscription.tier !== "free";
   const tier = trialActive ? "trial" : (isActive ? (subscription?.tier || "free") : "free");
 
-  // SINGLE SOURCE OF TRUTH: subscription_plans is what the admin "Plans & Features"
-  // editor writes to. Read multi_step from there for ALL tiers (free + paid)
-  // so admin toggles take effect immediately for every user without needing
-  // a duplicate column on admin_subscription_plans.
+  // SINGLE SOURCE OF TRUTH: `subscription_plans` (the admin "Plans & Features"
+  // editor). Read limits AND feature toggles from there for ALL tiers so
+  // admin changes take effect immediately for every user.
   const lookupTierForConfig = tier === "trial" ? "growth" : (isPaid ? (subscription?.tier || "free") : "free");
   const tierPlanCfg = allPlanCfgs.find((c: any) => c.plan_name === lookupTierForConfig);
   const multiStepEnabled = tierPlanCfg
     ? !!(tierPlanCfg as any).multilevel_funnel_enabled
     : freeLimits.multi_step_funnel_enabled;
 
-  const limits: PlanLimits = (isPaid || trialActive) && planConfig ? {
-    funnel_limit: planConfig.funnel_limit,
-    video_max_size_mb: planConfig.video_max_size_mb,
-    landing_page_limit: (planConfig as any).landing_page_limit ?? null,
-    live_session_limit: (planConfig as any).live_session_limit ?? null,
+  const limits: PlanLimits = tierPlanCfg ? {
+    funnel_limit: (tierPlanCfg as any).max_funnels ?? freeLimits.funnel_limit,
+    video_max_size_mb: (tierPlanCfg as any).max_storage_mb ?? freeLimits.video_max_size_mb,
+    landing_page_limit: (tierPlanCfg as any).max_landing_pages ?? freeLimits.landing_page_limit,
+    live_session_limit: (tierPlanCfg as any).max_live_sessions ?? freeLimits.live_session_limit,
     multi_step_funnel_enabled: multiStepEnabled,
   } : { ...freeLimits, multi_step_funnel_enabled: multiStepEnabled };
 
@@ -154,8 +153,6 @@ export const usePlan = () => {
   };
 
   // Deprecated: use `usePlanLimits().features.<feature>` directly.
-  // Kept only so legacy call sites compile; always returns true for paid
-  // tiers and defers to false for free users on unknown keys.
   const canAccess = useCallback((_feature: string): boolean => {
     return ["pro", "trial", "basic", "starter", "growth", "leader"].includes(tier);
   }, [tier]);
@@ -168,8 +165,11 @@ export const usePlan = () => {
     };
     const limit = limitMap[resource];
     if (limit === null || limit === undefined) return true;
+    if (limit === -1) return true; // -1 = unlimited
+    if (limit === 0) return false; // 0 = disabled
     return currentCount < limit;
   }, [limits]);
+
 
   const canUseMultiStep = limits.multi_step_funnel_enabled;
 
