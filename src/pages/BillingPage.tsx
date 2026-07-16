@@ -332,27 +332,53 @@ const BillingPage = () => {
           </div>
         </div>
 
-        {/* Choose Your Plan — two tier cards */}
+        {/* Choose Your Plan — rendered dynamically from subscription_plans */}
         <div className="space-y-3">
           <div>
-            <h2 className="text-lg font-heading font-bold">Choose your plan</h2>
+            <h2 className="text-lg font-heading font-bold">
+              {plan.isExpired ? "Renew your subscription" : "Choose your plan"}
+            </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Storage-based pricing. No view limits. Cancel anytime.
+              {plan.isExpired
+                ? "Your access has ended. Pick any plan below to restore it instantly."
+                : "Storage-based pricing. Cancel anytime."}
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {renderTierCard(basicPlan, "Basic", false)}
-            {renderTierCard(growthPlan, "Growth", false)}
-            {renderTierCard(proPlan, "Pro", true)}
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-4",
+              (tierPlans?.length ?? 0) >= 3 ? "md:grid-cols-3" : "md:grid-cols-2",
+            )}
+          >
+            {(tierPlans ?? []).map((p) => renderTierCard(p))}
           </div>
 
-          {currentTier === "pro" && (
+          {isTopTierUser && (
             <p className="text-xs text-center text-muted-foreground pt-1">
-              You're on our highest tier. 🎉 Thanks for being a Pro member.
+              You're on our highest tier. 🎉 Thanks for being a {planLabel} member.
             </p>
           )}
         </div>
+
+        {/* Expired-plan renew prompt */}
+        {plan.isExpired && (
+          <div className="glass-card p-4 border border-destructive/20 bg-destructive/5 space-y-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={16} className="text-destructive" />
+              <p className="font-medium text-destructive text-sm">Your {planLabel} plan has expired</p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Your funnels, landing pages and view tracking are paused until you renew.
+            </p>
+            <div className="flex gap-2">
+              <Link to="/pricing"><Button size="sm">Renew Plan</Button></Link>
+              <Button size="sm" variant="outline" onClick={() => openSupport("Hi, my Nevorai plan expired. Can you help me renew?")}>
+                <MessageCircle size={13} className="mr-1.5" /> Talk to support
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Payment failure prompt */}
         {plan.status === "payment_failed" && (
