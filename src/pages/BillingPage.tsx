@@ -42,7 +42,7 @@ interface PlanRow {
   feature_whatsapp_automation?: boolean | null;
   feature_landing_pages?: boolean | null;
   feature_go_live?: boolean | null;
-  feature_speaker_profile?: boolean | null;
+  feature_advanced_funnel_customization?: boolean | null;
   feature_advanced_analytics?: boolean | null;
   feature_analytics?: boolean | null;
 }
@@ -67,7 +67,7 @@ const buildFeatures = (p: PlanRow): string[] => {
   }
   if (p.feature_lead_capture) items.push("Lead capture");
   if (p.feature_whatsapp_automation) items.push("WhatsApp share & automation");
-  if (p.feature_speaker_profile) items.push("Speaker profile");
+  if (p.feature_advanced_funnel_customization) items.push("Advanced funnel customization");
   if (p.feature_advanced_analytics) items.push("Advanced analytics");
   else if (p.feature_analytics) items.push("Analytics");
   return items;

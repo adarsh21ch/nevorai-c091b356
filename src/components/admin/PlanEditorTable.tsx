@@ -198,7 +198,7 @@ export const PlanEditorTable = () => {
           </thead>
           <tbody>
             {categories.map((category) => {
-              const rows = PLAN_FEATURES.filter((f) => f.category === category);
+              const rows = PLAN_FEATURES.filter((f) => f.category === category && !f.deprecated);
               if (!rows.length) return null;
               return (
                 <>
