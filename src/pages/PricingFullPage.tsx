@@ -621,11 +621,9 @@ const PricingFullPage = () => {
       };
     });
 
-  // Only show the Free card when the Free plan is explicitly enabled in admin.
-  // With Free disabled, we don't advertise a non-existent tier on the pricing page.
-  const showFreeCard = freeConfig?.is_enabled !== false;
+  // Free tier is no longer offered — never show the Free card publicly.
+  void freeCard;
   const cards: { key: string; node: ReactNode }[] = [
-    ...(showFreeCard ? [{ key: "free", node: freeCard }] : []),
     ...(basicCard ? [{ key: "basic", node: basicCard }] : []),
     ...extraCards,
     ...(proCard ? [{ key: "pro", node: proCard }] : []),
