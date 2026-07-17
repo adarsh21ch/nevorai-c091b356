@@ -192,7 +192,7 @@ export const ComparePage = ({ content }: { content: CompareContent }) => {
           <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-8">{hero.subtitle}</p>
           <Link to="/auth?tab=signup">
             <Button size="xl" className="rounded-full text-white font-semibold border-0 bg-gradient-brand shadow-glow-brand-lg px-10 py-4">
-              Try Nevorai Free
+              Try Nevorai
             </Button>
           </Link>
         </div>
