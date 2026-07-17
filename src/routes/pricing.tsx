@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-const TITLE = "Nevorai Pricing — Free Forever, Pro from ₹499/month";
+const TITLE = "Nevorai Pricing — Plans built for growing creators";
 const DESCRIPTION =
-  "Simple, transparent pricing for the smarter way to share business videos. Free forever for 1 GB. Pro plan from ₹499/month. UPI, cards and net banking via Razorpay.";
+  "Simple, transparent pricing for the smarter way to share business videos. Pick the plan that fits your growth. UPI, cards and net banking via Razorpay.";
 const URL = "https://nevorai.com/pricing";
 
 export const Route = createFileRoute("/pricing")({

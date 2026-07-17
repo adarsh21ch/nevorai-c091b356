@@ -621,11 +621,9 @@ const PricingFullPage = () => {
       };
     });
 
-  // Only show the Free card when the Free plan is explicitly enabled in admin.
-  // With Free disabled, we don't advertise a non-existent tier on the pricing page.
-  const showFreeCard = freeConfig?.is_enabled !== false;
+  // Free tier is no longer offered — never show the Free card publicly.
+  void freeCard;
   const cards: { key: string; node: ReactNode }[] = [
-    ...(showFreeCard ? [{ key: "free", node: freeCard }] : []),
     ...(basicCard ? [{ key: "basic", node: basicCard }] : []),
     ...extraCards,
     ...(proCard ? [{ key: "pro", node: proCard }] : []),
@@ -663,7 +661,7 @@ const PricingFullPage = () => {
                 ? "Pick a plan below to restore access instantly."
                 : isDashboardUpgradeView
                   ? "Manage your subscription without leaving your account."
-                  : "Start free forever with usage limits. Upgrade when you grow."}
+                  : "Pick the plan that fits your growth. Upgrade or downgrade anytime."}
             </p>
             {plan.isExpired && (
               <p className="text-sm text-destructive font-medium">Your plan has expired. Renew to restore access.</p>
@@ -758,7 +756,6 @@ const PricingFullPage = () => {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left p-4 font-medium">Feature</th>
-                    <th className="text-center p-4 font-medium">Free</th>
                     {basicEnabled && <th className="text-center p-4 font-medium">Basic</th>}
                     {proEnabled && <th className="text-center p-4 font-medium text-primary">Pro</th>}
                   </tr>
@@ -767,7 +764,6 @@ const PricingFullPage = () => {
                   {buildComparisonRows().map((row) => (
                     <tr key={row.name} className="border-b border-border/50">
                       <td className="p-4">{row.name}</td>
-                      <td className="p-4 text-center"><ComparisonCell value={row.free} /></td>
                       {basicEnabled && <td className="p-4 text-center"><ComparisonCell value={row.basic} /></td>}
                       {proEnabled && <td className="p-4 text-center"><ComparisonCell value={row.pro} /></td>}
                     </tr>

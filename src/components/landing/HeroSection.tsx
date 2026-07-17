@@ -118,7 +118,7 @@ export const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.9 }}
             style={{ color: "var(--text-tertiary)" }}
           >
-            🇮🇳 Made in India · Free forever for 1 GB
+            🇮🇳 Made in India · Built for network marketers
           </motion.p>
         </div>
       </div>

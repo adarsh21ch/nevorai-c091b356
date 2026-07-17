@@ -306,9 +306,9 @@ export const LeakyFunnel = () => {
                     href="/auth"
                     className="inline-flex items-center gap-2 text-white text-sm md:text-base font-semibold px-7 py-3.5 rounded-xl shadow-lg hover:opacity-90 transition-opacity bg-gradient-brand min-h-11"
                   >
-                    Start Your Free 7-Day Trial →
+                    Get Started with Nevorai →
                   </a>
-                  <p className="mt-3 text-xs text-gray-500">No card needed. Full access for 7 days.</p>
+                  <p className="mt-3 text-xs text-gray-500">No setup fees. Cancel anytime.</p>
                 </div>
               </div>
             </motion.div>
