@@ -57,7 +57,7 @@ export const UseCasePage = ({ content }: { content: UseCaseContent }) => {
               {content.ctaLabel ?? "Get Started — 7-Day Refund"}
             </Button>
           </Link>
-          <p className="text-xs text-muted-foreground mt-3">🇮🇳 Made in India · Free forever for 1 GB</p>
+          <p className="text-xs text-muted-foreground mt-3">🇮🇳 Made in India · Built for network marketers</p>
         </div>
       </section>
 
