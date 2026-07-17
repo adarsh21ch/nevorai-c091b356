@@ -20,7 +20,7 @@ const youtubeRoute: Step[] = [
   { icon: "✗", label: "Lost forever", bad: true, isEnd: true },
 ];
 
-const nflowRoute: Step[] = [
+const nevoraiRoute: Step[] = [
   { icon: "📱", label: "Gets link" },
   { icon: "🎯", label: "Opens Nevorai" },
   { icon: "🔒", label: "Can't skip", good: true },
@@ -165,7 +165,7 @@ export const ProspectJourney = () => {
     );
   };
 
-  const activeSteps = activeRoute === "youtube" ? youtubeRoute : nflowRoute;
+  const activeSteps = activeRoute === "youtube" ? youtubeRoute : nevoraiRoute;
   const isYT = activeRoute === "youtube";
 
   return (
@@ -216,7 +216,7 @@ export const ProspectJourney = () => {
               <span className="font-bold text-lg text-gradient-brand">✅ Nevorai Route</span>
               <span className="text-sm text-emerald-700/80">— 16–18% conversion</span>
             </div>
-            {renderDesktopRoute(nflowRoute, "Nevorai")}
+            {renderDesktopRoute(nevoraiRoute, "Nevorai")}
           </motion.div>
         </div>
 
