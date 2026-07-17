@@ -10,7 +10,7 @@ interface Props {
   size?: "sm" | "default" | "lg" | "icon";
 }
 
-export const CopyNflowLinkButton = ({ videoId, className = "" }: Props) => {
+export const CopyNevoraiLinkButton = ({ videoId, className = "" }: Props) => {
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(false);
 

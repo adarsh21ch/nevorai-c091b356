@@ -22,7 +22,7 @@ import { CodeGateScreen } from "@/components/funnel/CodeGateScreen";
 import { PrivateLeadForm } from "@/components/funnel/PrivateLeadForm";
 import { FunnelDailyLimitGate } from "@/components/funnel/FunnelDailyLimitGate";
 import { CreatorInactiveGate } from "@/components/funnel/CreatorInactiveGate";
-import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
+import { CopyNevoraiLinkButton } from "@/components/CopyNevoraiLinkButton";
 import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { isYouTubeUrl } from "@/lib/youtube";
 import { sanitizeText } from "@/lib/sanitize";
@@ -1441,7 +1441,7 @@ const [dailyLimitState] = useState<"unknown" | "allowed" | "blocked">("allowed")
               )}
               {videoUrl && videoAsset?.id && (videoAsset as any)?.allow_copy_link !== false && (
                 <div className="flex justify-end">
-                  <CopyNflowLinkButton videoId={videoAsset.id} />
+                  <CopyNevoraiLinkButton videoId={videoAsset.id} />
                 </div>
               )}
               {!videoUrl && (

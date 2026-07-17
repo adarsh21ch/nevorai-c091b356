@@ -19,7 +19,7 @@ const youtubeSteps: Step[] = [
   { count: 8, label: "No follow-up system — only 8 accidentally convert", sublabel: "−23 YouTube autoplays next video, they forget you exist", barWidth: 8, isFinal: true },
 ];
 
-const nflowSteps: Step[] = [
+const nevoraiSteps: Step[] = [
   { count: 100, label: "Prospects open your Nevorai link", sublabel: "Clean player loads instantly — no distractions anywhere", barWidth: 100 },
   { count: 96, label: "Watch in a fully distraction-free environment", sublabel: "No recommendations. No comments. No autoplay. Just your video.", barWidth: 96 },
   { count: 91, label: "Watch your full message — skip is disabled", sublabel: "They hear every word of your pitch, not just the first 30 seconds", barWidth: 91 },
@@ -49,7 +49,7 @@ const youtubeTheme: Theme = {
   barStyle: (i, isFinal) => isFinal ? {} : { background: `rgba(239, 68, 68, ${0.25 + i * 0.1})` },
 };
 
-const nflowTheme: Theme = {
+const nevoraiTheme: Theme = {
   numberColor: "text-white",
   numberFinalColor: "text-emerald-400",
   labelColor: "text-gray-100",
@@ -260,8 +260,8 @@ export const LeakyFunnel = () => {
               </div>
 
               <div className="space-y-4 md:space-y-5">
-                {nflowSteps.map((step, i) => (
-                  <FunnelRow key={i} step={step} i={i} theme={nflowTheme} />
+                {nevoraiSteps.map((step, i) => (
+                  <FunnelRow key={i} step={step} i={i} theme={nevoraiTheme} />
                 ))}
               </div>
 

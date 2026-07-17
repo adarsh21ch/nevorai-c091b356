@@ -1,18 +1,18 @@
 import { cn } from "@/lib/utils";
 
-interface NFlowLogoProps {
+interface NevoraiLogoProps {
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   showTagline?: boolean;
   variant?: "default" | "white" | "dark";
   className?: string;
 }
 
-export const NFlowLogo = ({
+export const NevoraiLogo = ({
   size = "md",
   showTagline = false,
   variant = "default",
   className,
-}: NFlowLogoProps) => {
+}: NevoraiLogoProps) => {
   const sizeMap = {
     xs: { name: "text-sm", by: "text-[9px]", tag: "text-[9px]" },
     sm: { name: "text-base", by: "text-[10px]", tag: "text-[10px]" },
@@ -41,4 +41,4 @@ export const NFlowLogo = ({
   );
 };
 
-export default NFlowLogo;
+export default NevoraiLogo;
