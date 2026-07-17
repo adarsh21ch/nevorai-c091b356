@@ -661,7 +661,7 @@ const PricingFullPage = () => {
                 ? "Pick a plan below to restore access instantly."
                 : isDashboardUpgradeView
                   ? "Manage your subscription without leaving your account."
-                  : "Start free forever with usage limits. Upgrade when you grow."}
+                  : "Pick the plan that fits your growth. Upgrade or downgrade anytime."}
             </p>
             {plan.isExpired && (
               <p className="text-sm text-destructive font-medium">Your plan has expired. Renew to restore access.</p>
