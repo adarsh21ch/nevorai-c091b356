@@ -756,7 +756,6 @@ const PricingFullPage = () => {
                 <thead>
                   <tr className="border-b border-border">
                     <th className="text-left p-4 font-medium">Feature</th>
-                    <th className="text-center p-4 font-medium">Free</th>
                     {basicEnabled && <th className="text-center p-4 font-medium">Basic</th>}
                     {proEnabled && <th className="text-center p-4 font-medium text-primary">Pro</th>}
                   </tr>
@@ -765,7 +764,6 @@ const PricingFullPage = () => {
                   {buildComparisonRows().map((row) => (
                     <tr key={row.name} className="border-b border-border/50">
                       <td className="p-4">{row.name}</td>
-                      <td className="p-4 text-center"><ComparisonCell value={row.free} /></td>
                       {basicEnabled && <td className="p-4 text-center"><ComparisonCell value={row.basic} /></td>}
                       {proEnabled && <td className="p-4 text-center"><ComparisonCell value={row.pro} /></td>}
                     </tr>
