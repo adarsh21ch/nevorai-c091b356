@@ -42,6 +42,8 @@ export interface PlanConfig {
   feature_custom_form_fields?: boolean;
   feature_skip_control?: boolean;
   max_custom_form_fields?: number;
+  /** New consolidated flag (Goal 2). Falls back to ANY-of-5 legacy flags when absent. */
+  feature_advanced_funnel_customization?: boolean;
 }
 
 const FREE_FALLBACK: PlanConfig = {
@@ -110,31 +112,55 @@ export const usePlanLimits = () => {
   const isTeamLimitReached = teamCapableTier && config.max_team_members !== -1 && teamCount >= config.max_team_members;
   const isVideoLimitReached = false; // Deprecated — storage limit is enforced by useStorageUsage.
 
+  // Goal 1: prospectAnalytics / insights / teamAnalytics now DERIVE from
+  // feature_advanced_analytics. Legacy per-flag columns are ignored.
+  const advancedAnalytics = config.feature_advanced_analytics === true;
+
+  // Goal 2: speakerProfile / videoTopics / contactForm / privacySettings /
+  // customFormFields now DERIVE from feature_advanced_funnel_customization.
+  // Until the DB migration has been applied, fall back to ANY-of-5 legacy
+  // flags so behavior is unchanged.
+  const advancedFunnelCustomization =
+    typeof config.feature_advanced_funnel_customization === "boolean"
+      ? config.feature_advanced_funnel_customization
+      : (
+        config.feature_speaker_profile === true ||
+        config.feature_video_topics === true ||
+        config.feature_contact_form === true ||
+        config.feature_privacy_settings === true ||
+        config.feature_custom_form_fields === true
+      );
+
   const features = {
     leadCapture: config.feature_lead_capture !== false,
     analytics: config.feature_analytics !== false,
     whatsappAutomation: config.feature_whatsapp_automation === true,
     videoSharing: config.feature_video_sharing === true,
     prioritySupport: config.feature_priority_support === true,
-    advancedAnalytics: config.feature_advanced_analytics === true,
+    advancedAnalytics,
     multilevelFunnels: config.multilevel_funnel_enabled,
     teamMembers: teamCapableTier && config.max_team_members !== 0,
-    teamAnalytics: config.feature_team_analytics === true,
+    // Derived from advancedAnalytics (Goal 1).
+    teamAnalytics: advancedAnalytics,
     goLive: config.feature_go_live !== false,
     landingPages: config.feature_landing_pages !== false,
     landingPageEmail: config.feature_landing_page_email === true,
     videoUpload: config.feature_video_upload === true,
-    insights: config.feature_insights === true,
+    // Derived from advancedAnalytics (Goal 1).
+    insights: advancedAnalytics,
     funnelCreation: config.feature_funnel_creation !== false,
     youtubeImport: config.feature_youtube_import === true,
     smartReminders: config.feature_smart_reminders === true,
     customBranding: config.feature_custom_branding === true,
-    prospectAnalytics: config.feature_prospect_analytics === true,
-    speakerProfile: config.feature_speaker_profile === true,
-    videoTopics: config.feature_video_topics !== false,
-    contactForm: config.feature_contact_form !== false,
-    privacySettings: config.feature_privacy_settings !== false,
-    customFormFields: config.feature_custom_form_fields === true,
+    // Derived from advancedAnalytics (Goal 1).
+    prospectAnalytics: advancedAnalytics,
+    // Derived from advancedFunnelCustomization (Goal 2).
+    advancedFunnelCustomization,
+    speakerProfile: advancedFunnelCustomization,
+    videoTopics: advancedFunnelCustomization,
+    contactForm: advancedFunnelCustomization,
+    privacySettings: advancedFunnelCustomization,
+    customFormFields: advancedFunnelCustomization,
     skipControl: config.feature_skip_control === true,
   };
 

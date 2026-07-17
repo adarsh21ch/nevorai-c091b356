@@ -21,6 +21,12 @@ export interface PlanFeatureBase {
   dbField: string;
   /** Hide this row entirely for the named plans (still editable in DB). */
   hideFor?: PlanKey[];
+  /**
+   * Deprecated flag — kept in DB for one release cycle but hidden from the
+   * admin plan editor so admins can't misconfigure it. Behavior is now
+   * derived from a consolidated flag (see planFeatures.ts header).
+   */
+  deprecated?: boolean;
 }
 
 export interface NumberFeature extends PlanFeatureBase {
@@ -54,12 +60,12 @@ export const PLAN_FEATURES: PlanFeature[] = [
     label: "★ View Limit Mode",
     type: "select",
     category: "Limits",
-    hint: "How funnel views are counted & capped",
+    hint: "Monthly is the standard. Daily/Both are legacy and no longer selectable.",
     dbField: "view_limit_mode",
+    // Only Monthly is selectable going forward. Existing plans still on
+    // daily/both keep their current mode (enforcement code untouched).
     options: [
-      { value: "daily", label: "📅 Daily" },
       { value: "monthly", label: "📆 Monthly" },
-      { value: "both", label: "📅📆 Both" },
     ],
   },
   { key: "monthly_views", label: "Monthly View Limit", type: "number", category: "Limits", hint: "Used when mode is monthly/both. -1 = unlimited", dbField: "monthly_views" },
@@ -88,12 +94,7 @@ export const PLAN_FEATURES: PlanFeature[] = [
 
   // ─── FEATURES ─────────────────────────────────────────────
   { key: "feature_funnel_creation", label: "Funnel Creation", type: "boolean", category: "Features", dbField: "feature_funnel_creation" },
-  { key: "feature_speaker_profile", label: "Speaker Profile", type: "boolean", category: "Features", hint: "Show speaker bio/photo section inside funnels", dbField: "feature_speaker_profile" },
-  { key: "feature_video_topics", label: "Video Topics", type: "boolean", category: "Features", hint: "Allow adding chapter/topic markers to funnel videos", dbField: "feature_video_topics" },
-  { key: "feature_contact_form", label: "Contact Form", type: "boolean", category: "Features", hint: "Show contact info section in funnels", dbField: "feature_contact_form" },
-  { key: "feature_privacy_settings", label: "Privacy & Access Codes", type: "boolean", category: "Features", hint: "Allow private funnels with access codes", dbField: "feature_privacy_settings" },
   { key: "feature_lead_capture", label: "Lead Capture", type: "boolean", category: "Features", dbField: "feature_lead_capture" },
-  { key: "feature_custom_form_fields", label: "Custom Form Fields", type: "boolean", category: "Features", hint: "Let users add custom fields to lead capture forms", dbField: "feature_custom_form_fields" },
   { key: "feature_video_upload", label: "Video Upload", type: "boolean", category: "Features", dbField: "feature_video_upload" },
   { key: "feature_skip_control", label: "Skip-Forward Control", type: "boolean", category: "Features", hint: "Allow creators to disable viewer skip-forward on their videos", dbField: "feature_skip_control" },
   { key: "feature_youtube_import", label: "YouTube Video Import", type: "boolean", category: "Features", dbField: "feature_youtube_import" },
@@ -103,15 +104,23 @@ export const PLAN_FEATURES: PlanFeature[] = [
   { key: "feature_go_live", label: "Live Broadcast", type: "boolean", category: "Features", dbField: "feature_go_live" },
   { key: "feature_whatsapp_automation", label: "WhatsApp Auto-Message", type: "boolean", category: "Features", dbField: "feature_whatsapp_automation" },
   { key: "feature_smart_reminders", label: "Smart Follow-up Reminders", type: "boolean", category: "Features", dbField: "feature_smart_reminders" },
-  { key: "feature_analytics", label: "Analytics Dashboard", type: "boolean", category: "Features", dbField: "feature_analytics" },
-  { key: "feature_advanced_analytics", label: "Advanced Analytics", type: "boolean", category: "Features", dbField: "feature_advanced_analytics" },
-  { key: "feature_prospect_analytics", label: "Per-Prospect Watch Analytics", type: "boolean", category: "Features", dbField: "feature_prospect_analytics" },
-  { key: "feature_insights", label: "Insights Dashboard", type: "boolean", category: "Features", dbField: "feature_insights" },
+  { key: "feature_analytics", label: "Analytics Dashboard", type: "boolean", category: "Features", hint: "Basic: can I see who watched", dbField: "feature_analytics" },
+  { key: "feature_advanced_analytics", label: "Advanced Analytics", type: "boolean", category: "Features", hint: "Deep analytics — also gates Insights Dashboard, Per-Prospect Watch, and Leader Dashboard", dbField: "feature_advanced_analytics" },
+  { key: "feature_advanced_funnel_customization", label: "Advanced Funnel Customization", type: "boolean", category: "Features", hint: "Bundles Speaker Profile, Video Topics, Contact Form, Privacy & Access Codes, and Custom Form Fields", dbField: "feature_advanced_funnel_customization" },
   { key: "multilevel_funnel_enabled", label: "Multi-Step Funnels", type: "boolean", category: "Features", dbField: "multilevel_funnel_enabled" },
-  { key: "feature_team_analytics", label: "Leader Dashboard", type: "boolean", category: "Features", hint: "Leader-only view of downline performance", dbField: "feature_team_analytics" },
   { key: "feature_custom_branding", label: "Custom Branding", type: "boolean", category: "Features", dbField: "feature_custom_branding" },
   { key: "feature_show_branding", label: "Show Nevorai Watermark", type: "boolean", category: "Features", hint: "If on, public funnel/landing/video pages show 'Made with Nevorai' badge", dbField: "feature_show_branding" },
   { key: "feature_priority_support", label: "Priority Support", type: "boolean", category: "Features", dbField: "feature_priority_support" },
+
+  // ─── DEPRECATED (hidden from admin editor; kept for one release cycle) ─
+  { key: "feature_prospect_analytics", label: "Per-Prospect Watch Analytics (deprecated → Advanced Analytics)", type: "boolean", category: "Features", dbField: "feature_prospect_analytics", deprecated: true },
+  { key: "feature_insights", label: "Insights Dashboard (deprecated → Advanced Analytics)", type: "boolean", category: "Features", dbField: "feature_insights", deprecated: true },
+  { key: "feature_team_analytics", label: "Leader Dashboard (deprecated → Advanced Analytics)", type: "boolean", category: "Features", dbField: "feature_team_analytics", deprecated: true },
+  { key: "feature_speaker_profile", label: "Speaker Profile (deprecated → Advanced Funnel Customization)", type: "boolean", category: "Features", dbField: "feature_speaker_profile", deprecated: true },
+  { key: "feature_video_topics", label: "Video Topics (deprecated → Advanced Funnel Customization)", type: "boolean", category: "Features", dbField: "feature_video_topics", deprecated: true },
+  { key: "feature_contact_form", label: "Contact Form (deprecated → Advanced Funnel Customization)", type: "boolean", category: "Features", dbField: "feature_contact_form", deprecated: true },
+  { key: "feature_privacy_settings", label: "Privacy & Access Codes (deprecated → Advanced Funnel Customization)", type: "boolean", category: "Features", dbField: "feature_privacy_settings", deprecated: true },
+  { key: "feature_custom_form_fields", label: "Custom Form Fields (deprecated → Advanced Funnel Customization)", type: "boolean", category: "Features", dbField: "feature_custom_form_fields", deprecated: true },
 
   // ─── PRICING ───────────────────────────────────────────────
   // Monthly/Yearly prices now live in plan_tiers (managed via ViewTiersManager).
