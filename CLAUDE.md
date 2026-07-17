@@ -1,14 +1,14 @@
-# nFlow – Claude Code Context
+# Nevorai – Claude Code Context
 
 ## What is this app?
 
-**nFlow** (by Nevorai) is a video funnel SaaS platform for Indian network marketers and sales people. Creators share videos, track every view, capture leads, and run multi-step funnels. Target market: Indian network marketing distributors who use WhatsApp to sell. Hosted at `flow.nevorai.com`. Made in India.
+**Nevorai** is a video funnel SaaS platform for Indian network marketers and sales people. Creators share videos, track every view, capture leads, and run multi-step funnels. Target market: Indian network marketing distributors who use WhatsApp to sell. Hosted at `nevorai.com`. Made in India.
 
 **Positioning**: "Unskippable video for network marketers" — category-of-one vs. B2B MLM software. Cheap enough for individual distributors to self-purchase.
 
 ## The Nevorai Product Family
 
-- **nFlow** (`nflow-sparkle-joy`) — Video funnel SaaS ← THIS PROJECT
+- **Nevorai** (formerly nFlow) — Video funnel SaaS ← THIS PROJECT
 - **nCall** — Calling/communication app (separate Lovable project)
 - **Backupshala** — Course builder / LMS (separate Lovable project)
 - **Launchpad** — Landing page builder with space theme (separate Lovable project)
