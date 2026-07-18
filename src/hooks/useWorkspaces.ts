@@ -29,8 +29,18 @@ export function useWorkspaces() {
         console.warn("[useWorkspaces] load failed:", error.message);
         return [];
       }
+      const LEGACY_WORKSPACE_ID = "772d6de4-34d2-458a-9a1b-604cbbcf02f7";
       return (data ?? [])
         .filter((row: any) => row.workspaces && !row.workspaces.deleted_at)
+        // Hide the shared "Nevorai (Legacy)" workspace from the switcher for
+        // non-owner members. 345 users are members of this workspace; letting
+        // any of them select it would expose content across all members.
+        .filter((row: any) => {
+          const isLegacy =
+            row.workspaces?.slug === "legacy" ||
+            row.workspace_id === LEGACY_WORKSPACE_ID;
+          return !isLegacy || row.role === "owner";
+        })
         .map((row: any): WorkspaceMembership => ({
           workspace_id: row.workspace_id,
           role: row.role,
