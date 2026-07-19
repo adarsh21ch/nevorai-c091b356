@@ -19,6 +19,17 @@ type VideoStatsRow = {
   live_session_uses: number | null;
 };
 type UsageFilter = "all" | "used" | "unused";
+type PlanFilter = "all" | "free" | "starter" | "growth" | "leader" | "enterprise";
+type QuietFilter = "any" | "1" | "7" | "15" | "30";
+type OwnerRow = { owner_id: string | null; owner_name: string | null; owner_email: string | null; plan_key: string | null };
+
+const PLAN_BADGE: Record<string, string> = {
+  free: "bg-muted text-muted-foreground",
+  starter: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  growth: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  leader: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  enterprise: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+};
 import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket, BarChart3, X } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
