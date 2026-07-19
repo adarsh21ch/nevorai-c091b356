@@ -19,6 +19,17 @@ type VideoStatsRow = {
   live_session_uses: number | null;
 };
 type UsageFilter = "all" | "used" | "unused";
+type PlanFilter = "all" | "free" | "starter" | "growth" | "leader" | "enterprise";
+type QuietFilter = "any" | "1" | "7" | "15" | "30";
+type OwnerRow = { owner_id: string | null; owner_name: string | null; owner_email: string | null; plan_key: string | null };
+
+const PLAN_BADGE: Record<string, string> = {
+  free: "bg-muted text-muted-foreground",
+  starter: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  growth: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+  leader: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+  enterprise: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+};
 import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket, BarChart3, X } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
@@ -40,6 +51,8 @@ const AdminVideosPage = () => {
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
   const [renameVideo, setRenameVideo] = useState<{ id: string; title: string } | null>(null);
   const [usageFilter, setUsageFilter] = useState<UsageFilter>("all");
+  const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
+  const [quietFilter, setQuietFilter] = useState<QuietFilter>("any");
 
   const { data: videosRaw = [], isLoading } = useQuery({
     queryKey: ["admin-all-videos"],
@@ -76,6 +89,25 @@ const AdminVideosPage = () => {
     staleTime: 60_000,
   });
 
+  const { data: ownersMap = {} } = useQuery<Record<string, OwnerRow>>({
+    queryKey: ["admin-video-owners"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await (supabase as any).rpc("get_admin_video_owners");
+        if (error || !data) return {};
+        const m: Record<string, OwnerRow> = {};
+        for (const r of data as any[]) m[r.video_id] = {
+          owner_id: r.owner_id ?? null,
+          owner_name: r.owner_name ?? null,
+          owner_email: r.owner_email ?? null,
+          plan_key: r.plan_key ?? null,
+        };
+        return m;
+      } catch { return {}; }
+    },
+    staleTime: 60_000,
+  });
+
   const [drillVideo, setDrillVideo] = useState<{ id: string; title: string } | null>(null);
   const { data: drillSeries = [], isLoading: drillLoading } = useQuery({
     queryKey: ["admin-video-daily", drillVideo?.id],
@@ -91,12 +123,23 @@ const AdminVideosPage = () => {
     const merged = (videosRaw as any[]).map((v) => {
       const s = statsMap[v.id];
       const totalUses = (s?.funnel_uses || 0) + (s?.landing_page_uses || 0) + (s?.live_session_uses || 0);
-      return { ...v, _stats: s, _totalUses: totalUses };
+      return { ...v, _stats: s, _totalUses: totalUses, _owner: ownersMap[v.id] };
     });
-    if (usageFilter === "used") return merged.filter((v) => v._totalUses > 0);
-    if (usageFilter === "unused") return merged.filter((v) => v._totalUses === 0);
-    return merged;
-  }, [videosRaw, statsMap, usageFilter]);
+    let out = merged;
+    if (usageFilter === "used") out = out.filter((v) => v._totalUses > 0);
+    else if (usageFilter === "unused") out = out.filter((v) => v._totalUses === 0);
+    if (planFilter !== "all") out = out.filter((v) => (v._owner?.plan_key || "").toLowerCase() === planFilter);
+    if (quietFilter !== "any") {
+      const days = Number(quietFilter);
+      const cutoff = Date.now() - days * 86400_000;
+      out = out.filter((v) => {
+        const lv = v._stats?.last_viewed_at;
+        if (!lv) return true;
+        return new Date(lv).getTime() < cutoff;
+      });
+    }
+    return out;
+  }, [videosRaw, statsMap, ownersMap, usageFilter, planFilter, quietFilter]);
 
   const handleUpload = async (file: File) => {
     if (!user) return;
@@ -251,7 +294,7 @@ const AdminVideosPage = () => {
 
         {/* Usage filter */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Filter:</span>
+          <span className="text-xs text-muted-foreground">Usage:</span>
           {(["all", "used", "unused"] as UsageFilter[]).map((f) => (
             <Button
               key={f}
@@ -266,6 +309,45 @@ const AdminVideosPage = () => {
           <span className="ml-auto text-xs text-muted-foreground">{videos.length} videos</span>
         </div>
 
+        {/* Plan filter */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Plan:</span>
+          {(["all", "free", "starter", "growth", "leader", "enterprise"] as PlanFilter[]).map((f) => (
+            <Button
+              key={f}
+              size="sm"
+              variant={planFilter === f ? "default" : "outline"}
+              className="h-7 px-3 text-xs capitalize"
+              onClick={() => setPlanFilter(f)}
+            >
+              {f}
+            </Button>
+          ))}
+        </div>
+
+        {/* Quiet filter */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Last viewed:</span>
+          {([
+            { v: "any", label: "Any time" },
+            { v: "1", label: "Quiet 24h+" },
+            { v: "7", label: "Quiet 7d+" },
+            { v: "15", label: "Quiet 15d+" },
+            { v: "30", label: "Quiet 30d+" },
+          ] as { v: QuietFilter; label: string }[]).map((f) => (
+            <Button
+              key={f.v}
+              size="sm"
+              variant={quietFilter === f.v ? "default" : "outline"}
+              className="h-7 px-3 text-xs"
+              onClick={() => setQuietFilter(f.v)}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
+
+
         {/* Desktop table */}
         <div className="hidden glass-card overflow-hidden sm:block">
           <div className="overflow-x-auto">
@@ -273,6 +355,7 @@ const AdminVideosPage = () => {
               <thead>
                 <tr className="border-b border-border text-left">
                   <th className="p-4 text-xs font-medium text-muted-foreground">Video</th>
+                  <th className="p-4 text-xs font-medium text-muted-foreground">Uploaded by</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Status</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Size</th>
                   <th className="p-4 text-xs font-medium text-muted-foreground">Usage</th>
@@ -295,7 +378,7 @@ const AdminVideosPage = () => {
                   ))
                 ) : videos.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-10 text-center">
+                    <td colSpan={9} className="p-10 text-center">
                       <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                         <Video size={18} className="text-primary" />
                       </div>
@@ -320,6 +403,27 @@ const AdminVideosPage = () => {
                             <p className="truncate text-xs text-muted-foreground">{v.original_filename}</p>
                           </div>
                         </div>
+                      </td>
+                      <td className="p-4">
+                        {(() => {
+                          const o = v._owner as OwnerRow | undefined;
+                          const name = o?.owner_name || o?.owner_email || "Unknown";
+                          const plan = (o?.plan_key || "").toLowerCase();
+                          const badge = PLAN_BADGE[plan];
+                          return (
+                            <div className="flex items-center gap-2">
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-medium">{name}</p>
+                                {o?.owner_email && o?.owner_name && (
+                                  <p className="truncate text-[10px] text-muted-foreground">{o.owner_email}</p>
+                                )}
+                              </div>
+                              {plan && badge && (
+                                <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium capitalize ${badge}`}>{plan}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </td>
                       <td className="p-4">
                         <span className={`rounded-full px-2 py-0.5 text-xs ${v.status === "ready" ? "bg-success/10 text-success" : v.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>
