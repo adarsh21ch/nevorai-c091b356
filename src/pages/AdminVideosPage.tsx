@@ -123,12 +123,23 @@ const AdminVideosPage = () => {
     const merged = (videosRaw as any[]).map((v) => {
       const s = statsMap[v.id];
       const totalUses = (s?.funnel_uses || 0) + (s?.landing_page_uses || 0) + (s?.live_session_uses || 0);
-      return { ...v, _stats: s, _totalUses: totalUses };
+      return { ...v, _stats: s, _totalUses: totalUses, _owner: ownersMap[v.id] };
     });
-    if (usageFilter === "used") return merged.filter((v) => v._totalUses > 0);
-    if (usageFilter === "unused") return merged.filter((v) => v._totalUses === 0);
-    return merged;
-  }, [videosRaw, statsMap, usageFilter]);
+    let out = merged;
+    if (usageFilter === "used") out = out.filter((v) => v._totalUses > 0);
+    else if (usageFilter === "unused") out = out.filter((v) => v._totalUses === 0);
+    if (planFilter !== "all") out = out.filter((v) => (v._owner?.plan_key || "").toLowerCase() === planFilter);
+    if (quietFilter !== "any") {
+      const days = Number(quietFilter);
+      const cutoff = Date.now() - days * 86400_000;
+      out = out.filter((v) => {
+        const lv = v._stats?.last_viewed_at;
+        if (!lv) return true;
+        return new Date(lv).getTime() < cutoff;
+      });
+    }
+    return out;
+  }, [videosRaw, statsMap, ownersMap, usageFilter, planFilter, quietFilter]);
 
   const handleUpload = async (file: File) => {
     if (!user) return;
