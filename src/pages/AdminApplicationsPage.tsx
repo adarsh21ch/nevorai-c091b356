@@ -19,7 +19,7 @@ import {
   type AdminApplication,
   type AdminUserPick,
 } from "@/hooks/useApplicationsAdmin";
-import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
+import { useWorkspaceMembers } from "@/hooks/useTenantMembers";
 import { toast } from "sonner";
 import { ExternalLink, Pencil, Trash2, UserPlus, Copy, Search, Plus, Users } from "lucide-react";
 

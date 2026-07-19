@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace-settings")({
-  head: () => ({ meta: [{ title: "Workspace settings" }] }),
+  head: () => ({ meta: [{ title: "Tenant settings" }] }),
   component: WorkspaceSettingsPage,
 });
 
@@ -34,7 +34,7 @@ function WorkspaceSettingsPage() {
     if (!activeWorkspaceId) return;
     try {
       await rename.mutateAsync({ workspaceId: activeWorkspaceId, name });
-      toast.success("Workspace renamed");
+      toast.success("Tenant renamed");
     } catch (e: any) { toast.error(e?.message || "Rename failed"); }
   };
 
@@ -50,13 +50,13 @@ function WorkspaceSettingsPage() {
     <DashboardLayout>
       <div className="mx-auto max-w-2xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Workspace settings</h1>
-          <p className="text-sm text-muted-foreground">Manage your workspace name and subdomain.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Tenant settings</h1>
+          <p className="text-sm text-muted-foreground">Manage your tenant name and subdomain.</p>
         </div>
 
         <Card className="space-y-4 p-6">
           <div className="space-y-1.5">
-            <Label>Workspace name</Label>
+            <Label>Tenant name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} disabled={!isOwnerOrAdmin} />
             <p className="text-xs text-muted-foreground">Shown in the app and on shared links.</p>
             <div className="pt-2">
@@ -76,7 +76,7 @@ function WorkspaceSettingsPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               3–40 chars, lowercase letters, numbers and hyphens. Changing this breaks existing share links.
-              Only the workspace owner can change this.
+              Only the tenant owner can change this.
             </p>
             <div className="pt-2">
               <Button size="sm" variant="secondary" onClick={saveSlug} disabled={!isOwner || changeSlug.isPending || !slug.trim() || slug === activeWorkspace?.slug}>
