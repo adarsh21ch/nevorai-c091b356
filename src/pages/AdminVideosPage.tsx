@@ -89,6 +89,25 @@ const AdminVideosPage = () => {
     staleTime: 60_000,
   });
 
+  const { data: ownersMap = {} } = useQuery<Record<string, OwnerRow>>({
+    queryKey: ["admin-video-owners"],
+    queryFn: async () => {
+      try {
+        const { data, error } = await (supabase as any).rpc("get_admin_video_owners");
+        if (error || !data) return {};
+        const m: Record<string, OwnerRow> = {};
+        for (const r of data as any[]) m[r.video_id] = {
+          owner_id: r.owner_id ?? null,
+          owner_name: r.owner_name ?? null,
+          owner_email: r.owner_email ?? null,
+          plan_key: r.plan_key ?? null,
+        };
+        return m;
+      } catch { return {}; }
+    },
+    staleTime: 60_000,
+  });
+
   const [drillVideo, setDrillVideo] = useState<{ id: string; title: string } | null>(null);
   const { data: drillSeries = [], isLoading: drillLoading } = useQuery({
     queryKey: ["admin-video-daily", drillVideo?.id],
