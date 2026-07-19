@@ -28,6 +28,7 @@ export default function AdminApplicationsPage() {
   const [openCreate, setOpenCreate] = useState(false);
   const [editApp, setEditApp] = useState<AdminApplication | null>(null);
   const [transferApp, setTransferApp] = useState<AdminApplication | null>(null);
+  const [membersApp, setMembersApp] = useState<AdminApplication | null>(null);
   const [filter, setFilter] = useState("");
 
   const filtered = useMemo(() => {
@@ -47,13 +48,14 @@ export default function AdminApplicationsPage() {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Applications</h1>
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Platform Admin</div>
+            <h1 className="text-2xl font-bold tracking-tight">Tenants</h1>
             <p className="text-sm text-muted-foreground">
-              Dedicated client sites. Each Application has its own subdomain and one owner client.
+              Dedicated client tenants. Each tenant has its own subdomain, branding, and one owner.
             </p>
           </div>
           <Button onClick={() => setOpenCreate(true)} className="gap-2">
-            <Plus size={16} /> New Application
+            <Plus size={16} /> New Tenant
           </Button>
         </div>
 
