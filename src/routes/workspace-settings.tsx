@@ -76,7 +76,7 @@ function WorkspaceSettingsPage() {
             </div>
             <p className="text-xs text-muted-foreground">
               3–40 chars, lowercase letters, numbers and hyphens. Changing this breaks existing share links.
-              Only the workspace owner can change this.
+              Only the tenant owner can change this.
             </p>
             <div className="pt-2">
               <Button size="sm" variant="secondary" onClick={saveSlug} disabled={!isOwner || changeSlug.isPending || !slug.trim() || slug === activeWorkspace?.slug}>
