@@ -47,7 +47,7 @@ export function WorkspaceSwitcher({ collapsed = false }: { collapsed?: boolean }
       <DropdownMenu>
         <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-64">
-          <DropdownMenuLabel>Your workspaces</DropdownMenuLabel>
+          <DropdownMenuLabel>Your tenants</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {workspaces.map((w) => {
             const isActive = w.workspace_id === activeWorkspace.workspace_id;
