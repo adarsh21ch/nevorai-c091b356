@@ -22,8 +22,8 @@ export function useWorkspaces() {
     staleTime: 60_000,
     queryFn: async (): Promise<WorkspaceMembership[]> => {
       const { data, error } = await (supabase as any)
-        .from("workspace_members")
-        .select("role, workspace_id, workspaces!inner(id, slug, name, plan, status, deleted_at)")
+        .from("tenant_members")
+        .select("role, workspace_id:tenant_id, workspaces:tenants!inner(id, slug, name, plan, status, deleted_at)")
         .eq("user_id", user!.id);
       if (error) {
         console.warn("[useWorkspaces] load failed:", error.message);
