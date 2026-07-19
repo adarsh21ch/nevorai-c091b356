@@ -50,13 +50,13 @@ function WorkspaceSettingsPage() {
     <DashboardLayout>
       <div className="mx-auto max-w-2xl space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Workspace settings</h1>
-          <p className="text-sm text-muted-foreground">Manage your workspace name and subdomain.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Tenant settings</h1>
+          <p className="text-sm text-muted-foreground">Manage your tenant name and subdomain.</p>
         </div>
 
         <Card className="space-y-4 p-6">
           <div className="space-y-1.5">
-            <Label>Workspace name</Label>
+            <Label>Tenant name</Label>
             <Input value={name} onChange={(e) => setName(e.target.value)} disabled={!isOwnerOrAdmin} />
             <p className="text-xs text-muted-foreground">Shown in the app and on shared links.</p>
             <div className="pt-2">
