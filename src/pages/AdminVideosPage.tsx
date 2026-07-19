@@ -51,6 +51,8 @@ const AdminVideosPage = () => {
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
   const [renameVideo, setRenameVideo] = useState<{ id: string; title: string } | null>(null);
   const [usageFilter, setUsageFilter] = useState<UsageFilter>("all");
+  const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
+  const [quietFilter, setQuietFilter] = useState<QuietFilter>("any");
 
   const { data: videosRaw = [], isLoading } = useQuery({
     queryKey: ["admin-all-videos"],
