@@ -294,7 +294,7 @@ const AdminVideosPage = () => {
 
         {/* Usage filter */}
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Filter:</span>
+          <span className="text-xs text-muted-foreground">Usage:</span>
           {(["all", "used", "unused"] as UsageFilter[]).map((f) => (
             <Button
               key={f}
@@ -308,6 +308,45 @@ const AdminVideosPage = () => {
           ))}
           <span className="ml-auto text-xs text-muted-foreground">{videos.length} videos</span>
         </div>
+
+        {/* Plan filter */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Plan:</span>
+          {(["all", "free", "starter", "growth", "leader", "enterprise"] as PlanFilter[]).map((f) => (
+            <Button
+              key={f}
+              size="sm"
+              variant={planFilter === f ? "default" : "outline"}
+              className="h-7 px-3 text-xs capitalize"
+              onClick={() => setPlanFilter(f)}
+            >
+              {f}
+            </Button>
+          ))}
+        </div>
+
+        {/* Quiet filter */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Last viewed:</span>
+          {([
+            { v: "any", label: "Any time" },
+            { v: "1", label: "Quiet 24h+" },
+            { v: "7", label: "Quiet 7d+" },
+            { v: "15", label: "Quiet 15d+" },
+            { v: "30", label: "Quiet 30d+" },
+          ] as { v: QuietFilter; label: string }[]).map((f) => (
+            <Button
+              key={f.v}
+              size="sm"
+              variant={quietFilter === f.v ? "default" : "outline"}
+              className="h-7 px-3 text-xs"
+              onClick={() => setQuietFilter(f.v)}
+            >
+              {f.label}
+            </Button>
+          ))}
+        </div>
+
 
         {/* Desktop table */}
         <div className="hidden glass-card overflow-hidden sm:block">
