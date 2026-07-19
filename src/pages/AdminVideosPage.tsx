@@ -405,6 +405,27 @@ const AdminVideosPage = () => {
                         </div>
                       </td>
                       <td className="p-4">
+                        {(() => {
+                          const o = v._owner as OwnerRow | undefined;
+                          const name = o?.owner_name || o?.owner_email || "Unknown";
+                          const plan = (o?.plan_key || "").toLowerCase();
+                          const badge = PLAN_BADGE[plan];
+                          return (
+                            <div className="flex items-center gap-2">
+                              <div className="min-w-0">
+                                <p className="truncate text-xs font-medium">{name}</p>
+                                {o?.owner_email && o?.owner_name && (
+                                  <p className="truncate text-[10px] text-muted-foreground">{o.owner_email}</p>
+                                )}
+                              </div>
+                              {plan && badge && (
+                                <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium capitalize ${badge}`}>{plan}</span>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </td>
+                      <td className="p-4">
                         <span className={`rounded-full px-2 py-0.5 text-xs ${v.status === "ready" ? "bg-success/10 text-success" : v.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>
                           {v.status}
                         </span>
