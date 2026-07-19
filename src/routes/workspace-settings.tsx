@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/workspace-settings")({
-  head: () => ({ meta: [{ title: "Workspace settings" }] }),
+  head: () => ({ meta: [{ title: "Tenant settings" }] }),
   component: WorkspaceSettingsPage,
 });
 
