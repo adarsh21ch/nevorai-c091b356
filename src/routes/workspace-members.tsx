@@ -5,7 +5,7 @@ import { useActiveWorkspace } from "@/hooks/useActiveWorkspace";
 import {
   useWorkspaceMembers, useWorkspaceInvitations, useInviteMember,
   useRevokeInvitation, useRemoveMember, useUpdateMemberRole,
-} from "@/hooks/useWorkspaceMembers";
+} from "@/hooks/useTenantMembers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
