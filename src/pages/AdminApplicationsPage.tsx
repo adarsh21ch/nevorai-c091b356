@@ -15,11 +15,13 @@ import {
   useAdminUpdateApplication,
   useAdminDeleteApplication,
   useAdminTransferApplication,
+  useReservedSubdomains,
   type AdminApplication,
   type AdminUserPick,
 } from "@/hooks/useApplicationsAdmin";
+import { useWorkspaceMembers } from "@/hooks/useWorkspaceMembers";
 import { toast } from "sonner";
-import { ExternalLink, Pencil, Trash2, UserPlus, Copy, Search, Plus } from "lucide-react";
+import { ExternalLink, Pencil, Trash2, UserPlus, Copy, Search, Plus, Users } from "lucide-react";
 
 export default function AdminApplicationsPage() {
   const { data: apps = [], isLoading, error, refetch } = useAdminApplications();
