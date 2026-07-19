@@ -287,15 +287,26 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
   const create = useAdminCreateApplication();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [plan, setPlan] = useState<"free" | "basic" | "pro">("free");
-  const [allowTeam, setAllowTeam] = useState(false);
+  const [allowTeam, setAllowTeam] = useState(true);
   const [owner, setOwner] = useState<AdminUserPick | null>(null);
+  const { data: reserved = [] } = useReservedSubdomains();
+
+  const slugPattern = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
+  const slugValid = slugPattern.test(slug);
+  const slugReserved = !!slug && reserved.includes(slug.toLowerCase());
+  const slugError = slug && !slugValid
+    ? "3–40 chars, lowercase letters, numbers, hyphens."
+    : slugReserved
+      ? "This subdomain is reserved."
+      : "";
 
   const submit = async () => {
     if (!owner) return toast.error("Pick an owner user");
+    if (!slugValid) return toast.error("Invalid subdomain");
+    if (slugReserved) return toast.error("Subdomain is reserved");
     try {
-      await create.mutateAsync({ name, slug, owner_id: owner.id, plan, allow_team: allowTeam });
-      toast.success(`Application created at ${slug}.nevorai.com`);
+      await create.mutateAsync({ name, slug, owner_id: owner.id, plan: "leader", allow_team: allowTeam });
+      toast.success(`Tenant created at ${slug}.nevorai.com`);
       onClose();
     } catch (e: any) {
       toast.error(e?.message || "Create failed");
@@ -306,7 +317,7 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>New Application</DialogTitle>
+          <DialogTitle>New Tenant</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -320,41 +331,79 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase())}
                 placeholder="client-name"
+                aria-invalid={!!slugError}
               />
               <span className="shrink-0 text-sm text-muted-foreground">.nevorai.com</span>
             </div>
-            <p className="text-xs text-muted-foreground">3–40 chars, lowercase letters, numbers, hyphens.</p>
+            {slugError ? (
+              <p className="text-xs text-destructive">{slugError}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">3–40 chars, lowercase letters, numbers, hyphens.</p>
+            )}
           </div>
           <div className="space-y-1.5">
-            <Label>Plan</Label>
-            <Select value={plan} onValueChange={(v: any) => setPlan(v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="free">Free</SelectItem>
-                <SelectItem value="basic">Basic</SelectItem>
-                <SelectItem value="pro">Pro</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1.5">
-            <Label>Assign to user (owner)</Label>
-            <UserPicker value={owner} onChange={setOwner} />
+            <Label>Owner (search by email or name)</Label>
+            <UserPicker value={owner} onChange={setOwner} placeholder="owner@example.com" />
           </div>
           <div className="flex items-center justify-between rounded-md border border-border p-3">
             <div>
               <div className="text-sm font-medium">Allow owner to manage team</div>
               <p className="text-xs text-muted-foreground">
-                When on, the owner can add their own teammates from inside their app.
+                When on, the owner can invite teammates from inside their tenant.
               </p>
             </div>
             <Switch checked={allowTeam} onCheckedChange={setAllowTeam} />
           </div>
+          <p className="text-xs text-muted-foreground">
+            Plan: <span className="font-medium text-foreground">Leader</span> · Kind: application
+          </p>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button onClick={submit} disabled={create.isPending || !name.trim() || !slug.trim() || !owner}>
-            {create.isPending ? "Creating…" : "Create Application"}
+          <Button
+            onClick={submit}
+            disabled={create.isPending || !name.trim() || !slugValid || slugReserved || !owner}
+          >
+            {create.isPending ? "Creating…" : "Create Tenant"}
           </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function MembersDialog({ app, onClose }: { app: AdminApplication; onClose: () => void }) {
+  const { data: members = [], isLoading, error } = useWorkspaceMembers(app.id);
+  return (
+    <Dialog open onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Members — {app.name}</DialogTitle>
+        </DialogHeader>
+        <div className="max-h-[60vh] overflow-y-auto">
+          {isLoading && <p className="p-4 text-sm text-muted-foreground">Loading…</p>}
+          {error && (
+            <p className="p-4 text-sm text-destructive">{(error as Error).message}</p>
+          )}
+          {!isLoading && !error && members.length === 0 && (
+            <p className="p-4 text-sm text-muted-foreground">No members yet.</p>
+          )}
+          <div className="divide-y divide-border">
+            {members.map((m) => (
+              <div key={m.user_id} className="flex items-center justify-between px-1 py-3">
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-medium">{m.email}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Joined {new Date(m.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <Badge variant="secondary" className="capitalize">{m.role}</Badge>
+              </div>
+            ))}
+          </div>
+        </div>
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
