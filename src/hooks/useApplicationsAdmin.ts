@@ -59,20 +59,34 @@ export function useAdminCreateApplication() {
       name: string;
       slug: string;
       owner_id: string;
-      plan?: "free" | "basic" | "pro";
+      plan?: string;
       allow_team?: boolean;
     }) => {
       const { data, error } = await (supabase as any).rpc("admin_create_application", {
         _name: args.name,
         _slug: args.slug,
         _owner_id: args.owner_id,
-        _plan: args.plan ?? "free",
-        _allow_team: args.allow_team ?? false,
+        _plan: args.plan ?? "leader",
+        _allow_team: args.allow_team ?? true,
       });
       if (error) throw new Error(error.message);
       return data as string;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-applications"] }),
+  });
+}
+
+export function useReservedSubdomains() {
+  return useQuery({
+    queryKey: ["reserved-subdomains"],
+    staleTime: 5 * 60_000,
+    queryFn: async (): Promise<string[]> => {
+      const { data, error } = await (supabase as any)
+        .from("reserved_subdomains")
+        .select("slug");
+      if (error) return [];
+      return (data ?? []).map((r: any) => String(r.slug).toLowerCase());
+    },
   });
 }
 
