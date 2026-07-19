@@ -96,13 +96,14 @@ export default function AdminApplicationsPage() {
                   app={app}
                   onEdit={() => setEditApp(app)}
                   onTransfer={() => setTransferApp(app)}
+                  onMembers={() => setMembersApp(app)}
                   onRefresh={() => refetch()}
                 />
               ))}
               {!isLoading && filtered.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                    No applications yet. Click "New Application" to create one.
+                    No tenants yet. Click "New Tenant" to create one.
                   </td>
                 </tr>
               )}
@@ -114,6 +115,7 @@ export default function AdminApplicationsPage() {
       {openCreate && <CreateDialog onClose={() => setOpenCreate(false)} />}
       {editApp && <EditDialog app={editApp} onClose={() => setEditApp(null)} />}
       {transferApp && <TransferDialog app={transferApp} onClose={() => setTransferApp(null)} />}
+      {membersApp && <MembersDialog app={membersApp} onClose={() => setMembersApp(null)} />}
     </AdminLayout>
   );
 }
