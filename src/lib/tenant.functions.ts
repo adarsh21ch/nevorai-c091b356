@@ -25,7 +25,7 @@ export type TenantBranding = {
 };
 
 export type ResolvedTenant = {
-  workspace_id: string;
+  tenant_id: string;
   slug: string;
   name: string;
   status: "active" | "suspended" | "pending" | "deleted";
