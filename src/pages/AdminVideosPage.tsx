@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useState, useRef, useMemo } from "react";
 
@@ -20,7 +22,7 @@ type VideoStatsRow = {
 };
 type UsageFilter = "all" | "used" | "unused";
 type PlanFilter = "all" | "free" | "starter" | "growth" | "leader" | "enterprise";
-type QuietFilter = "any" | "1" | "7" | "15" | "30";
+type QuietFilter = "any" | "never" | "1" | "7" | "15" | "30";
 type OwnerRow = { owner_id: string | null; owner_name: string | null; owner_email: string | null; plan_key: string | null };
 
 const PLAN_BADGE: Record<string, string> = {
@@ -30,7 +32,7 @@ const PLAN_BADGE: Record<string, string> = {
   leader: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
   enterprise: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
 };
-import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket, BarChart3, X } from "lucide-react";
+import { Upload, Video, Trash2, Loader2, Link2, Share2, Pencil, Rocket, BarChart3, X, Search } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
 import { Progress } from "@/components/ui/progress";
 import { VideoShareModal } from "@/components/VideoShareModal";
@@ -48,8 +50,10 @@ const AdminVideosPage = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [title, setTitle] = useState("");
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [shareVideo, setShareVideo] = useState<{ id: string; title: string } | null>(null);
   const [renameVideo, setRenameVideo] = useState<{ id: string; title: string } | null>(null);
+  const [search, setSearch] = useState("");
   const [usageFilter, setUsageFilter] = useState<UsageFilter>("all");
   const [planFilter, setPlanFilter] = useState<PlanFilter>("all");
   const [quietFilter, setQuietFilter] = useState<QuietFilter>("any");
@@ -73,8 +77,6 @@ const AdminVideosPage = () => {
     staleTime: 60_000,
   });
 
-  // Platform-wide blended views + people per video (via unified tracking RPC).
-  // Falls back silently to legacy video_stats if the RPC isn't deployed yet.
   const { data: blendedMap = {} } = useQuery<Record<string, { views: number; people: number }>>({
     queryKey: ["admin-video-blended"],
     queryFn: async () => {
@@ -119,17 +121,49 @@ const AdminVideosPage = () => {
     enabled: !!drillVideo,
   });
 
-  const videos = useMemo(() => {
-    const merged = (videosRaw as any[]).map((v) => {
+  const mergedAll = useMemo(() => {
+    return (videosRaw as any[]).map((v) => {
       const s = statsMap[v.id];
       const totalUses = (s?.funnel_uses || 0) + (s?.landing_page_uses || 0) + (s?.live_session_uses || 0);
       return { ...v, _stats: s, _totalUses: totalUses, _owner: ownersMap[v.id] };
     });
-    let out = merged;
+  }, [videosRaw, statsMap, ownersMap]);
+
+  // Summary stats over the full library (not filtered).
+  const summary = useMemo(() => {
+    const now = Date.now();
+    let totalViews = 0;
+    let activeLast7 = 0;
+    let neverViewed = 0;
+    for (const v of mergedAll) {
+      totalViews += blendedMap[v.id]?.views ?? v._stats?.total_views ?? v.view_count ?? 0;
+      const lv = v._stats?.last_viewed_at;
+      if (!lv) neverViewed++;
+      else if (now - new Date(lv).getTime() <= 7 * 86400_000) activeLast7++;
+    }
+    return { total: mergedAll.length, totalViews, activeLast7, neverViewed };
+  }, [mergedAll, blendedMap]);
+
+  const videos = useMemo(() => {
+    let out = mergedAll;
+    const q = search.trim().toLowerCase();
+    if (q) {
+      out = out.filter((v) => {
+        const o = v._owner as OwnerRow | undefined;
+        return (
+          (v.title || "").toLowerCase().includes(q) ||
+          (v.original_filename || "").toLowerCase().includes(q) ||
+          (o?.owner_name || "").toLowerCase().includes(q) ||
+          (o?.owner_email || "").toLowerCase().includes(q)
+        );
+      });
+    }
     if (usageFilter === "used") out = out.filter((v) => v._totalUses > 0);
     else if (usageFilter === "unused") out = out.filter((v) => v._totalUses === 0);
     if (planFilter !== "all") out = out.filter((v) => (v._owner?.plan_key || "").toLowerCase() === planFilter);
-    if (quietFilter !== "any") {
+    if (quietFilter === "never") {
+      out = out.filter((v) => !v._stats?.last_viewed_at);
+    } else if (quietFilter !== "any") {
       const days = Number(quietFilter);
       const cutoff = Date.now() - days * 86400_000;
       out = out.filter((v) => {
@@ -139,7 +173,7 @@ const AdminVideosPage = () => {
       });
     }
     return out;
-  }, [videosRaw, statsMap, ownersMap, usageFilter, planFilter, quietFilter]);
+  }, [mergedAll, search, usageFilter, planFilter, quietFilter]);
 
   const handleUpload = async (file: File) => {
     if (!user) return;
@@ -178,6 +212,7 @@ const AdminVideosPage = () => {
 
       toast.success("Video uploaded!");
       setTitle("");
+      setUploadOpen(false);
       queryClient.invalidateQueries({ queryKey: ["admin-all-videos"] });
     } catch (err: any) {
       toast.error(err.message || "Upload failed");
@@ -232,121 +267,92 @@ const AdminVideosPage = () => {
     return new Date(iso).toLocaleDateString();
   };
 
-  const UsageBadges = ({ v }: { v: any }) => {
-    const s = v._stats;
-    const f = s?.funnel_uses || 0;
-    const lp = s?.landing_page_uses || 0;
-    const ls = s?.live_session_uses || 0;
-    if (f + lp + ls === 0) return <span className="text-xs text-muted-foreground">Unused</span>;
-    return (
-      <div className="flex flex-wrap gap-1">
-        {f > 0 && <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">Funnel ×{f}</span>}
-        {lp > 0 && <span className="rounded bg-info/10 px-1.5 py-0.5 text-[10px] font-medium text-info">LP ×{lp}</span>}
-        {ls > 0 && <span className="rounded bg-success/10 px-1.5 py-0.5 text-[10px] font-medium text-success">Live ×{ls}</span>}
-      </div>
-    );
-  };
+  const StatCard = ({ label, value, onClick }: { label: string; value: string | number; onClick?: () => void }) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={!onClick}
+      className={`glass-card flex-1 min-w-[130px] p-3 text-left ${onClick ? "hover:bg-muted/40 cursor-pointer" : "cursor-default"}`}
+    >
+      <p className="text-[11px] text-muted-foreground">{label}</p>
+      <p className="mt-0.5 text-lg font-heading font-semibold">{value}</p>
+    </button>
+  );
 
   return (
     <AdminLayout>
       <div className="w-full min-w-0 space-y-4">
         <h1 className="text-lg font-heading font-bold sm:text-2xl">Video Management</h1>
 
-        <div className="glass-card space-y-3 p-3 sm:p-6">
-          <h2 className="text-sm font-heading font-semibold sm:text-base">Upload New Video</h2>
-          <div className="space-y-3">
-            <div>
-              <Label className="text-xs">Title</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Video title"
-                className="mt-1.5 bg-muted border-border"
-              />
-            </div>
-            <input
-              type="file"
-              ref={fileInputRef}
-              accept={VIDEO_UPLOAD_ACCEPT}
-              className="hidden"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleUpload(file);
-              }}
+        {/* Summary strip */}
+        <div className="flex flex-wrap gap-2">
+          <StatCard label="Total videos" value={summary.total} />
+          <StatCard label="Total views" value={summary.totalViews.toLocaleString()} />
+          <StatCard label="Active last 7 days" value={summary.activeLast7} />
+          <StatCard
+            label="Never viewed"
+            value={summary.neverViewed}
+            onClick={() => setQuietFilter("never")}
+          />
+        </div>
+
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative flex-1 min-w-[200px] max-w-sm">
+            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search title, filename, owner…"
+              className="h-8 pl-8 text-xs bg-muted border-border"
             />
-            <Button
-              variant="hero"
-              className="min-h-[44px] w-full text-sm sm:text-base"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-            >
-              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-              {uploading ? "Uploading..." : "Upload Video"}
-            </Button>
           </div>
-          {uploading && (
-            <div className="space-y-2">
-              <Progress value={uploadProgress} className="h-2 bg-muted [&>div]:bg-white" />
-              <p className="text-center text-xs text-muted-foreground">{uploadProgress}%</p>
-            </div>
-          )}
-        </div>
 
-        {/* Usage filter */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Usage:</span>
-          {(["all", "used", "unused"] as UsageFilter[]).map((f) => (
-            <Button
-              key={f}
-              size="sm"
-              variant={usageFilter === f ? "default" : "outline"}
-              className="h-7 px-3 text-xs capitalize"
-              onClick={() => setUsageFilter(f)}
-            >
-              {f}
-            </Button>
-          ))}
-          <span className="ml-auto text-xs text-muted-foreground">{videos.length} videos</span>
-        </div>
+          <Select value={usageFilter} onValueChange={(v) => setUsageFilter(v as UsageFilter)}>
+            <SelectTrigger className="h-8 w-auto min-w-[110px] text-xs">
+              <SelectValue placeholder="Usage" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Usage: All</SelectItem>
+              <SelectItem value="used">Usage: Used</SelectItem>
+              <SelectItem value="unused">Usage: Unused</SelectItem>
+            </SelectContent>
+          </Select>
 
-        {/* Plan filter */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Plan:</span>
-          {(["all", "free", "starter", "growth", "leader", "enterprise"] as PlanFilter[]).map((f) => (
-            <Button
-              key={f}
-              size="sm"
-              variant={planFilter === f ? "default" : "outline"}
-              className="h-7 px-3 text-xs capitalize"
-              onClick={() => setPlanFilter(f)}
-            >
-              {f}
-            </Button>
-          ))}
-        </div>
+          <Select value={planFilter} onValueChange={(v) => setPlanFilter(v as PlanFilter)}>
+            <SelectTrigger className="h-8 w-auto min-w-[110px] text-xs">
+              <SelectValue placeholder="Plan" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Plan: All</SelectItem>
+              <SelectItem value="free">Plan: Free</SelectItem>
+              <SelectItem value="starter">Plan: Starter</SelectItem>
+              <SelectItem value="growth">Plan: Growth</SelectItem>
+              <SelectItem value="leader">Plan: Leader</SelectItem>
+              <SelectItem value="enterprise">Plan: Enterprise</SelectItem>
+            </SelectContent>
+          </Select>
 
-        {/* Quiet filter */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs text-muted-foreground">Last viewed:</span>
-          {([
-            { v: "any", label: "Any time" },
-            { v: "1", label: "Quiet 24h+" },
-            { v: "7", label: "Quiet 7d+" },
-            { v: "15", label: "Quiet 15d+" },
-            { v: "30", label: "Quiet 30d+" },
-          ] as { v: QuietFilter; label: string }[]).map((f) => (
-            <Button
-              key={f.v}
-              size="sm"
-              variant={quietFilter === f.v ? "default" : "outline"}
-              className="h-7 px-3 text-xs"
-              onClick={() => setQuietFilter(f.v)}
-            >
-              {f.label}
-            </Button>
-          ))}
-        </div>
+          <Select value={quietFilter} onValueChange={(v) => setQuietFilter(v as QuietFilter)}>
+            <SelectTrigger className="h-8 w-auto min-w-[130px] text-xs">
+              <SelectValue placeholder="Last viewed" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="any">Last viewed: Any</SelectItem>
+              <SelectItem value="never">Never viewed</SelectItem>
+              <SelectItem value="1">Quiet 24h+</SelectItem>
+              <SelectItem value="7">Quiet 7d+</SelectItem>
+              <SelectItem value="15">Quiet 15d+</SelectItem>
+              <SelectItem value="30">Quiet 30d+</SelectItem>
+            </SelectContent>
+          </Select>
 
+          <span className="text-xs text-muted-foreground ml-auto">{videos.length} videos</span>
+
+          <Button size="sm" variant="hero" className="h-8 gap-1.5 text-xs" onClick={() => setUploadOpen(true)}>
+            <Upload size={14} /> Upload Video
+          </Button>
+        </div>
 
         {/* Desktop table */}
         <div className="hidden glass-card overflow-hidden sm:block">
@@ -354,43 +360,37 @@ const AdminVideosPage = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left">
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Video</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Uploaded by</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Status</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Size</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Usage</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Views (raw)</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">People</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Last viewed</th>
-                  <th className="p-4 text-xs font-medium text-muted-foreground">Actions</th>
+                  <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Video</th>
+                  <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Uploaded by</th>
+                  <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Views</th>
+                  <th className="px-3 py-2 text-xs font-medium text-muted-foreground">People</th>
+                  <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Last viewed</th>
+                  <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Status</th>
+                  <th className="px-3 py-2 text-xs font-medium text-muted-foreground">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <tr key={i} className="border-b border-border">
-                      <td className="p-4"><div className="h-4 w-40 animate-pulse rounded bg-muted" /></td>
-                      <td className="p-4"><div className="h-4 w-16 animate-pulse rounded bg-muted" /></td>
-                      <td className="p-4"><div className="h-4 w-16 animate-pulse rounded bg-muted" /></td>
-                      <td className="p-4"><div className="h-4 w-12 animate-pulse rounded bg-muted" /></td>
-                      <td className="p-4"><div className="h-4 w-20 animate-pulse rounded bg-muted" /></td>
+                      <td className="px-3 py-2" colSpan={7}><div className="h-4 w-40 animate-pulse rounded bg-muted" /></td>
                     </tr>
                   ))
                 ) : videos.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="p-10 text-center">
+                    <td colSpan={7} className="p-10 text-center">
                       <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                         <Video size={18} className="text-primary" />
                       </div>
-                      <p className="text-sm font-semibold">No videos yet</p>
-                      <p className="text-xs text-muted-foreground">Upload your first video using the button above.</p>
+                      <p className="text-sm font-semibold">No videos match</p>
+                      <p className="text-xs text-muted-foreground">Try clearing filters or search.</p>
                     </td>
                   </tr>
                 ) : (
                   videos.map((v) => (
                     <tr key={v.id} className="border-b border-border hover:bg-muted/50">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2.5">
                           <div className="flex h-8 w-12 shrink-0 items-center justify-center rounded bg-muted">
                             {v.thumbnail_url ? (
                               <img src={v.thumbnail_url} className="h-full w-full rounded object-cover" />
@@ -399,12 +399,15 @@ const AdminVideosPage = () => {
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate font-medium">{v.title}</p>
-                            <p className="truncate text-xs text-muted-foreground">{v.original_filename}</p>
+                            <p className="truncate font-medium text-sm">{v.title}</p>
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {v.original_filename}
+                              {v.file_size_bytes ? ` · ${formatSize(v.file_size_bytes)}` : ""}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-2">
                         {(() => {
                           const o = v._owner as OwnerRow | undefined;
                           const name = o?.owner_name || o?.owner_email || "Unknown";
@@ -425,18 +428,16 @@ const AdminVideosPage = () => {
                           );
                         })()}
                       </td>
-                      <td className="p-4">
+                      <td className="px-3 py-2 text-xs text-muted-foreground">{blendedMap[v.id]?.views ?? v._stats?.total_views ?? v.view_count ?? 0}</td>
+                      <td className="px-3 py-2 text-xs text-muted-foreground">{blendedMap[v.id]?.people ?? v._stats?.unique_views ?? 0}</td>
+                      <td className="px-3 py-2 text-xs text-muted-foreground whitespace-nowrap">{formatLastViewed(v._stats?.last_viewed_at)}</td>
+                      <td className="px-3 py-2">
                         <span className={`rounded-full px-2 py-0.5 text-xs ${v.status === "ready" ? "bg-success/10 text-success" : v.status === "failed" ? "bg-destructive/10 text-destructive" : "bg-warning/10 text-warning"}`}>
                           {v.status}
                         </span>
                       </td>
-                      <td className="p-4 text-xs text-muted-foreground">{formatSize(v.file_size_bytes)}</td>
-                      <td className="p-4"><UsageBadges v={v} /></td>
-                      <td className="p-4 text-xs text-muted-foreground">{blendedMap[v.id]?.views ?? v._stats?.total_views ?? v.view_count ?? 0}</td>
-                      <td className="p-4 text-xs text-muted-foreground">{blendedMap[v.id]?.people ?? v._stats?.unique_views ?? 0}</td>
-                      <td className="p-4 text-xs text-muted-foreground">{formatLastViewed(v._stats?.last_viewed_at)}</td>
-                      <td className="p-4">
-                        <div className="flex gap-1">
+                      <td className="px-3 py-2">
+                        <div className="flex gap-0.5">
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setDrillVideo({ id: v.id, title: v.title })} title="View daily stats"><BarChart3 size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setRenameVideo({ id: v.id, title: v.title })}><Pencil size={14} /></Button>
                           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShareVideo({ id: v.id, title: v.title })}><Share2 size={14} /></Button>
@@ -462,8 +463,8 @@ const AdminVideosPage = () => {
               <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                 <Video size={18} className="text-primary" />
               </div>
-              <p className="text-sm font-semibold">No videos yet</p>
-              <p className="text-xs text-muted-foreground">Upload your first video to get started.</p>
+              <p className="text-sm font-semibold">No videos match</p>
+              <p className="text-xs text-muted-foreground">Try clearing filters or search.</p>
             </div>
           ) : (
             videos.map((v) => (
@@ -489,70 +490,68 @@ const AdminVideosPage = () => {
                       </span>
                     </div>
                     <div className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
-                      <UsageBadges v={v} />
-                      <span>·</span>
                       <span>Last viewed {formatLastViewed(v._stats?.last_viewed_at)}</span>
                     </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-5 gap-1.5 border-t border-border pt-2.5">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-full rounded-lg"
-                    onClick={() => setRenameVideo({ id: v.id, title: v.title })}
-                    title="Rename"
-                    aria-label="Rename video"
-                  >
-                    <Pencil size={15} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-full rounded-lg"
-                    onClick={() => setShareVideo({ id: v.id, title: v.title })}
-                    title="Share"
-                    aria-label="Share video"
-                  >
-                    <Share2 size={15} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-full rounded-lg"
-                    onClick={() => copyLink(v.id)}
-                    title="Copy Link"
-                    aria-label="Copy video link"
-                  >
-                    <Link2 size={15} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-full rounded-lg"
-                    onClick={() => useInFunnel(v.id)}
-                    title="Use in Funnel"
-                    aria-label="Use video in funnel"
-                  >
-                    <Rocket size={15} />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-full rounded-lg text-destructive hover:text-destructive"
-                    onClick={async () => { if (await confirm({ title: "Delete this video?", description: "This permanently removes the video file and analytics.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(v.id); }}
-                    title="Delete"
-                    aria-label="Delete video"
-                  >
-                    <Trash2 size={15} />
-                  </Button>
+                  <Button variant="ghost" size="icon" className="h-11 w-full rounded-lg" onClick={() => setRenameVideo({ id: v.id, title: v.title })} aria-label="Rename video"><Pencil size={15} /></Button>
+                  <Button variant="ghost" size="icon" className="h-11 w-full rounded-lg" onClick={() => setShareVideo({ id: v.id, title: v.title })} aria-label="Share video"><Share2 size={15} /></Button>
+                  <Button variant="ghost" size="icon" className="h-11 w-full rounded-lg" onClick={() => copyLink(v.id)} aria-label="Copy video link"><Link2 size={15} /></Button>
+                  <Button variant="ghost" size="icon" className="h-11 w-full rounded-lg" onClick={() => useInFunnel(v.id)} aria-label="Use video in funnel"><Rocket size={15} /></Button>
+                  <Button variant="ghost" size="icon" className="h-11 w-full rounded-lg text-destructive hover:text-destructive" onClick={async () => { if (await confirm({ title: "Delete this video?", description: "This permanently removes the video file and analytics.", confirmLabel: "Delete", destructive: true })) deleteMutation.mutate(v.id); }} aria-label="Delete video"><Trash2 size={15} /></Button>
                 </div>
               </div>
             ))
           )}
         </div>
       </div>
+
+      {/* Upload dialog */}
+      <Dialog open={uploadOpen} onOpenChange={(o) => !uploading && setUploadOpen(o)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Upload Video</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Title</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Video title"
+                className="mt-1.5 bg-muted border-border"
+              />
+            </div>
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept={VIDEO_UPLOAD_ACCEPT}
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleUpload(file);
+              }}
+            />
+            <Button
+              variant="hero"
+              className="min-h-[44px] w-full text-sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+            >
+              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+              {uploading ? "Uploading..." : "Choose file & upload"}
+            </Button>
+            {uploading && (
+              <div className="space-y-2">
+                <Progress value={uploadProgress} className="h-2 bg-muted [&>div]:bg-white" />
+                <p className="text-center text-xs text-muted-foreground">{uploadProgress}%</p>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {shareVideo && (
         <VideoShareModal
