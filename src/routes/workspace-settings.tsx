@@ -34,7 +34,7 @@ function WorkspaceSettingsPage() {
     if (!activeWorkspaceId) return;
     try {
       await rename.mutateAsync({ workspaceId: activeWorkspaceId, name });
-      toast.success("Workspace renamed");
+      toast.success("Tenant renamed");
     } catch (e: any) { toast.error(e?.message || "Rename failed"); }
   };
 
