@@ -205,6 +205,9 @@ function ApplicationRow({
       </td>
       <td className="px-3 py-3 text-right">
         <div className="inline-flex items-center gap-1">
+          <Button size="sm" variant="ghost" onClick={onMembers} title="Members">
+            <Users size={14} />
+          </Button>
           <Button size="sm" variant="ghost" onClick={onTransfer} title="Transfer owner">
             <UserPlus size={14} />
           </Button>
