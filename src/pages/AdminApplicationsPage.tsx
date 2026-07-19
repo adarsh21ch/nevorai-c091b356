@@ -124,11 +124,13 @@ function ApplicationRow({
   app,
   onEdit,
   onTransfer,
+  onMembers,
   onRefresh,
 }: {
   app: AdminApplication;
   onEdit: () => void;
   onTransfer: () => void;
+  onMembers: () => void;
   onRefresh: () => void;
 }) {
   const update = useAdminUpdateApplication();
