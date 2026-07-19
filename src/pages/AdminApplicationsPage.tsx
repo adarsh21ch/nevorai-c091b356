@@ -222,7 +222,7 @@ function ApplicationRow({
               if (!confirm(`Delete "${app.name}"? Existing data is kept but the app is suspended.`)) return;
               try {
                 await del.mutateAsync(app.id);
-                toast.success("Application deleted");
+                toast.success("Tenant deleted");
                 onRefresh();
               } catch (e: any) {
                 toast.error(e?.message || "Delete failed");
@@ -437,7 +437,7 @@ function EditDialog({ app, onClose }: { app: AdminApplication; onClose: () => vo
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit Application</DialogTitle>
+          <DialogTitle>Edit Tenant</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -457,9 +457,8 @@ function EditDialog({ app, onClose }: { app: AdminApplication; onClose: () => vo
               <Select value={plan} onValueChange={setPlan}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="free">Free</SelectItem>
-                  <SelectItem value="basic">Basic</SelectItem>
-                  <SelectItem value="pro">Pro</SelectItem>
+                  <SelectItem value="individual">Individual</SelectItem>
+                  <SelectItem value="leader">Leader</SelectItem>
                 </SelectContent>
               </Select>
             </div>
