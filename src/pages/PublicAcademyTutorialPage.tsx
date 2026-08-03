@@ -507,7 +507,11 @@ function ShortSlide({
 
   return (
     <section className="snap-start snap-always relative flex h-[100dvh] w-full items-center justify-center bg-black">
-      {isEmbedUrl(tutorial.video_url) ? (
+      {isYouTubeUrl(tutorial.video_url) ? (
+        <div className="relative h-full w-full">
+          <YouTubeEmbed src={tutorial.video_url} title={tutorial.title} />
+        </div>
+      ) : isEmbedUrl(tutorial.video_url) ? (
         <iframe
           src={tutorial.video_url}
           title={tutorial.title}
