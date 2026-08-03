@@ -35,6 +35,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const isEmbedUrl = (url: string) =>
   /youtube\.com\/embed|player\.vimeo\.com|youtu\.be\/embed/.test(url);
+import { isYouTubeUrl } from "@/lib/youtube";
+import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 export default function HelpCenterPage() {
   useDocumentTitle("Nevorai Academy · Tutorials");
@@ -257,7 +259,9 @@ export default function HelpCenterPage() {
               </button>
             </div>
             <div className="aspect-video w-full bg-black">
-              {isEmbedUrl(active.video_url) ? (
+              {isYouTubeUrl(active.video_url) ? (
+                <YouTubeEmbed src={active.video_url} title={active.title} />
+              ) : isEmbedUrl(active.video_url) ? (
                 <iframe
                   src={active.video_url}
                   title={active.title}
