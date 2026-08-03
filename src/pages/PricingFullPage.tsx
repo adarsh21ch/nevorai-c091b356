@@ -87,7 +87,7 @@ const buildFeatureList = (config: any): FeatureItem[] => {
     items.push({ text: "Team Members", enabled: false, locked: true });
   }
 
-  if (config.feature_team_analytics) items.push({ text: "Team Analytics Dashboard", enabled: true });
+  if (config.feature_advanced_analytics) items.push({ text: "Team Analytics Dashboard", enabled: true });
   else items.push({ text: "Team Analytics", enabled: false, locked: true });
 
   if (config.feature_video_sharing) items.push({ text: "Video Sharing", enabled: true });
@@ -381,7 +381,7 @@ const PricingFullPage = () => {
       { name: "Video Sharing", free: !!freeConfig?.feature_video_sharing, basic: !!basicConfig?.feature_video_sharing, growth: !!growthConfig?.feature_video_sharing, pro: !!proConfig?.feature_video_sharing },
       { name: "Advanced Analytics", free: !!freeConfig?.feature_advanced_analytics, basic: !!basicConfig?.feature_advanced_analytics, growth: !!growthConfig?.feature_advanced_analytics, pro: !!proConfig?.feature_advanced_analytics },
       { name: "Priority Support", free: !!freeConfig?.feature_priority_support, basic: !!basicConfig?.feature_priority_support, growth: !!growthConfig?.feature_priority_support, pro: !!proConfig?.feature_priority_support },
-      { name: "Team Analytics", free: !!freeConfig?.feature_team_analytics, basic: !!basicConfig?.feature_team_analytics, growth: !!growthConfig?.feature_team_analytics, pro: !!proConfig?.feature_team_analytics },
+      { name: "Team Analytics", free: !!freeConfig?.feature_advanced_analytics, basic: !!basicConfig?.feature_advanced_analytics, growth: !!growthConfig?.feature_advanced_analytics, pro: !!proConfig?.feature_advanced_analytics },
     ];
     return rows;
   };

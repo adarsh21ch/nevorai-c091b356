@@ -32,9 +32,9 @@ export function useWorkspaceBranding(workspaceId: string | null | undefined) {
     staleTime: 60_000,
     queryFn: async (): Promise<WorkspaceBranding> => {
       const { data, error } = await (supabase as any)
-        .from("workspace_branding")
-        .select("workspace_id, app_name, logo_url, favicon_url, primary_color, secondary_color, theme_color, email_from_name")
-        .eq("workspace_id", workspaceId!)
+        .from("tenant_branding")
+        .select("workspace_id:tenant_id, app_name, logo_url, favicon_url, primary_color, secondary_color, theme_color, email_from_name")
+        .eq("tenant_id", workspaceId!)
         .maybeSingle();
       if (error) {
         console.warn("[useWorkspaceBranding] load failed:", error.message);
@@ -49,10 +49,10 @@ export function useUpdateWorkspaceBranding(workspaceId: string | null | undefine
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (patch: Partial<Omit<WorkspaceBranding, "workspace_id">>) => {
-      if (!workspaceId) throw new Error("No active workspace");
+      if (!workspaceId) throw new Error("No active tenant");
       const { error } = await (supabase as any)
-        .from("workspace_branding")
-        .upsert({ workspace_id: workspaceId, ...patch, updated_at: new Date().toISOString() });
+        .from("tenant_branding")
+        .upsert({ tenant_id: workspaceId, ...patch, updated_at: new Date().toISOString() });
       if (error) throw error;
     },
     onSuccess: () => {

@@ -7,7 +7,7 @@ import { SafeIcon } from "@/components/SafeIcon";
 
 const adminTabs = [
   { icon: LayoutDashboard, label: "Overview", path: "/admin" },
-  { icon: Globe, label: "Applications", path: "/admin/applications" },
+  { icon: Globe, label: "Tenants", path: "/admin/applications" },
   { icon: IndianRupee, label: "Revenue", path: "/admin/revenue" },
   { icon: Layers, label: "Plans", path: "/admin/plans" },
   { icon: Video, label: "Videos", path: "/admin/videos" },

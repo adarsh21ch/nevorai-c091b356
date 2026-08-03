@@ -18,7 +18,7 @@ type Stage = "email" | "login" | "signup" | "nevorai-otp" | "set-password";
 interface NevoraiInfo {
   fullName?: string | null;
   isPro: boolean;
-  hasNflowAccount?: boolean;
+  hasNevoraiAccount?: boolean;
 }
 
 export default function AuthPage() {

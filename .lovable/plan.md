@@ -1,266 +1,128 @@
 
-# Nevorai Subscription System Rebuild
+# Funnel OS — Individual + Leader Tiers (Phased Plan)
 
-## Goal
-
-Replace the current confusing free/basic/pro + view-limits system with a clean 3-plan structure where **every price, name, limit, and copy string is admin-editable from the DB** — zero hardcoding.
+Goal: turn a Leader-plan subscription into the trigger that upgrades the user's existing workspace to a branded, team-enabled space. Individual plan stays unchanged. Reuse `workspaces`, `workspace_members`, `workspace_branding`, `workspace_invitations`, and the host-based tenant resolver. No parallel systems.
 
 ---
 
-## Final Plan Structure (initial seed values — all editable)
+## Phase 0 — Foundation Fix: workspace_members RLS recursion
 
-| | **Trial** | **Starter** | **Growth** ⭐ | **Team** |
-|---|---|---|---|---|
-| Price | ₹0 for 7 days | ₹199/mo · ₹1,990/yr | ₹699/mo · ₹6,990/yr | ₹1,499/mo · ₹14,990/yr |
-| Funnels | Unlimited | 5 | Unlimited | Unlimited |
-| Landing pages | Unlimited | 1 | Unlimited | Unlimited |
-| Live sessions | ✅ | ❌ | ✅ | ✅ |
-| Custom domain | ❌ | ❌ | ✅ | ✅ |
-| Hide Nevorai badge | ❌ | ❌ | ✅ | ✅ |
-| WhatsApp manual send | ✅ | ✅ | ✅ | ✅ |
-| WhatsApp automation | ✅ | ❌ | ✅ (500 msg/mo) | ✅ (unlimited) |
-| WhatsApp templates | Full | — | Basic | Full |
-| Team members | — | — | — | Up to 5 |
-| Team dashboard/leaderboard/shared leads | — | — | — | ✅ |
-| Storage | **1 GB** | **2 GB** | **10 GB** | **25 GB shared** |
-| View limits | **None (removed everywhere)** | | | |
+**Why first:** every Leader feature (owner dashboard rollup, invites, rep list, branding scope) reads `workspace_members`. The recursion bug will silently break them.
+
+**Does:**
+- Reproduce the recursion path (likely a policy on `workspace_members` that SELECTs from `workspace_members`, or `same_workspace_as()` calling a function that re-enters the table).
+- Move all "is caller a member/owner of workspace X" checks into `SECURITY DEFINER` helpers (`is_workspace_member(uuid)`, `is_workspace_owner(uuid)`, `workspace_role(uuid)`) that bypass RLS internally.
+- Rewrite `workspace_members` policies to use those helpers + direct `auth.uid()` comparisons only — never a subquery back into `workspace_members`.
+- Re-audit `same_workspace_as()` and the 16 tables touched in the recent security migrations to make sure none of them reintroduce recursion.
+
+**Touches (existing):** `phase0_workspaces_foundation.sql`, `phase2_notnull_and_helpers.sql`, `phaseR_repair.sql`, `phase_sec_*` files (reference only), `src/hooks/useWorkspaces.ts`, `src/hooks/useActiveWorkspace.ts`, `src/hooks/useWorkspaceMembers.ts`.
+
+**New:** one migration `phase7_fix_workspace_members_recursion.sql` + rollback.
+
+**Safety:** pure policy/function rewrite, no data change. Verify with impersonated `SELECT` tests before/after.
 
 ---
 
-## The Only 3 User States
+## Phase 1 — Backend Cleanup & Migration Hygiene
 
-1. **Trial** — 7 days, Growth features, 1GB storage
-2. **Paid** — Starter / Growth / Team
-3. **Blocked** — trial expired OR paid plan lapsed → red gate + prospect sees "creator's plan ended, contact them to upgrade"
+**Why here:** we're about to add plan↔workspace glue, billing hooks, and integration settings tables. Doing that on top of ~60 loose root-level `.sql` files and dead code will compound the mess.
 
-No "free tier". The word "free" only appears as marketing copy ("7-day free trial").
+**Does:**
+- Inventory every `*.sql` at repo root, classify each as: (a) already-applied historical → move to `supabase/migrations/` with proper timestamp prefix, (b) superseded/obsolete → archive under `supabase/migrations/_archive/`, (c) never applied / experimental → confirm with user then delete.
+- Inventory `supabase/functions/*` and `src/lib/*.functions.ts` for endpoints with zero call sites (grep-verified) → list for removal.
+- Inventory `src/pages`, `src/hooks`, `src/components` for orphans (no import references) → list for removal.
+- Delete the confirmed-dead `Enterprise` remnants, unused `useVideoGate`, and any leftover `nflow` string references not preserved for compatibility.
+- Consolidate the 3–4 near-duplicate plan/pricing hooks (`usePlan`, `usePlans`, `usePlanPricing`, `usePlanLimits`) into a documented layering (data hook vs. limits hook vs. display hook) — no behaviour change, just kill duplication.
 
----
+**Touches:** root `*.sql`, `supabase/functions/`, `src/hooks`, `src/pages`, `src/lib`.
 
-## Lifecycle
+**New:** `supabase/migrations/_archive/` folder, `docs/BACKEND_MAP.md` (one-page map of what lives where after cleanup).
 
-```text
-Signup → 7-day Trial (Growth features, 1GB)
-   │
-   ├─ Pays before day 8 → Active (Starter/Growth/Team)
-   │      ├─ Renews → Active (loop)
-   │      └─ Fails/skips → 3-day grace (amber banner) → Blocked
-   │
-   └─ Day 8, no payment → Blocked (red gate on dashboard,
-                          prospect sees "plan ended" gate)
-```
-
-Team members' access resolves through the leader's subscription — if leader lapses, all members go to grace → blocked in the same cycle.
+**Safety:** every deletion is preceded by a grep report shared with you. Nothing removed without your sign-off in this phase.
 
 ---
 
-## Migration for Existing Users (ship-day)
+## Phase 2 — Plan ↔ Workspace Contract
 
-- All current `free` users → fresh 7-day trial starting today (not backdated)
-- In-app banner: *"You're on a 7-day free trial with full access."*
-- Emails: day 1 welcome, day 5 reminder, day 7 final notice
-- Day 8 → blocked (standard flow)
+**Why:** today `subscription_plans` and `workspaces` don't know about each other. Leader features need a single, cheap-to-check "is this workspace on the Leader plan right now?" answer.
 
----
+**Does:**
+- Add `workspaces.plan_slug` (text, default `'individual'`) and `workspaces.plan_seat_limit` (int, nullable). Backfill: every existing workspace → `'individual'`. The ~6 paying subs stay untouched because their user still owns their personal workspace.
+- Add `subscription_plans.workspace_kind` enum (`individual` | `leader`) — declares which plan turns a workspace into a team workspace.
+- Add SECURITY DEFINER helper `workspace_plan(uuid)` returning `(plan_slug, seat_limit, is_active)` for use in RLS and UI.
+- Update `useActiveWorkspace` / `usePlan` to expose `workspace.plan_slug` alongside the user's subscription — a single source of truth for "am I looking at a Leader workspace right now?".
 
-## Zero-Hardcoding Rule
+**Touches:** `workspaces` table, `subscription_plans` table, `src/hooks/useActiveWorkspace.ts`, `src/hooks/usePlan.tsx`, `src/contexts/TenantProvider.tsx`.
 
-**Source of truth = DB.** All prices, names, limits, feature bullets, copy — editable from Admin Plans page. Code reads stable slugs (`starter`/`growth`/`team`) only as internal keys; display names and everything else come from DB.
+**New:** `phase8_workspace_plan_link.sql` + rollback.
 
----
-
-## Technical Section
-
-### 1. Database schema
-
-**Extend `subscription_plans`** (source of truth for plan config):
-```sql
-ALTER TABLE subscription_plans ADD COLUMN IF NOT EXISTS
-  display_name text,
-  description text,
-  badge_text text,               -- "Most Popular", "Best Value"
-  accent_color text,
-  sort_order int DEFAULT 0,
-  price_monthly numeric,
-  price_yearly numeric,
-  currency text DEFAULT 'INR',
-  yearly_discount_label text,    -- "Save 17%"
-
-  max_funnels int,               -- -1 = unlimited
-  max_landing_pages int,
-  max_team_members int DEFAULT 0,
-  max_storage_gb numeric,
-
-  live_enabled boolean DEFAULT false,
-  custom_domain_enabled boolean DEFAULT false,
-  hide_branding boolean DEFAULT false,
-
-  whatsapp_automation_enabled boolean DEFAULT false,
-  whatsapp_monthly_cap int DEFAULT 0,   -- -1 = unlimited, 0 = disabled
-  whatsapp_templates_level text DEFAULT 'none', -- none|basic|full
-
-  nev_ai_monthly_quota int DEFAULT 0,
-
-  features_jsonb jsonb DEFAULT '[]',    -- ordered bullets for pricing card
-  is_visible boolean DEFAULT true,      -- hide from public pricing page
-  is_purchasable boolean DEFAULT true;
-```
-
-**Extend `app_settings`** (global toggles):
-- `trial_enabled`, `trial_days` (default 7), `trial_plan_slug` (which plan's features apply during trial)
-- `access_grace_days` (default 3, for paid-plan lapse)
-- `prospect_gate_title`, `prospect_gate_message` (creator-plan-ended copy)
-- `upgrade_banner_title`, `upgrade_banner_body`
-
-**New `team_members` table:**
-```sql
-CREATE TABLE public.team_members (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  owner_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  member_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  invited_at timestamptz DEFAULT now(),
-  accepted_at timestamptz,
-  status text DEFAULT 'pending', -- pending|active|removed
-  UNIQUE(owner_id, member_id)
-);
--- + grants, RLS: owner sees own team, member sees own row
-```
-
-**New RPC `get_effective_access(user_id)`** — SECURITY DEFINER, returns:
-```json
-{
-  "state": "trial|active|grace|blocked",
-  "source": "self|team",
-  "leader_id": "uuid | null",
-  "plan_slug": "trial|starter|growth|team",
-  "expires_at": "...",
-  "grace_ends_at": "..."
-}
-```
-Called by all gating logic — one function, one source of truth.
-
-### 2. Files to delete / gut
-
-- `src/config/planFeatures.ts` — delete (was hardcoded features per tier)
-- `src/config/planDisplay.ts` — delete (was hardcoded display metadata)
-- `src/hooks/useMonthlyViews.tsx` — keep as analytics read-only, remove blocking behavior
-- `src/hooks/useDailyViews.tsx` — same
-- `src/components/MonthlyViewsBanner.tsx` — delete
-- `src/components/admin/FreeAccessSettingsStrip.tsx` — delete (obsolete)
-- `src/hooks/useAccessState.ts` — rewrite to call `get_effective_access` RPC
-- `src/hooks/useOwnerActive.ts` — rewrite to call `get_effective_access` for the owner
-- `supabase/functions/check-funnel-view-limit/` — delete
-- `owner_plan_active_migration.sql` — supersede with new RPC
-
-### 3. Files to refactor
-
-- `src/hooks/usePlan.tsx`, `usePlanLimits.tsx` — read from `subscription_plans` join, no hardcoded limits
-- `src/pages/PricingFullPage.tsx` — render entirely from `subscription_plans` rows (visible, purchasable, sort_order)
-- `src/pages/BillingPage.tsx` — same
-- `src/pages/FunnelsPage.tsx` — enforce `max_funnels` from DB at create
-- `src/pages/LandingPagesPage.tsx` — enforce `max_landing_pages`
-- `src/pages/LivePage.tsx` + `LiveDetailPage.tsx` — gate on `live_enabled`
-- All WhatsApp send paths (`whatsapp-send`, `whatsapp-sequence-runner`, etc.) — check `whatsapp_automation_enabled` + increment monthly counter, block at `whatsapp_monthly_cap`
-- `src/lib/r2VideoUpload.ts` + `get-r2-upload-url` edge fn — check `max_storage_gb` before signing upload URL
-- `supabase/functions/get-funnel-data/index.ts` — replace ad-hoc gating with `get_effective_access` RPC
-- All prospect-facing gates — read title/message from `app_settings`
-
-### 4. New files
-
-- `src/hooks/useEffectiveAccess.ts` — client mirror of the RPC
-- `src/hooks/useSubscriptionPlans.ts` — cached DB fetch of all visible plans
-- `src/lib/planGates.ts` — pure helper functions: `canCreateFunnel(plan, currentCount)`, `canGoLive(plan)`, `canSendWhatsappAutomation(plan, monthlyUsed)`, `canUpload(plan, currentBytes, incomingBytes)`
-- `src/components/admin/PlanEditor.tsx` — full CRUD editor for a plan row with live pricing-card preview
-- `src/components/admin/GlobalSettingsPanel.tsx` — trial days, grace days, prospect copy, banner copy
-- `src/components/admin/TeamMembersView.tsx` — admin view of teams
-- `src/pages/TeamMembersPage.tsx` — Team owner UI: invite / remove / see member activity
-- `src/components/team/TeamInviteAcceptGate.tsx` — invited-member onboarding
-- `whatsapp_monthly_usage` table + tracking
-
-### 5. Admin panel (AdminPlansPage rebuild)
-
-**Tab 1 — Plans**: list of `subscription_plans` rows, click to edit any field, live preview of pricing card, "Show on pricing page" toggle, drag-to-reorder.
-
-**Tab 2 — Global Settings**: trial days, grace days, prospect gate copy, upgrade banner copy, master toggles.
-
-**Tab 3 — Teams**: overview of all Team owners, member counts, activity.
-
-**Tab 4 — Audit log** (recommended): who changed what/when.
-
-### 6. Team access resolution (the tricky part)
-
-Every gate check goes through `get_effective_access(auth.uid())`:
-1. Does user have own active paid sub? → return that plan
-2. Is user a `team_members.member_id` with status='active'? → resolve leader's access, but cap feature level at **Starter** (never leader's level)
-3. Else → check trial → check blocked
-
-Members see a badge: *"Team access via [Leader Name] — expires with their subscription."*
-
-### 7. Ship-day migration script
-
-```sql
--- Migrate all current free-tier users to fresh 7-day trial
-UPDATE profiles
-SET subscription_status = 'trial',
-    trial_start_date = now()
-WHERE subscription_status IN ('free', null)
-  AND NOT EXISTS (
-    SELECT 1 FROM user_subscriptions us
-    WHERE us.user_id = profiles.id
-      AND us.status = 'active'
-      AND us.tier IN ('basic', 'pro', 'starter', 'growth', 'team')
-  );
-
--- Hide free plan from public pricing
-UPDATE subscription_plans SET is_visible = false, is_purchasable = false WHERE plan_name = 'free';
-
--- Rename basic→starter, pro→growth in display_name only (keep DB slug for FK integrity)
-UPDATE subscription_plans SET display_name = 'Starter' WHERE plan_name = 'basic';
-UPDATE subscription_plans SET display_name = 'Growth', badge_text = 'Most Popular' WHERE plan_name = 'pro';
-
--- Insert Team plan
-INSERT INTO subscription_plans (plan_name, display_name, price_monthly, ...) VALUES ('team', 'Team', 1499, ...);
-```
-
-### 8. Razorpay webhook audit
-
-Verify `razorpay-webhook` correctly flips `user_subscriptions.status = 'expired'` on:
-- `subscription.halted`
-- `subscription.cancelled`
-- `payment.failed` (after retry window)
-
-Add integration test or manual test script.
-
-### 9. Trial-expired = blocked bug fix
-
-Ensure `get_effective_access` returns `blocked` when `status='trial'` AND `(now - trial_start_date) >= trial_days` AND no paid sub — regardless of any legacy free-access toggle.
+**Safety:** all columns nullable/defaulted; existing queries keep working. No behaviour change until Phase 3 reads these fields.
 
 ---
 
-## Build Order (proposed)
+## Phase 3 — Leader Subscription → Workspace Promotion
 
-1. Schema migration + seed (3 plans + Team plan row)
-2. `get_effective_access` RPC + `useEffectiveAccess` hook
-3. Refactor `usePlan` / `usePlanLimits` to read from DB
-4. Delete `planFeatures.ts` / `planDisplay.ts`, fix all imports
-5. Refactor all creation flows to use `planGates.ts` helpers
-6. Remove view-limit enforcement everywhere (keep analytics reads)
-7. Storage cap enforcement in R2 upload path
-8. WhatsApp monthly cap tracking + enforcement
-9. Team members table + Team owner UI + access resolution
-10. Rebuild AdminPlansPage (4 tabs)
-11. Rebuild PricingFullPage (100% DB-driven)
-12. Prospect gate copy from `app_settings`
-13. Ship-day migration script + email sequence
-14. Razorpay webhook audit
-15. QA all lifecycle transitions (trial → paid → renew → lapse → grace → blocked; team leader lapse cascade)
+**Why:** the core mechanism the whole product hinges on.
+
+**Does:**
+- Extend `razorpay-webhook` (existing file, not new) so that on a successful Leader-plan payment for user X: locate X's owned workspace → set `plan_slug='leader'`, `plan_seat_limit=<from plan>`, ensure `workspace_branding` row exists. On downgrade/cancel/expiry: flip back to `'individual'`, keep the data, disable invite endpoints via plan check (do not delete reps — they just lose write access gracefully).
+- Same logic mirrored in `razorpay-portal` for admin-forced grants and in the admin "override plan" UI so the two paths cannot drift.
+- Add a `workspace_plan_events` audit table (small — id, workspace_id, from_plan, to_plan, reason, actor, ts) so we can debug promotions/demotions later.
+
+**Touches:** `supabase/functions/razorpay-webhook/`, `supabase/functions/razorpay-portal/`, `src/pages/AdminSubscriptionsPage.tsx`.
+
+**New:** `phase9_workspace_plan_events.sql`.
+
+**Safety:** individual users never hit this path. Idempotent on repeated webhook delivery (keyed by razorpay event id).
 
 ---
 
-## Non-goals (explicit)
+## Phase 4 — Leader Owner Dashboard & Rep Management (UI, reusing existing tables)
 
-- Not adding view limits (removed everywhere)
-- Not building add-ons/one-off purchases yet
-- Not building per-seat Growth upgrades in Team (Option C rejected)
-- Not touching profile page (already redesigned)
-- Not touching landing page monochrome rebrand
+**Why:** the visible Leader value.
+
+**Does:**
+- New route `/team` (Leader-only, gated by `workspace.plan_slug === 'leader'`) with three tabs: **Overview** (workspace-wide KPIs — views, leads, top funnels rolled up across all members), **Reps** (list from `workspace_members`, invite via existing `workspace_invitations`, remove, role change), **Branding** (edit `workspace_branding`: logo, colour, subdomain).
+- Rep-side: when a rep logs in and their `active_workspace_id` is a Leader workspace, header shows Leader branding; their existing funnel/leads pages already scope by `workspace_id` so no data-layer change needed.
+- Reuse existing `useWorkspaceMembers`, `useWorkspaceBranding`, `useWorkspaceSettings`. Only new hook: `useTeamRollup(workspace_id)` — one aggregate RPC that returns rollup counts (kept as one SECURITY DEFINER RPC to avoid N+1 and RLS gymnastics).
+
+**Touches:** `src/routes/team.tsx` (fill in), `src/pages/MyTeamPage.tsx` (rework or replace with new `TeamOverviewPage`), `src/components/WorkspaceSwitcher.tsx`, `src/hooks/useWorkspaceMembers.ts`, `src/hooks/useWorkspaceBranding.ts`.
+
+**New:** `useTeamRollup` hook, `team_rollup_rpc.sql` migration, `TeamOverviewPage`, `TeamRepsPage`, `TeamBrandingPage` components.
+
+**Safety:** every new page gates on plan check; nothing renders for Individual users. Existing `DownlinePage` is superseded — mark deprecated in this phase, delete in a later cleanup pass once no route points at it.
+
+---
+
+## Phase 5 — Integration Scaffolding (Structure-First, Disabled By Default)
+
+**Why:** you want WhatsApp + payments plumbing ready without touching live keys.
+
+**Does:**
+- One shared table pattern: `workspace_integrations (workspace_id, provider, enabled bool default false, config jsonb, secret_ref text, updated_at)` — one row per (workspace, provider). Providers seeded: `whatsapp_cloud`, `razorpay_workspace`, room for more.
+- Admin UI in `/team` → Integrations tab: for each provider, show status (Disabled / Configured / Live), fields to paste keys later, a single "Enable" toggle. Toggle stays false until the user flips it.
+- All existing WhatsApp/Razorpay code paths add a guard: `if (!integration.enabled) return { skipped: true }`. Existing global keys (the ones already working for the platform) are left completely alone — this scaffolding is per-workspace and additive.
+- Secrets stored via `add_secret` per workspace-provider (`WORKSPACE_<id>_WHATSAPP_TOKEN` etc.), never in the `config` jsonb.
+
+**Touches:** none of the currently-live integration files' behaviour — only add the guard branch.
+
+**New:** `phase10_workspace_integrations.sql`, `src/components/team/IntegrationsPanel.tsx`, `useWorkspaceIntegrations` hook.
+
+**Safety:** default false + guard-first means zero risk of accidental sends/charges.
+
+---
+
+## Phase 6 — QA, Docs, Rollout
+
+**Does:**
+- End-to-end test matrix: (a) new Individual signup → normal experience, (b) existing paying user → nothing changes, (c) new Leader signup → workspace promoted, branding editable, invite flow works, rep sees Leader branding, rollup shows their data, (d) Leader cancels → demoted cleanly, reps' data preserved, invite endpoints disabled.
+- Update `docs/BACKEND_MAP.md` and `CLAUDE.md` "Ongoing" section with the final architecture.
+- Publish.
+
+---
+
+## Ordering rationale
+
+RLS fix (0) → cleanup (1) → data contract (2) → mechanism (3) → UI (4) → integrations scaffold (5) → verify (6). Each phase is independently reversible and ships without breaking the ~6 existing paying users or any current Individual user.
+
+Ready for your review — tell me what to adjust and I'll re-issue the plan before we start Phase 0.

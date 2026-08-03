@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Rocket } from "lucide-react";
 
 const YOUTUBE_RATE = 0.07;
-const NFLOW_RATE = 0.17;
+const NEVORAI_RATE = 0.17;
 
 const useAnimatedNumber = (target: number, ms = 600) => {
   const [val, setVal] = useState(target);
@@ -34,8 +34,8 @@ const useAnimatedNumber = (target: number, ms = 600) => {
 export const ConversionCalculator = () => {
   const [prospects, setProspects] = useState(100);
   const youtubeResults = useAnimatedNumber(Math.round(prospects * YOUTUBE_RATE));
-  const nFlowResults = useAnimatedNumber(Math.round(prospects * NFLOW_RATE));
-  const extra = nFlowResults - youtubeResults;
+  const nevoraiResults = useAnimatedNumber(Math.round(prospects * NEVORAI_RATE));
+  const extra = nevoraiResults - youtubeResults;
   const yearly = extra * 12;
 
   const fillPct = ((prospects - 10) / (500 - 10)) * 100;
@@ -107,7 +107,7 @@ export const ConversionCalculator = () => {
               <div className="mt-3 text-xs text-hero-muted">Conversion rate</div>
               <div className="text-sm text-white">16–18%</div>
               <div className="mt-3 text-xs text-hero-muted">Results per month</div>
-              <div className="text-5xl font-extrabold mt-1 text-gradient-brand">{nFlowResults}</div>
+              <div className="text-5xl font-extrabold mt-1 text-gradient-brand">{nevoraiResults}</div>
             </div>
           </div>
 

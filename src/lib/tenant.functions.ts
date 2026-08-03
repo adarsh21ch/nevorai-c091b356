@@ -25,7 +25,7 @@ export type TenantBranding = {
 };
 
 export type ResolvedTenant = {
-  workspace_id: string;
+  tenant_id: string;
   slug: string;
   name: string;
   status: "active" | "suspended" | "pending" | "deleted";
@@ -110,7 +110,7 @@ async function fetchWorkspaceBySlug(slug: string): Promise<ResolvedTenant | null
   try {
     const supabase = publicClient();
     const { data: ws, error } = await supabase
-      .from("workspaces")
+      .from("tenants")
       .select("id, slug, name, status, plan")
       .eq("slug", slug.toLowerCase())
       .is("deleted_at", null)
@@ -122,14 +122,14 @@ async function fetchWorkspaceBySlug(slug: string): Promise<ResolvedTenant | null
     if (!wsRow) return null;
 
     const { data: branding } = await supabase
-      .from("workspace_branding")
+      .from("tenant_branding")
       .select("app_name, logo_url, favicon_url, primary_color, secondary_color, theme_color, email_from_name")
-      .eq("workspace_id", wsRow.id)
+      .eq("tenant_id", wsRow.id)
       .maybeSingle();
     const brandingRow = branding as BrandingRow | null;
 
     return {
-      workspace_id: wsRow.id,
+      tenant_id: wsRow.id,
       slug: wsRow.slug,
       name: wsRow.name,
       status: wsRow.status,

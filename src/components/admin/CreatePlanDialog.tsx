@@ -75,7 +75,7 @@ export const CreatePlanDialog = ({ existingPlanNames, nextDisplayOrder, onCreate
         plan_badge_text: form.plan_badge_text.trim() || null,
         display_order: displayOrder,
         is_enabled: true,
-        view_limit_mode: "daily",
+        view_limit_mode: "monthly",
         daily_view_limit: dailyViews,
         monthly_views: dailyViews * 30,
         monthly_price: monthly,
@@ -99,23 +99,28 @@ export const CreatePlanDialog = ({ existingPlanNames, nextDisplayOrder, onCreate
         feature_landing_pages: true,
         feature_analytics: true,
         feature_skip_control: false,
-        feature_speaker_profile: false,
-        feature_video_topics: false,
-        feature_contact_form: true,
-        feature_privacy_settings: false,
-        feature_custom_form_fields: false,
         feature_landing_page_email: false,
         feature_go_live: false,
         feature_whatsapp_automation: false,
         feature_smart_reminders: false,
         feature_advanced_analytics: false,
-        feature_prospect_analytics: false,
-        feature_insights: false,
+        feature_advanced_funnel_customization: false,
         multilevel_funnel_enabled: false,
-        feature_team_analytics: false,
         feature_custom_branding: false,
         feature_show_branding: true,
         feature_priority_support: false,
+        // Deprecated flags — no longer editable in admin UI. Seed to false so
+        // they don't accidentally grant features on new plans. Consuming code
+        // derives real behavior from feature_advanced_analytics /
+        // feature_advanced_funnel_customization above.
+        feature_speaker_profile: false,
+        feature_video_topics: false,
+        feature_contact_form: false,
+        feature_privacy_settings: false,
+        feature_custom_form_fields: false,
+        feature_prospect_analytics: false,
+        feature_insights: false,
+        feature_team_analytics: false,
       };
 
       const { error: cfgErr } = await adminWrite(() =>

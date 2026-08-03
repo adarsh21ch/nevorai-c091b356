@@ -110,8 +110,8 @@ const buildFeatures = (config: any) => {
   features.push({ text: "Custom branding", included: !!config.feature_custom_branding });
   features.push({ text: "Smart follow-up reminders", included: !!config.feature_smart_reminders });
   features.push({ text: "Analytics dashboard", included: !!config.feature_analytics });
-  features.push({ text: "Per-prospect watch analytics", included: !!config.feature_prospect_analytics });
-  features.push({ text: "Team dashboard", included: !!config.feature_team_analytics });
+  features.push({ text: "Per-prospect watch analytics", included: !!config.feature_advanced_analytics });
+  features.push({ text: "Team dashboard", included: !!config.feature_advanced_analytics });
   features.push({ text: "Priority support", included: !!config.feature_priority_support });
 
   return features;

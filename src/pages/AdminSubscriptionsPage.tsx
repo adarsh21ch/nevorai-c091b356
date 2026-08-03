@@ -186,14 +186,12 @@ const FEATURE_GROUPS: { group: string; items: { field: string; label: string; ic
       { field: "multilevel_funnel_enabled", label: "Multi-Step Funnels", icon: TrendingUp },
       { field: "feature_analytics", label: "Analytics Dashboard", icon: BarChart3 },
       { field: "feature_advanced_analytics", label: "Advanced Analytics", icon: Zap },
-      { field: "feature_prospect_analytics", label: "Per-Prospect Watch Analytics", icon: Eye },
-      { field: "feature_insights", label: "Insights Dashboard", icon: Eye },
+      { field: "feature_advanced_funnel_customization", label: "Advanced Funnel Customization", icon: Layers },
     ],
   },
   {
     group: "Team",
     items: [
-      { field: "feature_team_analytics", label: "Team Dashboard", icon: Users },
       { field: "feature_priority_support", label: "Priority Support", icon: Shield },
     ],
   },

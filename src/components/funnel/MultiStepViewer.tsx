@@ -9,7 +9,7 @@ import {
   Loader2, MessageCircle, Phone as PhoneIcon, BadgeCheck, Info, Sparkles, Instagram
 } from "lucide-react";
 
-import { CopyNflowLinkButton } from "@/components/CopyNflowLinkButton";
+import { CopyNevoraiLinkButton } from "@/components/CopyNevoraiLinkButton";
 import { sanitizeText } from "@/lib/sanitize";
 import { captureAttribution } from "@/lib/tracking";
 import { trackLinkEvent, trackFunnelEvent, getCachedShareLinkId } from "@/lib/teamTracking";
@@ -961,7 +961,7 @@ export const MultiStepViewer = ({
                       />
                       {activeStep.video_asset_id && activeStep.video_allow_copy_link !== false && (
                         <div className="flex justify-end">
-                          <CopyNflowLinkButton videoId={activeStep.video_asset_id} />
+                          <CopyNevoraiLinkButton videoId={activeStep.video_asset_id} />
                         </div>
                       )}
                     </div>
