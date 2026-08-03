@@ -188,6 +188,7 @@ const FEATURE_GROUPS = [
   ]},
   { group: "Lead Generation", items: [
     { field: "feature_lead_capture", label: "Lead Capture", icon: Target },
+    { field: "feature_custom_form_fields", label: "Custom Form Fields", icon: FileText },
     { field: "feature_whatsapp_automation", label: "WhatsApp Auto-Message", icon: MessageSquare },
     { field: "feature_smart_reminders", label: "Smart Follow-up Reminders", icon: Bell },
   ]},
@@ -196,9 +197,11 @@ const FEATURE_GROUPS = [
     { field: "multilevel_funnel_enabled", label: "Multi-Step Funnels", icon: TrendingUp },
     { field: "feature_analytics", label: "Analytics Dashboard", icon: BarChart3 },
     { field: "feature_advanced_analytics", label: "Advanced Analytics", icon: Zap },
-    { field: "feature_advanced_funnel_customization", label: "Advanced Funnel Customization", icon: Sparkles },
+    { field: "feature_prospect_analytics", label: "Per-Prospect Watch Analytics", icon: Eye },
+    { field: "feature_insights", label: "Insights Dashboard", icon: Eye },
   ]},
   { group: "Team", items: [
+    { field: "feature_team_analytics", label: "Team Dashboard", icon: Users },
     { field: "feature_priority_support", label: "Priority Support", icon: Shield },
   ]},
 ];

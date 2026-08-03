@@ -1,17 +1,17 @@
-// Phase 6 — Tenant members + invitations.
+// Phase 6 — Workspace members + invitations.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-export type TenantMember = {
+export type WorkspaceMember = {
   user_id: string;
   email: string;
   role: "owner" | "admin" | "member" | string;
   created_at: string;
 };
 
-export type TenantInvitation = {
+export type WorkspaceInvitation = {
   id: string;
-  tenant_id: string;
+  workspace_id: string;
   email: string;
   role: string;
   token: string;
@@ -20,11 +20,6 @@ export type TenantInvitation = {
   accepted_at: string | null;
   revoked_at: string | null;
 };
-
-// Back-compat aliases (to be removed once all call sites migrate).
-export type WorkspaceMember = TenantMember;
-export type WorkspaceInvitation = TenantInvitation;
-
 
 export function useWorkspaceMembers(workspaceId: string | null | undefined) {
   return useQuery({

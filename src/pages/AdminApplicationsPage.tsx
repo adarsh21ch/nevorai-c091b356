@@ -15,20 +15,17 @@ import {
   useAdminUpdateApplication,
   useAdminDeleteApplication,
   useAdminTransferApplication,
-  useReservedSubdomains,
   type AdminApplication,
   type AdminUserPick,
 } from "@/hooks/useApplicationsAdmin";
-import { useWorkspaceMembers } from "@/hooks/useTenantMembers";
 import { toast } from "sonner";
-import { ExternalLink, Pencil, Trash2, UserPlus, Copy, Search, Plus, Users } from "lucide-react";
+import { ExternalLink, Pencil, Trash2, UserPlus, Copy, Search, Plus } from "lucide-react";
 
 export default function AdminApplicationsPage() {
   const { data: apps = [], isLoading, error, refetch } = useAdminApplications();
   const [openCreate, setOpenCreate] = useState(false);
   const [editApp, setEditApp] = useState<AdminApplication | null>(null);
   const [transferApp, setTransferApp] = useState<AdminApplication | null>(null);
-  const [membersApp, setMembersApp] = useState<AdminApplication | null>(null);
   const [filter, setFilter] = useState("");
 
   const filtered = useMemo(() => {
@@ -48,14 +45,13 @@ export default function AdminApplicationsPage() {
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Platform Admin</div>
-            <h1 className="text-2xl font-bold tracking-tight">Tenants</h1>
+            <h1 className="text-2xl font-bold tracking-tight">Applications</h1>
             <p className="text-sm text-muted-foreground">
-              Dedicated client tenants. Each tenant has its own subdomain, branding, and one owner.
+              Dedicated client sites. Each Application has its own subdomain and one owner client.
             </p>
           </div>
           <Button onClick={() => setOpenCreate(true)} className="gap-2">
-            <Plus size={16} /> New Tenant
+            <Plus size={16} /> New Application
           </Button>
         </div>
 
@@ -96,14 +92,13 @@ export default function AdminApplicationsPage() {
                   app={app}
                   onEdit={() => setEditApp(app)}
                   onTransfer={() => setTransferApp(app)}
-                  onMembers={() => setMembersApp(app)}
                   onRefresh={() => refetch()}
                 />
               ))}
               {!isLoading && filtered.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-3 py-8 text-center text-sm text-muted-foreground">
-                    No tenants yet. Click "New Tenant" to create one.
+                    No applications yet. Click "New Application" to create one.
                   </td>
                 </tr>
               )}
@@ -115,7 +110,6 @@ export default function AdminApplicationsPage() {
       {openCreate && <CreateDialog onClose={() => setOpenCreate(false)} />}
       {editApp && <EditDialog app={editApp} onClose={() => setEditApp(null)} />}
       {transferApp && <TransferDialog app={transferApp} onClose={() => setTransferApp(null)} />}
-      {membersApp && <MembersDialog app={membersApp} onClose={() => setMembersApp(null)} />}
     </AdminLayout>
   );
 }
@@ -124,13 +118,11 @@ function ApplicationRow({
   app,
   onEdit,
   onTransfer,
-  onMembers,
   onRefresh,
 }: {
   app: AdminApplication;
   onEdit: () => void;
   onTransfer: () => void;
-  onMembers: () => void;
   onRefresh: () => void;
 }) {
   const update = useAdminUpdateApplication();
@@ -205,9 +197,6 @@ function ApplicationRow({
       </td>
       <td className="px-3 py-3 text-right">
         <div className="inline-flex items-center gap-1">
-          <Button size="sm" variant="ghost" onClick={onMembers} title="Members">
-            <Users size={14} />
-          </Button>
           <Button size="sm" variant="ghost" onClick={onTransfer} title="Transfer owner">
             <UserPlus size={14} />
           </Button>
@@ -222,7 +211,7 @@ function ApplicationRow({
               if (!confirm(`Delete "${app.name}"? Existing data is kept but the app is suspended.`)) return;
               try {
                 await del.mutateAsync(app.id);
-                toast.success("Tenant deleted");
+                toast.success("Application deleted");
                 onRefresh();
               } catch (e: any) {
                 toast.error(e?.message || "Delete failed");
@@ -287,26 +276,15 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
   const create = useAdminCreateApplication();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [allowTeam, setAllowTeam] = useState(true);
+  const [plan, setPlan] = useState<"free" | "basic" | "pro">("free");
+  const [allowTeam, setAllowTeam] = useState(false);
   const [owner, setOwner] = useState<AdminUserPick | null>(null);
-  const { data: reserved = [] } = useReservedSubdomains();
-
-  const slugPattern = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])?$/;
-  const slugValid = slugPattern.test(slug);
-  const slugReserved = !!slug && reserved.includes(slug.toLowerCase());
-  const slugError = slug && !slugValid
-    ? "3–40 chars, lowercase letters, numbers, hyphens."
-    : slugReserved
-      ? "This subdomain is reserved."
-      : "";
 
   const submit = async () => {
     if (!owner) return toast.error("Pick an owner user");
-    if (!slugValid) return toast.error("Invalid subdomain");
-    if (slugReserved) return toast.error("Subdomain is reserved");
     try {
-      await create.mutateAsync({ name, slug, owner_id: owner.id, plan: "leader", allow_team: allowTeam });
-      toast.success(`Tenant created at ${slug}.nevorai.com`);
+      await create.mutateAsync({ name, slug, owner_id: owner.id, plan, allow_team: allowTeam });
+      toast.success(`Application created at ${slug}.nevorai.com`);
       onClose();
     } catch (e: any) {
       toast.error(e?.message || "Create failed");
@@ -317,7 +295,7 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>New Tenant</DialogTitle>
+          <DialogTitle>New Application</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -331,79 +309,41 @@ function CreateDialog({ onClose }: { onClose: () => void }) {
                 value={slug}
                 onChange={(e) => setSlug(e.target.value.toLowerCase())}
                 placeholder="client-name"
-                aria-invalid={!!slugError}
               />
               <span className="shrink-0 text-sm text-muted-foreground">.nevorai.com</span>
             </div>
-            {slugError ? (
-              <p className="text-xs text-destructive">{slugError}</p>
-            ) : (
-              <p className="text-xs text-muted-foreground">3–40 chars, lowercase letters, numbers, hyphens.</p>
-            )}
+            <p className="text-xs text-muted-foreground">3–40 chars, lowercase letters, numbers, hyphens.</p>
           </div>
           <div className="space-y-1.5">
-            <Label>Owner (search by email or name)</Label>
-            <UserPicker value={owner} onChange={setOwner} placeholder="owner@example.com" />
+            <Label>Plan</Label>
+            <Select value={plan} onValueChange={(v: any) => setPlan(v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="free">Free</SelectItem>
+                <SelectItem value="basic">Basic</SelectItem>
+                <SelectItem value="pro">Pro</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label>Assign to user (owner)</Label>
+            <UserPicker value={owner} onChange={setOwner} />
           </div>
           <div className="flex items-center justify-between rounded-md border border-border p-3">
             <div>
               <div className="text-sm font-medium">Allow owner to manage team</div>
               <p className="text-xs text-muted-foreground">
-                When on, the owner can invite teammates from inside their tenant.
+                When on, the owner can add their own teammates from inside their app.
               </p>
             </div>
             <Switch checked={allowTeam} onCheckedChange={setAllowTeam} />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Plan: <span className="font-medium text-foreground">Leader</span> · Kind: application
-          </p>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={submit}
-            disabled={create.isPending || !name.trim() || !slugValid || slugReserved || !owner}
-          >
-            {create.isPending ? "Creating…" : "Create Tenant"}
+          <Button onClick={submit} disabled={create.isPending || !name.trim() || !slug.trim() || !owner}>
+            {create.isPending ? "Creating…" : "Create Application"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function MembersDialog({ app, onClose }: { app: AdminApplication; onClose: () => void }) {
-  const { data: members = [], isLoading, error } = useWorkspaceMembers(app.id);
-  return (
-    <Dialog open onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Members — {app.name}</DialogTitle>
-        </DialogHeader>
-        <div className="max-h-[60vh] overflow-y-auto">
-          {isLoading && <p className="p-4 text-sm text-muted-foreground">Loading…</p>}
-          {error && (
-            <p className="p-4 text-sm text-destructive">{(error as Error).message}</p>
-          )}
-          {!isLoading && !error && members.length === 0 && (
-            <p className="p-4 text-sm text-muted-foreground">No members yet.</p>
-          )}
-          <div className="divide-y divide-border">
-            {members.map((m) => (
-              <div key={m.user_id} className="flex items-center justify-between px-1 py-3">
-                <div className="min-w-0">
-                  <div className="truncate text-sm font-medium">{m.email}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Joined {new Date(m.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-                <Badge variant="secondary" className="capitalize">{m.role}</Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-        <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Close</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -437,7 +377,7 @@ function EditDialog({ app, onClose }: { app: AdminApplication; onClose: () => vo
     <Dialog open onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Edit Tenant</DialogTitle>
+          <DialogTitle>Edit Application</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -457,8 +397,9 @@ function EditDialog({ app, onClose }: { app: AdminApplication; onClose: () => vo
               <Select value={plan} onValueChange={setPlan}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="individual">Individual</SelectItem>
-                  <SelectItem value="leader">Leader</SelectItem>
+                  <SelectItem value="free">Free</SelectItem>
+                  <SelectItem value="basic">Basic</SelectItem>
+                  <SelectItem value="pro">Pro</SelectItem>
                 </SelectContent>
               </Select>
             </div>
