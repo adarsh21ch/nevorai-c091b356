@@ -26,6 +26,8 @@ type Tutorial = {
 
 const isEmbedUrl = (url: string) =>
   /youtube\.com\/embed|player\.vimeo\.com|youtu\.be\/embed/.test(url);
+import { isYouTubeUrl } from "@/lib/youtube";
+import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 const normalizeFormat = (f: any): TutorialFormat => (f === "full" ? "full" : "short");
 
@@ -184,7 +186,9 @@ export default function PublicAcademyTutorialPage() {
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
             <div className="overflow-hidden rounded-xl border border-border bg-black aspect-video">
-              {isEmbedUrl(tutorial.video_url) ? (
+              {isYouTubeUrl(tutorial.video_url) ? (
+                <YouTubeEmbed src={tutorial.video_url} title={tutorial.title} />
+              ) : isEmbedUrl(tutorial.video_url) ? (
                 <iframe
                   src={tutorial.video_url}
                   title={tutorial.title}
@@ -503,7 +507,11 @@ function ShortSlide({
 
   return (
     <section className="snap-start snap-always relative flex h-[100dvh] w-full items-center justify-center bg-black">
-      {isEmbedUrl(tutorial.video_url) ? (
+      {isYouTubeUrl(tutorial.video_url) ? (
+        <div className="relative h-full w-full">
+          <YouTubeEmbed src={tutorial.video_url} title={tutorial.title} />
+        </div>
+      ) : isEmbedUrl(tutorial.video_url) ? (
         <iframe
           src={tutorial.video_url}
           title={tutorial.title}
