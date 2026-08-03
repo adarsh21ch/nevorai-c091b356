@@ -33,6 +33,8 @@ import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { StepLockOverlay } from "@/components/funnel/StepLockOverlay";
 import { Crown } from "lucide-react";
 import { sanitizeText } from "@/lib/sanitize";
+import { isYouTubeUrl } from "@/lib/youtube";
+import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 import { generateUniqueSuffixedSlug } from "@/lib/slugSuffix";
 import { EditorScrollLayout, EditorSectionBlock, type EditorSection } from "@/components/editor/EditorScrollLayout";
 import { AudioNoteRecorder } from "@/components/funnel/AudioNoteRecorder";
@@ -653,7 +655,13 @@ const FunnelEditor = () => {
           </div>
           {selectedVideo.url && (
             <div className="rounded-xl overflow-hidden border border-border">
-              <video src={selectedVideo.url} poster={selectedVideo.thumbnail || undefined} className="w-full aspect-video object-contain bg-black" controls playsInline />
+              {isYouTubeUrl(selectedVideo.url) ? (
+                <div className="relative w-full aspect-video bg-black">
+                  <YouTubeEmbed src={selectedVideo.url} />
+                </div>
+              ) : (
+                <video src={selectedVideo.url} poster={selectedVideo.thumbnail || undefined} className="w-full aspect-video object-contain bg-black" controls playsInline />
+              )}
             </div>
           )}
         </div>
