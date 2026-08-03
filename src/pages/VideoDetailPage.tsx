@@ -18,6 +18,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { WhatsAppShareButton } from "@/components/WhatsAppShareButton";
+import { isYouTubeUrl } from "@/lib/youtube";
+import { YouTubeEmbed } from "@/components/YouTubeEmbed";
 
 type AnyVideo = {
   id: string;
@@ -185,7 +187,9 @@ const VideoDetailPage = () => {
         {/* Preview */}
         <div className="premium-card overflow-hidden">
           <div className="relative aspect-video w-full bg-muted">
-            {video.public_url ? (
+            {video.public_url && isYouTubeUrl(video.public_url) ? (
+              <YouTubeEmbed src={video.public_url} title={video.title || undefined} />
+            ) : video.public_url ? (
               <video
                 src={video.public_url}
                 controls

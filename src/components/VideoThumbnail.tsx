@@ -1,4 +1,5 @@
 import { Video } from "lucide-react";
+import { extractYouTubeId } from "@/lib/youtube";
 
 interface VideoThumbnailProps {
   thumbnailUrl?: string | null;
@@ -54,6 +55,20 @@ export const VideoThumbnail = ({
 
 
   if (videoUrl) {
+    const ytId = extractYouTubeId(videoUrl);
+    if (ytId) {
+      return (
+        <div className={base}>
+          <img
+            src={`https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`}
+            alt={title}
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      );
+    }
     return (
       <div className={base}>
         <video
@@ -66,6 +81,7 @@ export const VideoThumbnail = ({
       </div>
     );
   }
+
 
   return (
     <div className={`${base} flex items-center justify-center`}>
