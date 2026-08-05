@@ -15,6 +15,7 @@ import {
   Trophy,
   Download,
   QrCode,
+  Play,
   Calendar,
   Eye,
   ArrowLeft,
