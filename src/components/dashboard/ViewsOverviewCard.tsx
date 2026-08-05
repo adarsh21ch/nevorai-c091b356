@@ -70,11 +70,6 @@ export const ViewsOverviewCard = () => {
         </div>
       </div>
 
-        <Link to="/insights" className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline shrink-0">
-          Insights <ArrowRight size={11} />
-        </Link>
-      </div>
-
       {/* ROW 2 — single thin quota meter, only when relevant */}
       {meter && (
         <div className="flex items-center gap-3 border-t border-border/50 px-4 py-2">
