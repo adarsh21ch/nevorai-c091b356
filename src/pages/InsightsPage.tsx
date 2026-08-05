@@ -571,10 +571,12 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           <TabsList className="inline-flex h-auto items-center gap-1 rounded-lg bg-transparent p-0">
             {[
               { v: "overview", l: "Overview" },
+              { v: "leads", l: "Leads" },
               { v: "videos", l: "Videos" },
               { v: "funnels", l: "Funnels" },
               ...(features.landingPages ? [{ v: "landing-pages", l: "Landing" }] : []),
               ...(features.goLive ? [{ v: "live", l: "Live" }] : []),
+              { v: "tracking", l: "Tracking" },
             ].map((t) => (
               <TabsTrigger
                 key={t.v}
@@ -587,9 +589,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           </TabsList>
         </div>
 
-
         {/* OVERVIEW */}
-        <TabsContent value="overview" /> <TabsContent value="leads" className="space-y-4">...leads component...</TabsContent> className="space-y-5">
+        <TabsContent value="overview" className="space-y-5">
           {/* Hero KPIs — Views (unique people) + Leads. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <KpiCard
