@@ -107,7 +107,17 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
 
   const renderNavItem = (item: typeof navItems[0] | undefined, matchExact = false) => {
     if (!item) return null;
-    const active = matchExact ? location.pathname === item.path : location.pathname.startsWith(item.path);
+    
+    // For insights with tab search, check both path and tab
+    const isInsightsWithTab = item.path === "/insights" && item.search?.tab;
+    const currentTab = new URLSearchParams(location.search).get("tab");
+    
+    const active = isInsightsWithTab
+      ? location.pathname === "/insights" && currentTab === item.search?.tab
+      : matchExact 
+        ? location.pathname === item.path 
+        : location.pathname.startsWith(item.path);
+        
     const isNotif = item.path === "/notifications";
     return (
       <Link
