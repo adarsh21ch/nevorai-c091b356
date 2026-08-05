@@ -81,16 +81,13 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const content = (
     <>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-2xl font-heading font-bold">My Funnels</h1>
-              <div className="page-header-accent" />
-            </div>
+            <h1 className="text-xl font-heading font-bold">My Funnels</h1>
             {limitBadge}
           </div>
-          <Button variant="hero" onClick={handleCreate} className="w-full sm:w-auto">
-            <Plus size={16} /> Create Funnel
+          <Button variant="hero" size="sm" onClick={handleCreate}>
+            <Plus size={16} className="mr-1.5" /> Create
           </Button>
         </div>
 

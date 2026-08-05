@@ -85,17 +85,13 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
   const content = (
     <>
       <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div>
-              <h1 className="text-2xl font-heading font-bold">Landing Pages</h1>
-              <div className="page-header-accent" />
-              <p className="text-muted-foreground text-sm mt-1">Create registration pages for your sessions & events</p>
-            </div>
+            <h1 className="text-xl font-heading font-bold">Landing Pages</h1>
             {limitBadge}
           </div>
-          <Button onClick={handleCreate} className="bg-primary w-full sm:w-auto">
-            <Plus size={16} className="mr-2" /> Create Landing Page
+          <Button onClick={handleCreate} size="sm" className="bg-primary">
+            <Plus size={16} className="mr-1.5" /> Create
           </Button>
         </div>
 

@@ -7,7 +7,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Plus, Upload, BarChart3, Settings } from "lucide-react";
+import { Plus, Upload, BarChart3, Settings, Radio } from "lucide-react";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 import { ViewsOverviewCard } from "@/components/dashboard/ViewsOverviewCard";
@@ -50,34 +50,28 @@ function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-6 p-1 sm:p-2">
-        {/* Header Section - No Company Name, focused */}
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{greet}, {firstName} 👋</h1>
-            <p className="text-muted-foreground text-sm">Here's what's happening today.</p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" onClick={() => uploadInputRef.current?.click()}>
-              <Upload size={16} className="mr-2" /> Upload
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-xl font-bold truncate">{greet}, {firstName} 👋</h1>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="h-9 px-3" onClick={() => uploadInputRef.current?.click()}>
+              <Upload size={15} className="mr-1.5" /> Upload
             </Button>
-            <Button variant="default" size="sm" onClick={() => navigate({ to: "/funnels/create" })}>
-              <Plus size={16} className="mr-2" /> Funnel
+            <Button variant="default" size="sm" className="h-9 px-3" onClick={() => navigate({ to: "/funnels/create" })}>
+              <Plus size={15} className="mr-1.5" /> Funnel
             </Button>
           </div>
         </div>
 
-        {/* Hero KPIs */}
         <ViewsOverviewCard />
 
-        {/* Quick Actions / Insights */}
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="secondary" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/insights" })}>
-            <BarChart3 size={20} />
-            <span className="text-xs">Insights</span>
+          <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/insights" })}>
+            <BarChart3 size={18} className="text-primary" />
+            <span className="text-[11px] font-bold uppercase tracking-tight">Insights</span>
           </Button>
-          <Button variant="secondary" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/profile" })}>
-            <Settings size={20} />
-            <span className="text-xs">Settings</span>
+          <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/live" })}>
+            <Radio size={18} className="text-primary" />
+            <span className="text-[11px] font-bold uppercase tracking-tight">Go Live</span>
           </Button>
         </div>
 

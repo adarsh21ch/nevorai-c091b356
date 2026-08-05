@@ -283,14 +283,14 @@ const VideosPage = () => {
     <DashboardLayout>
       <div className="space-y-6 w-full max-w-full overflow-x-hidden box-border">
         {/* Header */}
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-baseline gap-3 min-w-0">
-            <h1 className="text-xl sm:text-2xl font-heading font-bold">My Videos</h1>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-baseline gap-2 min-w-0">
+            <h1 className="text-xl font-heading font-bold">Videos</h1>
             <StorageUsageInline />
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="hero" size="sm" onClick={openUploadFlow} className="flex items-center gap-1.5">
-              <Upload size={14} /> Upload Video
+            <Button variant="hero" size="sm" onClick={openUploadFlow} className="flex items-center gap-1.5 h-9">
+              <Upload size={14} /> Upload
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -547,7 +547,7 @@ const VideosPage = () => {
                       <DropdownMenuItem disabled={!isReady} onSelect={() => useInFunnel(v.id)}>
                         <Rocket size={13} className="mr-2" /> Use in Funnel
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => navigate({ to: "/leads" })}>
+                      <DropdownMenuItem onSelect={() => navigate({ to: "/insights" })}>
                         <Users size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
                       {v._source === "own" && isReady && (

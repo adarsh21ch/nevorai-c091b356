@@ -298,27 +298,28 @@ const ProfilePage = () => {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 min-w-0">
                 <h2 className="font-heading font-bold text-base sm:text-lg truncate">{profile?.full_name || "User"}</h2>
-                <button
-                  onClick={() => setEditOpen(true)}
-                  className="shrink-0 w-7 h-7 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
-                  title="Edit personal details"
-                  aria-label="Edit personal details"
-                >
-                  <Pencil size={12} />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0 ml-auto sm:ml-0">
+                  <div className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5">
+                    <Crown size={10} className="text-primary" />
+                    <span className="text-[10px] font-semibold text-primary uppercase tracking-wider">{planLabel}</span>
+                  </div>
+                  <button
+                    onClick={() => setEditOpen(true)}
+                    className="shrink-0 w-8 h-8 rounded-full border border-border flex items-center justify-center bg-muted/30 hover:bg-muted transition-colors"
+                    title="Edit personal details"
+                    aria-label="Edit personal details"
+                  >
+                    <Pencil size={12} className="text-foreground" />
+                  </button>
+                </div>
               </div>
               <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
-              <div className="mt-1.5 inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5">
-                <Crown size={10} className="text-primary" />
-                <span className="text-[10px] font-semibold text-primary">{planLabel}</span>
-                {isPro && <InfinityIcon size={11} className="text-primary" />}
-              </div>
-              {avatarUrl && (
-                <button onClick={removePhoto} className="block mt-1 text-[10px] text-muted-foreground hover:text-destructive underline">
-                  Remove photo
-                </button>
-              )}
             </div>
+            {avatarUrl && (
+              <button onClick={removePhoto} className="block mt-1 text-[10px] text-muted-foreground hover:text-destructive underline">
+                Remove photo
+              </button>
+            )}
           </div>
         </div>
 
