@@ -98,7 +98,9 @@ export const usePlan = () => {
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
-  const freePlanCfg = allPlanCfgs.find((c: any) => c.plan_name === "free");
+  // Deliberately NOT reading any legacy `free` row from subscription_plans —
+  // free accounts get zero entitlements regardless of leftover DB config.
+  const freePlanCfg = null as any;
 
 
   const freeLimits: PlanLimits = freePlanCfg ? {
