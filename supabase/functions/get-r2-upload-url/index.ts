@@ -76,6 +76,58 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // C2 — No free accounts. Uploading requires an active paid plan or an
+    // active trial. Free / expired accounts are rejected server-side so a
+    // tampered client cannot upload content.
+    if (!isAcademyVideo && !isAcademyThumbnail) {
+      let entitled = false;
+      try {
+        const { data: paidSub } = await serviceClient
+          .from("user_subscriptions")
+          .select("tier, status, expires_at")
+          .eq("user_id", user.id)
+          .eq("status", "active")
+          .neq("tier", "free")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        const notExpired = paidSub?.expires_at
+          ? new Date(paidSub.expires_at).getTime() > Date.now()
+          : !!paidSub;
+        entitled = !!paidSub && notExpired;
+
+        if (!entitled) {
+          // Trial fallback: profiles.subscription_status = 'trial' and the
+          // trial window (app_settings.trial_days) has not elapsed.
+          const [{ data: profileRow }, { data: settingRows }] = await Promise.all([
+            serviceClient.from("profiles").select("subscription_status, trial_start_date").eq("id", user.id).maybeSingle(),
+            serviceClient.from("app_settings").select("key, value").in("key", ["trial_enabled", "trial_days"]),
+          ]);
+          const settings: Record<string, string> = {};
+          (settingRows || []).forEach((r: { key: string; value: string }) => { settings[r.key] = r.value; });
+          const trialEnabled = settings["trial_enabled"] !== "false";
+          const trialDays = parseInt(settings["trial_days"] || "7", 10);
+          if (trialEnabled && profileRow?.subscription_status === "trial" && profileRow?.trial_start_date) {
+            const elapsed = (Date.now() - new Date(profileRow.trial_start_date).getTime()) / 86400000;
+            entitled = elapsed < trialDays;
+          }
+        }
+      } catch (entErr) {
+        console.error("Entitlement check failed:", entErr);
+        entitled = false;
+      }
+
+      if (!entitled) {
+        return new Response(
+          JSON.stringify({
+            error: "Uploading videos requires an active plan. Subscribe or renew to continue.",
+            code: "NO_ACTIVE_PLAN",
+          }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
     // C3 — Server-side per-plan storage quota enforcement.
     // The client also gates this via useStorageUsage, but a tampered client
     // could bypass it. Here we re-derive the user's plan tier and storage cap
