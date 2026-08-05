@@ -7,6 +7,7 @@ type UploadPurpose = "video-asset" | "academy-video" | "academy-thumbnail";
 interface UploadVideoToR2Options {
   file: File;
   title?: string;
+  tenantId?: string;
   timeoutMs?: number;
   onProgress?: (
     percent: number,
@@ -23,6 +24,7 @@ interface UploadFileToR2Options {
   file: File;
   purpose: UploadPurpose;
   title?: string;
+  tenantId?: string;
   timeoutMs?: number;
   onProgress?: (
     percent: number,
@@ -63,12 +65,14 @@ const isVideoPurpose = (purpose: UploadPurpose) => purpose === "video-asset" || 
 export const uploadVideoToR2 = async ({
   file,
   title,
+  tenantId,
   timeoutMs = 30 * 60 * 1000,
   onProgress,
 }: UploadVideoToR2Options): Promise<UploadVideoToR2Result> => {
   const result = await uploadFileToR2({
     file,
     title,
+    tenantId,
     timeoutMs,
     onProgress,
     purpose: "video-asset",
@@ -88,6 +92,7 @@ export const uploadFileToR2 = async ({
   file,
   purpose,
   title,
+  tenantId,
   timeoutMs = 30 * 60 * 1000,
   onProgress,
 }: UploadFileToR2Options): Promise<UploadFileToR2Result> => {
@@ -113,6 +118,7 @@ export const uploadFileToR2 = async ({
         contentType,
         title: title || safeName,
         fileSize: file.size,
+        tenantId,
         purpose,
       },
     });
