@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { Link as RouterLink } from "@/lib/router-compat";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { StepAssetManager } from "@/components/funnel/StepAssetManager";
+
 
 export interface FlowStep {
   id?: string;
@@ -88,7 +90,7 @@ const buildWaUrl = (cc: string, number: string, message: string) => {
   return message?.trim() ? `${base}?text=${encodeURIComponent(message)}` : base;
 };
 
-export const StepConfigPanel = ({ open, onClose, step, stepIndex, totalSteps, onUpdate, onOpenVideoPicker }: StepConfigPanelProps) => {
+export const StepConfigPanel = ({ open, onClose, step, stepIndex, totalSteps, onUpdate, onOpenVideoPicker, funnelId }: StepConfigPanelProps & { funnelId?: string }) => {
   if (!step) return null;
   const meta = getStepTypeMeta(step.step_type);
   const Icon = meta.icon;
@@ -511,7 +513,13 @@ export const StepConfigPanel = ({ open, onClose, step, stepIndex, totalSteps, on
         <div className="mt-4 space-y-5">
           {step.step_type !== "payment" && renderCommon()}
           {renderBody()}
+          {funnelId && step.id && (
+            <div className="pt-2 border-t border-border/60">
+              <StepAssetManager funnelId={funnelId} stepId={step.id} />
+            </div>
+          )}
           {step.step_type !== "payment" && renderExtraGates()}
+
         </div>
         <div className="pt-6 mt-6 border-t border-border">
           <Button onClick={onClose} className="w-full h-11">
