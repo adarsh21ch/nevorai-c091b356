@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { useLocation } from "@/lib/router-compat";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -77,7 +78,16 @@ const PERIOD_LABELS: Record<Period, string> = { today: "Today", "7d": "7 days", 
 
 const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const isMobile = useIsMobile();
+  const location = useLocation();
   useDocumentTitle(embedded ? "Tools" : isMobile ? "Activity" : "Insights");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const t = sp.get("tab");
+    if (t && VALID_TABS.includes(t as Tab)) {
+      setTab(t as Tab);
+    }
+  }, [location.search]);
   const { user, loading: authLoading } = useAuth();
   const visible = usePageVisible();
   const { features } = usePlanLimits();

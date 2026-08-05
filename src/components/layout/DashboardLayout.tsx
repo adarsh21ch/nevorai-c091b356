@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
   User, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Crown, GraduationCap, Home, Wrench, Activity,
-  GitBranch, Layout, Sparkles, Users, Target,
+  GitBranch, Layout, Sparkles, Users, Target, Info,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -29,21 +29,32 @@ import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { WorkspaceBrandingApplier } from "@/components/WorkspaceBrandingApplier";
 import { SafeIcon } from "@/components/SafeIcon";
 
-const baseNavItems = [
+interface NavItem {
+  icon: any;
+  label: string;
+  path: string;
+  search?: { tab: string };
+  matchExact?: boolean;
+}
+
+const baseNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
+  { icon: GitBranch, label: "Funnels", path: "/funnels" },
+  { icon: Layout, label: "Pages", path: "/landing-pages" },
   { icon: Video, label: "My Videos", path: "/videos" },
+  { icon: Radio, label: "Live", path: "/insights", search: { tab: "live" } },
   { icon: Activity, label: "Insights", path: "/insights" },
-  { icon: Target, label: "Tracking", path: "/insights", search: { tab: "tracking" } },
   { icon: Users, label: "My Team", path: "/team" },
 ];
-const tailNavItems = [
+const tailNavItems: NavItem[] = [
   { icon: GraduationCap, label: "Academy", path: "/help" },
   { icon: Crown, label: "Billing", path: "/billing" },
 ];
 
-const bottomItems = [
+const bottomItems: NavItem[] = [
   { icon: User, label: "Profile", path: "/profile" },
+  { icon: Info, label: "What's New", path: "/help" },
 ];
 
 export const DashboardLayout = ({ children, editorMode = false }: { children: React.ReactNode; editorMode?: boolean }) => {
@@ -105,12 +116,23 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
 
   const renderNavItem = (item: typeof navItems[0] | undefined, matchExact = false) => {
     if (!item) return null;
-    const active = matchExact ? location.pathname === item.path : location.pathname.startsWith(item.path);
+    
+    // For insights with tab search, check both path and tab
+    const isInsightsWithTab = item.path === "/insights" && item.search?.tab;
+    const currentTab = new URLSearchParams(location.search).get("tab");
+    
+    const active = isInsightsWithTab
+      ? location.pathname === "/insights" && currentTab === item.search?.tab
+      : matchExact 
+        ? location.pathname === item.path 
+        : location.pathname.startsWith(item.path);
+        
     const isNotif = item.path === "/notifications";
     return (
       <Link
         key={item.path}
         to={item.path}
+        search={item.search}
         onMouseEnter={() => preloadRoute(item.path)}
         onFocus={() => preloadRoute(item.path)}
         className={cn(
@@ -248,9 +270,9 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
           <div className="grid grid-cols-5 items-end">
             {[
               { icon: Home, label: "Home", path: "/dashboard", match: "exact" as const },
-              { icon: Video, label: "My Videos", path: "/videos", match: "prefix" as const },
-              { icon: Activity, label: "Activity", path: "/insights", match: "prefix" as const },
-              { icon: Wrench, label: "Tools", path: "/tools", match: "prefix" as const },
+              { icon: GitBranch, label: "Funnels", path: "/funnels", match: "prefix" as const },
+              { icon: Layout, label: "Pages", path: "/landing-pages", match: "prefix" as const },
+              { icon: Video, label: "Videos", path: "/videos", match: "prefix" as const },
               { icon: User, label: "Profile", path: "/profile", match: "prefix" as const },
             ].map((item) => {
               const active = item.match === "exact"
