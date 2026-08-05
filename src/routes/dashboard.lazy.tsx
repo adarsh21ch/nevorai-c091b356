@@ -7,7 +7,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRef, useState, useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Plus, Upload, BarChart3, Settings, Radio } from "lucide-react";
+import { Plus, Upload, BarChart3, Settings, Radio, Wrench } from "lucide-react";
 import { VideoUploadModal } from "@/components/VideoUploadModal";
 import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 import { ViewsOverviewCard } from "@/components/dashboard/ViewsOverviewCard";
