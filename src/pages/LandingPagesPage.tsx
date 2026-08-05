@@ -102,7 +102,7 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 search-premium rounded-md">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search landing pages..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+            <Input placeholder="Search landing pages..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card" />
           </div>
           <Tabs value={filter} onValueChange={setFilter}>
             <TabsList>
@@ -137,61 +137,66 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
             </Button>
           </Card>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-xl border border-border bg-card overflow-hidden divide-y divide-border">
             {filtered.map((page: any) => {
               const sections: any[] = Array.isArray(page.sections) ? page.sections : [];
               const sectionImage = sections.find((s: any) => (s?.type === "hero" || s?.type === "image") && s?.image_url)?.image_url;
               const coverImage = sectionImage || page.og_image_url || page.speaker_photo_url || null;
+              const status = page.status || "draft";
+              const statusCfg: Record<string, string> = {
+                published: "text-success bg-success/10 border border-success/20",
+                draft: "text-muted-foreground bg-muted border border-border",
+                archived: "text-muted-foreground bg-muted border border-border",
+              };
+              
               return (
-              <Card
-                key={page.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => navigate({ to: "/landing-pages/$id", params: { id: page.id } })}
-                onKeyDown={(e) => { if (e.key === "Enter") navigate({ to: "/landing-pages/$id", params: { id: page.id } }); }}
-                className="p-0 overflow-hidden premium-card cursor-pointer transition hover:shadow-md hover:border-primary/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                {coverImage ? (
-                  <div className="aspect-[16/9] w-full bg-muted overflow-hidden border-b">
-                    <img src={coverImage} alt={page.title} loading="lazy" className="w-full h-full object-cover" />
-                  </div>
-                ) : (
-                  <div className="aspect-[16/9] w-full bg-gradient-to-br from-primary/10 via-muted to-muted/50 flex items-center justify-center border-b">
-                    <FileText size={32} className="text-muted-foreground/60" />
-                  </div>
-                )}
-                <div className="p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <Badge variant={statusColor(page.status) as any} className="capitalize">{page.status}</Badge>
-                    <div onClick={(e) => e.stopPropagation()}>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical size={16} /></Button></DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate({ to: "/landing-pages/$id/edit", params: { id: page.id } })}><Pencil size={14} className="mr-2" /> Edit</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => window.open(`/l/${page.slug}`, "_blank")}><ExternalLink size={14} className="mr-2" /> Preview</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => copyLink(page.slug)}><Copy size={14} className="mr-2" /> Copy link</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => deletePage(page.id)} className="text-destructive"><Trash2 size={14} className="mr-2" /> Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                <div key={page.id} className="flex items-center gap-3 px-3 sm:px-4 py-3 hover:bg-muted/40 transition-colors">
+                  <div 
+                    onClick={() => navigate({ to: "/landing-pages/$id", params: { id: page.id } })}
+                    className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer"
+                  >
+                    <div className="flex-shrink-0 w-20 h-[50px] rounded-lg bg-muted overflow-hidden border border-border flex items-center justify-center">
+                      {coverImage ? (
+                        <img src={coverImage} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <FileText size={18} className="text-muted-foreground/40" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{page.title || "Untitled Page"}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCfg[status] || statusCfg.draft}`}>
+                          {status === "published" ? "● Published" : "○ " + status.charAt(0).toUpperCase() + status.slice(1)}
+                        </span>
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Eye size={10} />{page.total_views || 0}</span>
+                        <span className="text-[11px] text-muted-foreground">·</span>
+                        <span className="text-[11px] text-muted-foreground flex items-center gap-1"><Users size={10} />{page.total_registrations || 0}</span>
+                      </div>
                     </div>
                   </div>
-                  <h3 className="font-semibold text-lg leading-tight">{page.title}</h3>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1"><Eye size={14} /> {page.total_views || 0} views</span>
-                    <span className="flex items-center gap-1"><Users size={14} /> {page.total_registrations || 0} registrations</span>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Created {format(new Date(page.created_at), "d MMM yyyy")}</p>
-                  <div className="flex flex-wrap gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="outline" size="sm" onClick={() => navigate({ to: "/landing-pages/$id/edit", params: { id: page.id } })}>Edit</Button>
-                    <Button variant="outline" size="sm" onClick={() => navigate({ to: "/landing-pages/$id", params: { id: page.id } })}>Insights</Button>
-                    <Button variant="outline" size="sm" onClick={() => window.open(`/l/${page.slug}`, "_blank")}>Preview</Button>
-                    <Button variant="outline" size="sm" onClick={() => copyLink(page.slug)} title="Copy link"><Copy size={14} className="mr-1" /> Copy link</Button>
-                    <Button variant="outline" size="sm" onClick={() => setShareTeam({ id: page.id, title: page.title })}>
-                      <Users2 size={14} className="mr-1" /> Share with Team
+                  
+                  <div className="flex items-center gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-muted-foreground"
+                      onClick={() => navigate({ to: "/landing-pages/$id/edit", params: { id: page.id } })}
+                    >
+                      <Pencil size={14} />
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical size={15} /></Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <DropdownMenuItem onClick={() => window.open(`/l/${page.slug}`, "_blank")}><ExternalLink size={14} className="mr-2" /> Preview</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => copyLink(page.slug)}><Copy size={14} className="mr-2" /> Copy link</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setShareTeam({ id: page.id, title: page.title })}><Users2 size={14} className="mr-2" /> Share with Team</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => deletePage(page.id)} className="text-destructive"><Trash2 size={14} className="mr-2" /> Delete</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
-              </Card>
               );
             })}
           </div>

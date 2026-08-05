@@ -50,17 +50,17 @@ export const ViewsOverviewCard = () => {
           </span>
         </div>
 
-        <div className="flex flex-1 items-center justify-around gap-3 min-w-0">
+        <div className="flex flex-1 items-center justify-between gap-2 px-2">
           {stats.map((s) => (
             <Link
               key={s.label}
               to="/insights"
-              className="flex flex-col items-center gap-0 px-1 min-w-0 hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center gap-0.5 min-w-0 hover:opacity-80 transition-opacity"
             >
-              <span className={`font-heading font-extrabold tracking-tight leading-none ${s.primary ? "text-2xl sm:text-3xl text-foreground" : "text-lg sm:text-xl text-foreground/80"}`}>
+              <span className={`font-heading font-extrabold tracking-tight leading-none ${s.primary ? "text-2xl sm:text-3xl text-foreground" : "text-xl sm:text-2xl text-foreground/80"}`}>
                 {fmt(s.value)}
               </span>
-              <span className="mt-1 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {s.label}
               </span>
             </Link>

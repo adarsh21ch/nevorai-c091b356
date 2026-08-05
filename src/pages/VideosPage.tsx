@@ -338,7 +338,7 @@ const VideosPage = () => {
 
 
         {/* Search */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted border border-border">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border shadow-sm">
           <Search size={14} className="text-muted-foreground flex-shrink-0" />
           <input
             type="text"
@@ -347,14 +347,10 @@ const VideosPage = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 text-sm bg-transparent text-foreground placeholder:text-muted-foreground outline-none"
           />
-          <div className="hidden sm:flex gap-1 ml-2">
-            <button onClick={() => setView("list")} className={cn("p-1.5 rounded-md transition-colors", view === "list" ? "bg-card shadow-sm" : "text-muted-foreground")}><List size={14} /></button>
-            <button onClick={() => setView("grid")} className={cn("p-1.5 rounded-md transition-colors", view === "grid" ? "bg-card shadow-sm" : "text-muted-foreground")}><Grid size={14} /></button>
-          </div>
         </div>
 
         {/* Filter pills */}
-        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
           {([
             { k: "all", label: "All" },
             { k: "ready", label: "Ready" },
@@ -365,11 +361,13 @@ const VideosPage = () => {
               key={t.k}
               onClick={() => setStatusFilter(t.k)}
               className={cn(
-                "flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full transition-colors",
-                statusFilter === t.k ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+                "flex-shrink-0 text-[11px] font-semibold px-4 py-1.5 rounded-full transition-all border",
+                statusFilter === t.k 
+                  ? "bg-foreground text-background border-foreground shadow-sm" 
+                  : "bg-card text-muted-foreground border-border hover:border-foreground/20"
               )}
             >
-              {t.label} ({counts[t.k]})
+              {t.label.toUpperCase()} · {counts[t.k]}
             </button>
           ))}
         </div>
@@ -430,7 +428,7 @@ const VideosPage = () => {
                     onClick={(e) => { e.stopPropagation(); goPreview(); }}
                     disabled={!isReady}
                     aria-label={isReady ? "Play video preview" : "Video not ready"}
-                    className="group relative flex-shrink-0 w-32 sm:w-40 md:w-44 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/60 disabled:cursor-not-allowed"
+                    className="group relative flex-shrink-0 w-24 sm:w-32 md:w-40 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/60 disabled:cursor-not-allowed h-[54px] sm:h-[72px]"
                   >
                     <VideoThumbnail thumbnailUrl={v.thumbnail_url} videoUrl={v.public_url} title={title} />
                     {isReady && (

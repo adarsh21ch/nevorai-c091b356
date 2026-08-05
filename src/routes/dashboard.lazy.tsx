@@ -1,242 +1,89 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Link, useNavigate } from "@/lib/router-compat";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
-// UpgradeBanner removed from Home — upgrade prompts now live only in Profile/Billing.
-import { MonthlyViewsBanner } from "@/components/MonthlyViewsBanner";
-import { ViewsOverviewCard } from "@/components/dashboard/ViewsOverviewCard";
-import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
-import { Layers, Users, Eye, IndianRupee, TrendingUp, Plus, ArrowRight, Upload } from "lucide-react";
-import { useRef, useState } from "react";
-import { VideoUploadModal } from "@/components/VideoUploadModal";
-import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { SafeIcon } from "@/components/SafeIcon";
-
-type DashboardSummary = {
-  funnels: Array<{
-    id: string;
-    title: string;
-    slug: string;
-    is_published: boolean;
-    total_views: number | null;
-    total_leads: number | null;
-    total_payments: number | null;
-    created_at: string;
-  }>;
-  total_leads: number;
-  active_live_session: { id: string; title: string } | null;
-};
+import { useRef, useState, useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
+import { Plus, Upload, BarChart3, Settings } from "lucide-react";
+import { VideoUploadModal } from "@/components/VideoUploadModal";
+import { VIDEO_UPLOAD_ACCEPT } from "@/lib/videoFileAcceptance";
+import { ViewsOverviewCard } from "@/components/dashboard/ViewsOverviewCard";
 import { WatchingNowStrip } from "@/components/dashboard/WatchingNowStrip";
+import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
 
-export const Route = createLazyFileRoute("/dashboard")({ component: DashboardPage });
-
-const fmt = (n: number) => n.toLocaleString("en-IN");
-
-type StatColor = "purple" | "teal" | "green" | "blue" | "amber" | "gray";
-const accentClass: Record<StatColor, string> = {
-  purple: "border-t-2 border-violet-500/40",
-  teal: "border-t-2 border-emerald-500/40",
-  green: "border-t-2 border-green-500/40",
-  blue: "border-t-2 border-blue-500/40",
-  amber: "border-t-2 border-amber-500/40",
-  gray: "border-t-2 border-border",
-};
-const iconClass: Record<StatColor, string> = {
-  purple: "text-violet-400",
-  teal: "text-emerald-400",
-  green: "text-green-400",
-  blue: "text-blue-400",
-  amber: "text-amber-400",
-  gray: "text-muted-foreground",
-};
-
-function DashboardPage() {
+export default function DashboardPage() {
   useDocumentTitle("Dashboard");
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const openUploadFlow = () => uploadInputRef.current?.click();
-  const handleUploadPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0] || null;
-    e.target.value = "";
-    if (!f) return;
-    setPendingFile(f);
-    setUploadOpen(true);
-  };
-
   useEffect(() => {
-    if (!loading && !user) navigate("/auth");
+    if (!loading && !user) navigate({ to: "/auth" });
   }, [loading, user]);
 
-  // Fix D: single RPC replaces funnels + total-leads + active-live queries
   const { data: summary } = useQuery({
     queryKey: ["dashboard-summary", user?.id],
-    queryFn: async (): Promise<DashboardSummary> => {
+    queryFn: async () => {
       const { data, error } = await (supabase as any).rpc("dashboard_summary", { p_user_id: user!.id });
       if (error) throw error;
-      return (data as DashboardSummary) ?? { funnels: [], total_leads: 0, active_live_session: null };
+      return (data as any) ?? { funnels: [], total_leads: 0, active_live_session: null };
     },
     enabled: !!user?.id,
     staleTime: 60_000,
     placeholderData: keepPreviousData,
   });
 
-  const funnels = summary?.funnels ?? [];
-  const leadCount = summary?.total_leads ?? 0;
-  const activeLive = summary?.active_live_session ?? null;
+  const firstName = profile?.full_name?.split(" ")[0] || "there";
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night";
 
-  if (loading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  const totalViews = (funnels as any[]).reduce((a, f) => a + (f.total_views || 0), 0);
-  const convRate = totalViews > 0 ? ((leadCount / totalViews) * 100).toFixed(1) : "0";
-
-  const stats: Array<{ icon: any; label: string; value: string; sub: string; color: StatColor; href: string }> = [
-    { icon: IndianRupee, label: "Revenue", value: "₹0", sub: "This month", color: "green", href: "/payments" },
-    { icon: Users, label: "New Contacts", value: fmt(leadCount), sub: "All time", color: "blue", href: "/leads" },
-    { icon: TrendingUp, label: "Actions Taken", value: `${convRate}%`, sub: "Contacts / Views", color: "amber", href: "/insights" },
-    { icon: Eye, label: "Video Plays", value: fmt(totalViews), sub: "All time", color: "gray", href: "/videos" },
-  ];
+  if (loading || !user) return null;
 
   return (
     <DashboardLayout>
-      <div className="space-y-5 overflow-x-hidden">
-        {activeLive && (
-          <div className="flex items-center gap-3 rounded-xl border border-emerald-500/25 bg-emerald-500/8 px-5 py-3">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-            <span className="text-sm font-semibold text-emerald-400">LIVE NOW: {(activeLive as any).title}</span>
-            <button
-              onClick={() => navigate(`/live/${(activeLive as any).id}`)}
-              className="ml-auto rounded-lg border border-emerald-500/25 bg-emerald-500/10 px-3 py-1.5 text-xs font-semibold text-emerald-400 hover:bg-emerald-500/15"
-            >
-              Manage <ArrowRight size={12} className="inline" />
-            </button>
+      <div className="flex flex-col gap-6 p-1 sm:p-2">
+        {/* Header Section - No Company Name, focused */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">{greet}, {firstName} 👋</h1>
+            <p className="text-muted-foreground text-sm">Here's what's happening today.</p>
           </div>
-        )}
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={() => uploadInputRef.current?.click()}>
+              <Upload size={16} className="mr-2" /> Upload
+            </Button>
+            <Button variant="default" size="sm" onClick={() => navigate({ to: "/funnels/create" })}>
+              <Plus size={16} className="mr-2" /> Funnel
+            </Button>
+          </div>
+        </div>
 
-        <MonthlyViewsBanner />
-
-        {(() => {
-          const hour = new Date().getHours();
-          const greet =
-            hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : hour < 21 ? "Good evening" : "Good night";
-          const firstName = profile?.full_name?.split(" ")[0] || "there";
-          return (
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                  Nevorai
-                </p>
-                <h1 className="mt-1 text-2xl font-heading font-bold">{greet}, {firstName} 👋</h1>
-                <p className="mt-1 text-sm text-muted-foreground">Here's what's happening on Nevorai today.</p>
-              </div>
-              <div className="flex gap-2">
-                <input
-                  ref={uploadInputRef}
-                  type="file"
-                  accept={VIDEO_UPLOAD_ACCEPT}
-                  className="hidden"
-                  onChange={handleUploadPicked}
-                />
-                <Button variant="hero" size="sm" onClick={openUploadFlow}>
-                  <Upload size={14} /> Upload Video
-                </Button>
-                <Link to="/funnels/create"><Button variant="outline" size="sm"><Plus size={14} /> Create Funnel</Button></Link>
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Unified views overview: today + monthly + trend */}
+        {/* Hero KPIs */}
         <ViewsOverviewCard />
 
+        {/* Quick Actions / Insights */}
+        <div className="grid grid-cols-2 gap-3">
+          <Button variant="secondary" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/insights" })}>
+            <BarChart3 size={20} />
+            <span className="text-xs">Insights</span>
+          </Button>
+          <Button variant="secondary" className="h-auto py-4 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/profile" })}>
+            <Settings size={20} />
+            <span className="text-xs">Settings</span>
+          </Button>
+        </div>
+
         <WatchingNowStrip />
-
-        {/* Secondary KPIs */}
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {stats.slice(0, 4).map((s) => (
-            <Link
-              key={s.label}
-              to={s.href}
-              className={`group flex flex-col gap-1.5 rounded-xl border border-border bg-card/60 p-3 transition-all hover:border-primary/40 ${accentClass[s.color]}`}
-            >
-              <div className="flex items-center gap-2">
-                <SafeIcon icon={s.icon} size={13} className={iconClass[s.color]} />
-                <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{s.label}</span>
-              </div>
-              <div className="text-xl font-heading font-bold leading-none">{s.value}</div>
-              <p className="text-[10px] text-muted-foreground">{s.sub}</p>
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex justify-end">
-          <Link to="/insights" className="flex items-center gap-1 text-xs text-primary hover:underline">
-            View more insights <ArrowRight size={12} />
-          </Link>
-        </div>
-
-
         <DashboardContentRow />
-
-        {(funnels as any[]).length === 0 ? (
-          <div className="premium-card p-10 text-center">
-            <div className="stat-icon mx-auto mb-3 h-14 w-14 rounded-2xl">
-              <Layers size={26} className="text-primary" />
-            </div>
-            <h3 className="mb-2 text-lg font-heading font-semibold">No funnels yet</h3>
-            <p className="mx-auto mb-5 max-w-sm text-sm text-muted-foreground">Create your first video funnel and start capturing leads on autopilot.</p>
-            <Link to="/funnels/create"><Button variant="hero" size="lg">Create Your First Funnel</Button></Link>
-          </div>
-        ) : (
-          <div>
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-base font-heading font-semibold">Recent Funnels</h2>
-              <Link to="/funnels" className="flex items-center gap-1 text-xs text-primary hover:underline">View all <ArrowRight size={12} /></Link>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {(funnels as any[]).slice(0, 3).map((f) => (
-                <Link to={`/funnels/${f.id}`} key={f.id} className="premium-card p-4 group">
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full ${f.is_published ? "bg-success" : "bg-muted-foreground"}`} />
-                    <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${f.is_published ? "bg-success/10 text-success" : "bg-muted text-muted-foreground"}`}>
-                      {f.is_published ? "Published" : "Draft"}
-                    </span>
-                  </div>
-                  <h3 className="mb-2 truncate text-sm font-medium">{f.title}</h3>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Eye size={12} /> {f.total_views || 0}</span>
-                    <span className="flex items-center gap-1"><Users size={12} /> {f.total_leads || 0}</span>
-                    <span className="flex items-center gap-1"><IndianRupee size={12} /> {f.total_payments || 0}</span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <VideoUploadModal
-          open={uploadOpen}
-          onClose={() => { setUploadOpen(false); setPendingFile(null); }}
-          onSuccess={() => { /* handled inside modal */ }}
-          initialFile={pendingFile}
-        />
+        
+        <input ref={uploadInputRef} type="file" accept={VIDEO_UPLOAD_ACCEPT} className="hidden" onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) setUploadOpen(true);
+        }} />
+        <VideoUploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} onSuccess={() => {}} />
       </div>
     </DashboardLayout>
   );
