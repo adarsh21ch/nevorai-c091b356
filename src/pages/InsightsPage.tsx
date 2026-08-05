@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List, Eye } from "lucide-react";
+import { toast } from "sonner";
+import { MetaPixelIdField } from "@/components/pixel/MetaPixelIdField";
+import { Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List, Eye, Download } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
