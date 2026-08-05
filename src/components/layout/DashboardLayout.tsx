@@ -32,9 +32,11 @@ import { SafeIcon } from "@/components/SafeIcon";
 const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
+  { icon: GitBranch, label: "Funnels", path: "/funnels" },
+  { icon: Layout, label: "Pages", path: "/landing-pages" },
   { icon: Video, label: "My Videos", path: "/videos" },
+  { icon: Radio, label: "Live", path: "/insights", search: { tab: "live" } },
   { icon: Activity, label: "Insights", path: "/insights" },
-  { icon: Target, label: "Tracking", path: "/insights", search: { tab: "tracking" } },
   { icon: Users, label: "My Team", path: "/team" },
 ];
 const tailNavItems = [
