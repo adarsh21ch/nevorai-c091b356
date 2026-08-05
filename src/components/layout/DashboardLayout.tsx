@@ -42,7 +42,7 @@ const baseNavItems: NavItem[] = [
   { icon: Video, label: "My Videos", path: "/videos" },
   { icon: GitBranch, label: "Funnels", path: "/funnels" },
   { icon: Layout, label: "Landing Pages", path: "/landing-pages" },
-  { icon: Radio, label: "Live", path: "/insights", search: { tab: "live" } },
+  { icon: Radio, label: "Live", path: "/live" },
   { icon: Activity, label: "Insights", path: "/insights" },
   { icon: Users, label: "My Team", path: "/team" },
 ];
