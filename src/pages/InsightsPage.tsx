@@ -78,6 +78,14 @@ const PERIOD_LABELS: Record<Period, string> = { today: "Today", "7d": "7 days", 
 const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const isMobile = useIsMobile();
   useDocumentTitle(embedded ? "Tools" : isMobile ? "Activity" : "Insights");
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(window.location.search);
+    const t = sp.get("tab");
+    if (t && VALID_TABS.includes(t as Tab)) {
+      setTab(t as Tab);
+    }
+  }, [location.search]);
   const { user, loading: authLoading } = useAuth();
   const visible = usePageVisible();
   const { features } = usePlanLimits();
