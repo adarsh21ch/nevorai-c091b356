@@ -75,7 +75,10 @@ const VideosPage = () => {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const openUploadFlow = () => uploadInputRef.current?.click();
+  const openUploadFlow = () => {
+    if (isFree) { setUploadUpgradeOpen(true); return; }
+    uploadInputRef.current?.click();
+  };
   const handleUploadPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] || null;
     e.target.value = "";
