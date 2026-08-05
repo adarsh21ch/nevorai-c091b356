@@ -90,7 +90,7 @@ const LandingPageDetail = () => {
       <div className="space-y-6">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/landing-pages/" })}>
+            <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/landing-pages" })}>
               <ArrowLeft size={18} />
             </Button>
             <h1 className="text-xl sm:text-2xl font-bold flex-1 min-w-0 truncate">{(page as any).title}</h1>

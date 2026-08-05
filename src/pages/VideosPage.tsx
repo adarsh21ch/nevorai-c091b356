@@ -547,7 +547,7 @@ const VideosPage = () => {
                       <DropdownMenuItem disabled={!isReady} onSelect={() => useInFunnel(v.id)}>
                         <Rocket size={13} className="mr-2" /> Use in Funnel
                       </DropdownMenuItem>
-                      <DropdownMenuItem onSelect={() => navigate({ to: "/leads" })}>
+                      <DropdownMenuItem onSelect={() => navigate({ to: "/insights" })}>
                         <Users size={13} className="mr-2" /> View Insights
                       </DropdownMenuItem>
                       {v._source === "own" && isReady && (
