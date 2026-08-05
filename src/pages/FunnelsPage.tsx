@@ -97,7 +97,7 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 search-premium rounded-md">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search funnels..." className="pl-9 bg-muted border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input placeholder="Search funnels..." className="pl-9 bg-card border-border" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <div className="flex gap-1 p-1 bg-muted rounded-lg">
             {filters.map((f) => (
