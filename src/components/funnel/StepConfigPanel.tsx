@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { Link as RouterLink } from "@/lib/router-compat";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { StepAssetManager } from "@/components/funnel/StepAssetManager";
+
 
 export interface FlowStep {
   id?: string;
@@ -88,7 +90,7 @@ const buildWaUrl = (cc: string, number: string, message: string) => {
   return message?.trim() ? `${base}?text=${encodeURIComponent(message)}` : base;
 };
 
-export const StepConfigPanel = ({ open, onClose, step, stepIndex, totalSteps, onUpdate, onOpenVideoPicker }: StepConfigPanelProps) => {
+export const StepConfigPanel = ({ open, onClose, step, stepIndex, totalSteps, onUpdate, onOpenVideoPicker, funnelId }: StepConfigPanelProps & { funnelId?: string }) => {
   if (!step) return null;
   const meta = getStepTypeMeta(step.step_type);
   const Icon = meta.icon;

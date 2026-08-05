@@ -27,13 +27,14 @@ export function StepAssetManager({ funnelId, stepId }: StepAssetManagerProps) {
     queryKey: ["step-assets", stepId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("funnel_step_assets")
+        .from("funnel_step_assets" as any)
         .select("*")
         .eq("funnel_step_id", stepId)
         .order("display_order", { ascending: true });
       if (error) throw error;
-      return data as StepAsset[];
+      return data as any as StepAsset[];
     },
+
   });
 
   const uploadMutation = useMutation({
@@ -58,7 +59,7 @@ export function StepAssetManager({ funnelId, stepId }: StepAssetManagerProps) {
       else if (file.type.includes("image")) fileType = "image";
       else if (file.type.includes("video")) fileType = "video";
 
-      const { error: dbError } = await supabase.from("funnel_step_assets").insert({
+      const { error: dbError } = await (supabase.from("funnel_step_assets" as any) as any).insert({
         funnel_id: funnelId,
         funnel_step_id: stepId,
         title: file.name,
@@ -66,6 +67,7 @@ export function StepAssetManager({ funnelId, stepId }: StepAssetManagerProps) {
         file_type: fileType,
         file_size_bytes: file.size,
       });
+
 
       if (dbError) throw dbError;
     },
@@ -83,9 +85,10 @@ export function StepAssetManager({ funnelId, stepId }: StepAssetManagerProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (assetId: string) => {
-      const { error } = await supabase.from("funnel_step_assets").delete().eq("id", assetId);
+      const { error } = await supabase.from("funnel_step_assets" as any).delete().eq("id", assetId);
       if (error) throw error;
     },
+
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["step-assets", stepId] });
       toast.success("Asset removed");
