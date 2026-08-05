@@ -38,23 +38,21 @@ interface NavItem {
 }
 
 const baseNavItems: NavItem[] = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+  { icon: Home, label: "Home", path: "/dashboard" },
   { icon: Video, label: "My Videos", path: "/videos" },
   { icon: GitBranch, label: "Funnels", path: "/funnels" },
   { icon: Layout, label: "Landing Pages", path: "/landing-pages" },
   { icon: Radio, label: "Live", path: "/live" },
   { icon: Activity, label: "Insights", path: "/insights" },
   { icon: Users, label: "My Team", path: "/team" },
-];
-const tailNavItems: NavItem[] = [
   { icon: Crown, label: "Billing", path: "/billing" },
 ];
 
 const bottomItems: NavItem[] = [
   { icon: GraduationCap, label: "Academy", path: "/help" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
-  { icon: User, label: "Profile", path: "/profile" },
   { icon: Info, label: "What's New", path: "/updates" },
+  { icon: User, label: "Profile", path: "/profile" },
 ];
 
 export const DashboardLayout = ({ children, editorMode = false }: { children: React.ReactNode; editorMode?: boolean }) => {
@@ -75,10 +73,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
   const { isTrialExpired, trialDays } = useTrialStatus();
   const { plan } = usePlan();
   const { features } = usePlanLimits();
-  const navItems = [
-    ...baseNavItems,
-    ...tailNavItems,
-  ];
+  const navItems = baseNavItems;
   const isAdminUser = isAdmin;
   const showTrialGate = isTrialExpired && !plan.isPaid && !isAdminUser && !location.pathname.startsWith("/pricing") && !location.pathname.startsWith("/billing") && !location.pathname.startsWith("/admin");
 
