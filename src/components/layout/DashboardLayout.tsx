@@ -47,11 +47,11 @@ const baseNavItems: NavItem[] = [
   { icon: Users, label: "My Team", path: "/team" },
 ];
 const tailNavItems: NavItem[] = [
-  { icon: GraduationCap, label: "Academy", path: "/help" },
   { icon: Crown, label: "Billing", path: "/billing" },
 ];
 
 const bottomItems: NavItem[] = [
+  { icon: GraduationCap, label: "Academy", path: "/help" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Info, label: "What's New", path: "/help" },
