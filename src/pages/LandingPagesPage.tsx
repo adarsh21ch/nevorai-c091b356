@@ -102,7 +102,7 @@ const LandingPagesPage = ({ embedded = false }: { embedded?: boolean } = {}) => 
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 search-premium rounded-md">
             <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input placeholder="Search landing pages..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
+            <Input placeholder="Search landing pages..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card" />
           </div>
           <Tabs value={filter} onValueChange={setFilter}>
             <TabsList>
