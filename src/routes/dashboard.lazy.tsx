@@ -1,3 +1,4 @@
+import { createLazyFileRoute } from "@tanstack/react-router";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,11 @@ import { ViewsOverviewCard } from "@/components/dashboard/ViewsOverviewCard";
 import { WatchingNowStrip } from "@/components/dashboard/WatchingNowStrip";
 import { DashboardContentRow } from "@/components/dashboard/DashboardContentRow";
 
-export default function DashboardPage() {
+export const Route = createLazyFileRoute("/dashboard")({
+  component: DashboardPage,
+});
+
+function DashboardPage() {
   useDocumentTitle("Dashboard");
   const { user, profile, loading } = useAuth();
   const navigate = useNavigate();

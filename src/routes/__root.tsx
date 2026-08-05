@@ -138,7 +138,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
     ],
   }),
-  shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -151,16 +150,18 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src="https://www.facebook.com/tr?id=1293470716241461&ev=PageView&noscript=1"
-            alt=""
-          />
-        </noscript>
-        {children}
+        <div id="root">
+          <noscript>
+            <img
+              height="1"
+              width="1"
+              style={{ display: "none" }}
+              src="https://www.facebook.com/tr?id=1293470716241461&ev=PageView&noscript=1"
+              alt=""
+            />
+          </noscript>
+          {children}
+        </div>
         <Scripts />
       </body>
     </html>
@@ -172,17 +173,9 @@ function RootComponent() {
   const { tenant } = Route.useLoaderData();
   const location = useLocation();
 
-
-  // Force-unregister stale Service Workers from a previous app version.
-  // Old SWs intercept navigation and serve a cached shell that doesn't know
-  // about new routes (/f/$slug, /v/$id, etc.) → 404 for returning users.
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
-
-    // Silently unregister any leftover SWs and clear their caches.
-    // The kill-switch SWs in public/sw.js self-unregister anyway; avoid a
-    // hard reload that adds ~1s to every returning user's cold start.
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       if (registrations.length === 0) return;
       Promise.all(registrations.map((r) => r.unregister()))
@@ -197,13 +190,9 @@ function RootComponent() {
     }).catch(() => {});
   }, []);
 
-  // Recover from stale chunk / dynamic-import failures (common cause of blank
-  // pages after a new deploy): auto-reload once when the browser fails to
-  // fetch a code-split chunk. Guarded with sessionStorage so we don't loop.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const RELOAD_KEY = "__chunk_reload_attempt__";
-
     const isChunkError = (msg: unknown): boolean => {
       const text = typeof msg === "string" ? msg : (msg as any)?.message || "";
       return (
@@ -214,26 +203,20 @@ function RootComponent() {
         /error loading dynamically imported module/i.test(text)
       );
     };
-
     const tryReload = () => {
       if (sessionStorage.getItem(RELOAD_KEY)) return;
       sessionStorage.setItem(RELOAD_KEY, "1");
       window.location.reload();
     };
-
     const onError = (e: ErrorEvent) => {
       if (isChunkError(e.message) || isChunkError(e.error)) tryReload();
     };
     const onRejection = (e: PromiseRejectionEvent) => {
       if (isChunkError(e.reason)) tryReload();
     };
-
     window.addEventListener("error", onError);
     window.addEventListener("unhandledrejection", onRejection);
-
-    // Clear the guard once a healthy render lands.
     const t = window.setTimeout(() => sessionStorage.removeItem(RELOAD_KEY), 4000);
-
     return () => {
       window.removeEventListener("error", onError);
       window.removeEventListener("unhandledrejection", onRejection);
@@ -242,21 +225,31 @@ function RootComponent() {
   }, []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TenantProvider tenant={tenant}>
-        <ThemeProvider>
-          <AuthProvider>
-            <CurrencyProvider>
-              <ConfirmDialogProvider>
-                <ErrorBoundary resetKey={`${location.pathname}${location.searchStr}`}>
-                  <Outlet />
-                </ErrorBoundary>
-                <Toaster />
-              </ConfirmDialogProvider>
-            </CurrencyProvider>
-          </AuthProvider>
-        </ThemeProvider>
-      </TenantProvider>
-    </QueryClientProvider>
+    <html lang="en" data-theme="light">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        <div id="root">
+          <QueryClientProvider client={queryClient}>
+            <TenantProvider tenant={tenant}>
+              <ThemeProvider>
+                <AuthProvider>
+                  <CurrencyProvider>
+                    <ConfirmDialogProvider>
+                      <ErrorBoundary resetKey={`${location.pathname}${location.searchStr}`}>
+                        <Outlet />
+                      </ErrorBoundary>
+                      <Toaster />
+                    </ConfirmDialogProvider>
+                  </CurrencyProvider>
+                </AuthProvider>
+              </ThemeProvider>
+            </TenantProvider>
+          </QueryClientProvider>
+        </div>
+        <Scripts />
+      </body>
+    </html>
   );
 }
