@@ -410,39 +410,45 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
             <TooltipProvider delayDuration={150}>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button type="button" className="text-muted-foreground hover:text-foreground transition-colors shrink-0" aria-label="Format help">
-                    <Info size={14} />
+                  <button type="button" className="text-muted-foreground hover:text-foreground transition-colors shrink-0 p-1" aria-label="Format help">
+                    <Info size={13} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs text-xs leading-relaxed">
+                <TooltipContent side="top" className="max-w-xs text-[11px] leading-relaxed">
                   Upload standard video files from your device.<br />
-                  MP4 is most compatible, but MOV, WEBM and other video files are no longer blocked.
+                  MP4/MOV recommended for WhatsApp.
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
 
-          <div>
-            <Label>Video Title *</Label>
-            <Input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter video title"
-              className="mt-1 bg-muted border-border"
-              disabled={busy}
-            />
-          </div>
+          <div className="space-y-3 pt-1">
+            <div className="space-y-1.5">
+              <Label className="text-[13px] font-semibold flex items-center gap-1.5 px-0.5">
+                <FileText size={13} className="text-primary" /> Video Title *
+              </Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Name your video..."
+                className="h-10 bg-muted/20 border-border/50 focus-visible:ring-primary/20 text-sm"
+                disabled={busy}
+              />
+            </div>
 
-          <div>
-            <Label>Description (optional)</Label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description..."
-              className="mt-1 bg-muted border-border resize-none"
-              rows={2}
-              disabled={busy}
-            />
+            <div className="space-y-1.5">
+              <Label className="text-[13px] font-semibold flex items-center gap-1.5 px-0.5">
+                <Radio size={13} className="text-primary" /> Description (optional)
+              </Label>
+              <Textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="What is this video about?"
+                className="min-h-[80px] bg-muted/20 border-border/50 focus-visible:ring-primary/20 text-sm resize-none"
+                rows={2}
+                disabled={busy}
+              />
+            </div>
           </div>
 
           {/* "Allow others to reuse" lives in Edit Details now (off by default). */}
