@@ -349,9 +349,9 @@ const PublicVideoPage = () => {
           {videoError ? (
             <div className="w-full h-full flex flex-col items-center justify-center text-center px-4 gap-3 bg-card">
               <AlertTriangle size={36} className="text-destructive" />
-              <p className="text-sm font-medium">Video couldn't load.</p>
+              <p className="text-sm font-medium">Video is temporarily unavailable.</p>
               <p className="text-xs text-muted-foreground max-w-sm">
-                Check your connection and try again.
+                The video host did not return a playable file. Please try again shortly.
               </p>
               <Button size="sm" variant="outline" onClick={() => setVideoError(false)}>
                 Retry
