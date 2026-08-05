@@ -589,7 +589,7 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
 
         {/* OVERVIEW */}
-        <TabsContent value="overview" className="space-y-5">
+        <TabsContent value="overview" /> <TabsContent value="leads" className="space-y-4">...leads component...</TabsContent> className="space-y-5">
           {/* Hero KPIs — Views (unique people) + Leads. */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <KpiCard
