@@ -27,7 +27,9 @@ import {
 import { brand as BRAND } from "@/config/brand";
 
 const SITE_ORIGIN =
-  (typeof window !== "undefined" && window.location.origin) || `https://${BRAND.domain}`;
+  (typeof window !== "undefined" && (window.location.hostname === BRAND.domain || window.location.hostname.endsWith(`.${BRAND.domain}`))) 
+    ? window.location.origin 
+    : `https://${BRAND.domain}`;
 
 const buildFunnelLink = (slug: string, token: string) =>
   `${SITE_ORIGIN}/f/${slug}?t=${token}`;
@@ -188,32 +190,52 @@ export default function MyTeamPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-4 pb-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex gap-1.5">
-                  <Input readOnly value={connectLink} className="font-mono text-[11px] h-8 bg-muted/20" />
-                  <Button size="sm" className="h-8 px-3 text-xs" onClick={() => copy(connectLink, "Connect link copied")}>
-                    <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy
-                  </Button>
+            <div className="flex flex-col lg:flex-row gap-6 items-start">
+              <div className="flex-1 w-full space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground ml-1">Your Team Invite Link</label>
+                  <div className="flex gap-2">
+                    <div className="relative flex-1 group">
+                      <Input 
+                        readOnly 
+                        value={connectLink} 
+                        className="font-mono text-[11px] h-10 bg-muted/20 pr-10 border-dashed focus-visible:ring-primary/30" 
+                      />
+                      <div className="absolute right-0 top-0 h-full flex items-center pr-3 text-muted-foreground/30 pointer-events-none group-hover:text-muted-foreground/50 transition-colors">
+                        ...
+                      </div>
+                    </div>
+                    <Button 
+                      size="default" 
+                      className="h-10 px-4 gap-2 font-medium" 
+                      onClick={() => copy(connectLink, "Connect link copied")}
+                    >
+                      <Copy className="h-4 w-4" />
+                      <span>Copy Link</span>
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-1.5">
+
+                <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 px-2.5 text-[11px] font-medium"
+                    className="h-9 px-4 gap-2 rounded-full border-primary/20 hover:bg-primary/5 hover:border-primary/40 transition-all"
                     onClick={() =>
                       shareWa(
                         `Join my team on ${BRAND.name} — you'll instantly get your personal funnel links to send to prospects.\n\n${connectLink}`,
                       )
                     }
                   >
-                    <Share2 className="h-3 w-3 mr-1.5 text-[#25D366]" /> WhatsApp
+                    <Share2 className="h-4 w-4 text-[#25D366]" />
+                    <span>Share on WhatsApp</span>
                   </Button>
+                  
                   {qrDataUrl && (
                     <Button
                       variant="outline"
                       size="sm"
-                      className="h-7 px-2.5 text-[11px] font-medium"
+                      className="h-9 px-4 gap-2 rounded-full border-primary/20 lg:hidden"
                       onClick={() => {
                         const a = document.createElement("a");
                         a.href = qrDataUrl;
@@ -221,28 +243,48 @@ export default function MyTeamPage() {
                         a.click();
                       }}
                     >
-                      <Download className="h-3 w-3 mr-1.5" /> QR Code
+                      <Download className="h-4 w-4" />
+                      <span>Download QR</span>
                     </Button>
                   )}
                 </div>
               </div>
               
               {qrDataUrl && (
-                <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-1.5 pr-4 self-start sm:self-center">
-                  <div className="relative group cursor-pointer" onClick={() => {
+                <div className="hidden lg:flex items-center gap-5 rounded-2xl border-2 border-dashed bg-muted/10 p-4 pr-8 self-stretch">
+                  <div 
+                    className="relative group cursor-pointer" 
+                    onClick={() => {
                       const a = document.createElement("a");
                       a.href = qrDataUrl;
                       a.download = "connect-qr.png";
                       a.click();
-                  }}>
-                    <img src={qrDataUrl} alt="Connect QR" className="w-14 h-14 bg-white rounded-lg border shadow-sm transition-transform active:scale-95" />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                        <Download className="h-4 w-4 text-white" />
+                    }}
+                  >
+                    <img 
+                      src={qrDataUrl} 
+                      alt="Connect QR" 
+                      className="w-24 h-24 bg-white rounded-xl border-2 shadow-sm transition-all group-hover:scale-105 group-hover:shadow-md active:scale-95" 
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl">
+                      <Download className="h-6 w-6 text-white" />
                     </div>
                   </div>
-                  <div className="flex flex-col justify-center">
+                  <div className="flex flex-col justify-center space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">Scan to join</span>
+                    <h3 className="text-lg font-bold text-foreground leading-tight">Instant Team<br/>Connection</h3>
+                    <p className="text-[11px] text-muted-foreground max-w-[120px]">Show this QR code to your team members for quick joining.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Mobile QR Version (Compact) */}
+              {qrDataUrl && (
+                <div className="lg:hidden flex items-center gap-3 w-full rounded-xl border bg-muted/30 p-2 pr-4">
+                  <img src={qrDataUrl} alt="Connect QR" className="w-12 h-12 bg-white rounded-lg border shadow-sm" />
+                  <div className="flex flex-col">
                     <span className="text-[9px] font-bold uppercase tracking-widest text-primary/70">Scan to join</span>
-                    <span className="text-[11px] font-semibold text-foreground leading-tight">Instant Team<br/>Connection</span>
+                    <span className="text-[11px] font-semibold text-foreground">Instant Connection</span>
                   </div>
                 </div>
               )}
