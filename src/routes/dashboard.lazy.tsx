@@ -83,7 +83,7 @@ export default function DashboardPage() {
             const f = e.target.files?.[0];
             if (f) setUploadOpen(true);
         }} />
-        <VideoUploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} />
+        <VideoUploadModal open={uploadOpen} onClose={() => setUploadOpen(false)} onSuccess={() => {}} />
       </div>
     </DashboardLayout>
   );
