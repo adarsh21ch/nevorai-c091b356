@@ -20,10 +20,10 @@ import {
   Crown, CreditCard, FileCheck, IndianRupee,
   Bell, Settings, Download, ChevronRight, Pencil,
   Sun, Moon, LogOut, Shield, Infinity as InfinityIcon, GraduationCap,
-  LifeBuoy, ChevronDown, Globe, Target, Mail,
+  LifeBuoy, ChevronDown, Globe, Target, Mail, Trash2, Sparkles,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
-import { Link } from "@/lib/router-compat";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { useRouter } from "@tanstack/react-router";
 import { usePlan } from "@/hooks/usePlan";
 import { useAdmin } from "@/hooks/useAdmin";
