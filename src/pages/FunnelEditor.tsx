@@ -868,7 +868,9 @@ const FunnelEditor = () => {
         step={editingStepIdx !== null ? flowSteps[editingStepIdx] : null}
         stepIndex={editingStepIdx ?? 0}
         totalSteps={flowSteps.length}
+        funnelId={id}
         onUpdate={(key, value) => { if (editingStepIdx !== null) updateFlowStep(editingStepIdx, key, value); }}
+
         onOpenVideoPicker={() => { setStepVideoPickerIdx(editingStepIdx); }}
         speakerScope={funnel.speaker_scope}
         videoTopicsScope={funnel.video_topics_scope}
