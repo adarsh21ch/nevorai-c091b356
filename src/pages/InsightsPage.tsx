@@ -43,7 +43,6 @@ function getInitialTab(): Tab {
   const sp = new URLSearchParams(window.location.search);
   const t = sp.get("tab");
   console.log('[Insights] getInitialTab search:', window.location.search, 'extracted:', t);
-  if (t === "live") return "live";
   return (VALID_TABS.includes(t as Tab) ? t : "overview") as Tab;
 }
 
