@@ -39,10 +39,9 @@ interface NavItem {
 
 const baseNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
-  { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
-  { icon: GitBranch, label: "Funnels", path: "/funnels" },
-  { icon: Layout, label: "Pages", path: "/landing-pages" },
   { icon: Video, label: "My Videos", path: "/videos" },
+  { icon: GitBranch, label: "Funnels", path: "/funnels" },
+  { icon: Layout, label: "Landing Pages", path: "/landing-pages" },
   { icon: Radio, label: "Live", path: "/insights", search: { tab: "live" } },
   { icon: Activity, label: "Insights", path: "/insights" },
   { icon: Users, label: "My Team", path: "/team" },
@@ -53,6 +52,7 @@ const tailNavItems: NavItem[] = [
 ];
 
 const bottomItems: NavItem[] = [
+  { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: User, label: "Profile", path: "/profile" },
   { icon: Info, label: "What's New", path: "/help" },
 ];
@@ -194,13 +194,13 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
                     onMouseEnter={() => preloadRoute("/admin")}
                     onFocus={() => preloadRoute("/admin")}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
+                    "flex items-center gap-3 rounded-lg border-2 px-3 py-2.5 text-sm font-bold transition-all",
                     location.pathname.startsWith("/admin")
-                      ? "bg-muted text-foreground font-semibold"
-                      : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "border-primary/20 text-primary hover:bg-primary/5 hover:border-primary/40"
                   )}
                 >
-                  <Shield size={18} />
+                  <Shield size={18} className="animate-pulse-subtle" />
                   {!collapsed && <span>Admin Panel</span>}
                 </Link>
               </div>

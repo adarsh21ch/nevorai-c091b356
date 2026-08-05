@@ -42,7 +42,8 @@ function getInitialTab(): Tab {
   if (typeof window === "undefined") return "overview";
   const sp = new URLSearchParams(window.location.search);
   const t = sp.get("tab");
-  if (t === "live") return "live"; // Prioritize explicit live tab
+  console.log('[Insights] getInitialTab search:', window.location.search, 'extracted:', t);
+  if (t === "live") return "live";
   return (VALID_TABS.includes(t as Tab) ? t : "overview") as Tab;
 }
 
@@ -84,13 +85,14 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const sp = new URLSearchParams(location.search);
-    const t = sp.get("tab");
-    if (t && VALID_TABS.includes(t as Tab)) {
-      setTab(t as Tab);
-    } else if (!t) {
+    const t = sp.get("tab") as Tab | null;
+    console.log('[Insights] URL sync effect. Tab in URL:', t, 'Current state tab:', tab);
+    if (t && VALID_TABS.includes(t) && t !== tab) {
+      setTab(t);
+    } else if (!t && tab !== "overview") {
       setTab("overview");
     }
-  }, [location.search]);
+  }, [location.search, tab]);
   const { user, loading: authLoading } = useAuth();
   const visible = usePageVisible();
   const { features } = usePlanLimits();
