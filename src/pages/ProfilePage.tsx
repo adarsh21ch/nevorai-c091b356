@@ -518,6 +518,26 @@ const ProfilePage = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* DELETE ACCOUNT DIALOG */}
+      <Dialog open={deleteOpen} onOpenChange={(o) => { setDeleteOpen(o); if (!o) setDeleteConfirm(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete account permanently?</DialogTitle>
+            <DialogDescription>
+              This will permanently remove your profile, funnels, leads, landing pages and all related data. This cannot be undone.
+              Type <span className="font-mono font-semibold">DELETE</span> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} placeholder="DELETE" autoFocus />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteConfirm !== "DELETE" || deleting}>
+              {deleting ? "Deleting…" : "Delete forever"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
