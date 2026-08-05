@@ -315,12 +315,11 @@ const ProfilePage = () => {
               </div>
               <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
             </div>
-              {avatarUrl && (
-                <button onClick={removePhoto} className="block mt-1 text-[10px] text-muted-foreground hover:text-destructive underline">
-                  Remove photo
-                </button>
-              )}
-            </div>
+            {avatarUrl && (
+              <button onClick={removePhoto} className="block mt-1 text-[10px] text-muted-foreground hover:text-destructive underline">
+                Remove photo
+              </button>
+            )}
           </div>
         </div>
 
