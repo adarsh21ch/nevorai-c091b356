@@ -42,6 +42,7 @@ function getInitialTab(): Tab {
   if (typeof window === "undefined") return "overview";
   const sp = new URLSearchParams(window.location.search);
   const t = sp.get("tab");
+  if (t === "live") return "live"; // Prioritize explicit live tab
   return (VALID_TABS.includes(t as Tab) ? t : "overview") as Tab;
 }
 
