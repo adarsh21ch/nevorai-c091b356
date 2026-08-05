@@ -189,6 +189,43 @@ const ProfilePage = () => {
     toast.success("Photo removed");
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("user-data-controls", { body: { action: "export" } });
+      if (error) throw error;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Nevorai-data-${user?.id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Your data has been downloaded.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Export failed. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirm !== "DELETE") return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke("user-data-controls", { body: { action: "delete", confirm: "DELETE" } });
+      if (error) throw error;
+      toast.success("Account deleted.");
+      await signOut();
+      navigate("/");
+    } catch (e) {
+      console.error(e);
+      toast.error("Delete failed. Please contact support.");
+      setDeleting(false);
+    }
+  };
+
   const initials = (profile?.full_name || "U")
     .split(" ").map((w) => w[0]).join("").toUpperCase().slice(0, 2);
 
