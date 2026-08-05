@@ -31,9 +31,9 @@ const COLORS = ["hsl(var(--primary))", "#6366F1", "#10B981", "#F59E0B", "#EF4444
 type SortKey = "recent" | "views" | "leads" | "alpha";
 
 type Period = "today" | "7d" | "30d" | "all";
-type Tab = "overview" | "videos" | "funnels" | "landing-pages" | "live";
+type Tab = "overview" | "leads" | "videos" | "funnels" | "landing-pages" | "live" | "tracking";
 
-const VALID_TABS: Tab[] = ["overview", "videos", "funnels", "landing-pages", "live"];
+const VALID_TABS: Tab[] = ["overview", "leads", "videos", "funnels", "landing-pages", "live", "tracking"];
 
 function getInitialTab(): Tab {
   if (typeof window === "undefined") return "overview";
