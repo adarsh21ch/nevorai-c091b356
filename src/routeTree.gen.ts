@@ -8,6 +8,8 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
+import { createFileRoute } from '@tanstack/react-router'
+
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceSettingsRouteImport } from './routes/workspace-settings'
 import { Route as WorkspaceMembersRouteImport } from './routes/workspace-members'
@@ -16,12 +18,10 @@ import { Route as WhatsappTestRouteImport } from './routes/whatsapp-test'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as VerifyWhatsappRouteImport } from './routes/verify-whatsapp'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
-import { Route as TrackingRouteImport } from './routes/tracking'
 import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RefundPolicyRouteImport } from './routes/refund-policy'
@@ -34,7 +34,6 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as NevAiRouteImport } from './routes/nev-ai'
 import { Route as LiveRouteImport } from './routes/live'
-import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as KycRouteImport } from './routes/kyc'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as InsightsRouteImport } from './routes/insights'
@@ -47,7 +46,6 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BillingRouteImport } from './routes/billing'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -109,6 +107,19 @@ import { Route as ApiPublicCapiFireRouteImport } from './routes/api/public/capi/
 import { Route as ApiPublicCapiDrainRouteImport } from './routes/api/public/capi/drain'
 import { Route as ApiAdminWhatsappMessagesLeadIdRouteImport } from './routes/api/admin/whatsapp-messages/$leadId'
 
+const TrackingLazyRouteImport = createFileRoute('/tracking')()
+const LeadsLazyRouteImport = createFileRoute('/leads')()
+
+const TrackingLazyRoute = TrackingLazyRouteImport.update({
+  id: '/tracking',
+  path: '/tracking',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/tracking.lazy').then((d) => d.Route))
+const LeadsLazyRoute = LeadsLazyRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => rootRouteImport,
+} as any).lazy(() => import('./routes/leads.lazy').then((d) => d.Route))
 const WorkspaceSettingsRoute = WorkspaceSettingsRouteImport.update({
   id: '/workspace-settings',
   path: '/workspace-settings',
@@ -146,11 +157,6 @@ const UpgradeRoute = UpgradeRouteImport.update({
   path: '/upgrade',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/upgrade.lazy').then((d) => d.Route))
-const TrackingRoute = TrackingRouteImport.update({
-  id: '/tracking',
-  path: '/tracking',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/tracking.lazy').then((d) => d.Route))
 const ToolsRoute = ToolsRouteImport.update({
   id: '/tools',
   path: '/tools',
@@ -169,11 +175,6 @@ const TeamRoute = TeamRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
@@ -238,11 +239,6 @@ const LiveRoute = LiveRouteImport.update({
   path: '/live',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/live.lazy').then((d) => d.Route))
-const LeadsRoute = LeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/leads.lazy').then((d) => d.Route))
 const KycRoute = KycRouteImport.update({
   id: '/kyc',
   path: '/kyc',
@@ -303,11 +299,6 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/auth.lazy').then((d) => d.Route))
-const AnalyticsRoute = AnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AcademyRoute = AcademyRouteImport.update({
   id: '/academy',
   path: '/academy',
@@ -656,7 +647,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/academy': typeof AcademyRouteWithChildren
-  '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRouteWithChildren
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
@@ -669,7 +659,6 @@ export interface FileRoutesByFullPath {
   '/insights': typeof InsightsRouteWithChildren
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
-  '/leads': typeof LeadsRoute
   '/live': typeof LiveRouteWithChildren
   '/nev-ai': typeof NevAiRoute
   '/notifications': typeof NotificationsRoute
@@ -682,12 +671,10 @@ export interface FileRoutesByFullPath {
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
-  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
-  '/tracking': typeof TrackingRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -695,6 +682,8 @@ export interface FileRoutesByFullPath {
   '/workspace-branding': typeof WorkspaceBrandingRoute
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
+  '/leads': typeof LeadsLazyRoute
+  '/tracking': typeof TrackingLazyRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -757,7 +746,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/academy': typeof AcademyRouteWithChildren
-  '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRouteWithChildren
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
@@ -770,7 +758,6 @@ export interface FileRoutesByTo {
   '/insights': typeof InsightsRouteWithChildren
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
-  '/leads': typeof LeadsRoute
   '/live': typeof LiveRouteWithChildren
   '/nev-ai': typeof NevAiRoute
   '/notifications': typeof NotificationsRoute
@@ -783,12 +770,10 @@ export interface FileRoutesByTo {
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
-  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
-  '/tracking': typeof TrackingRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -796,6 +781,8 @@ export interface FileRoutesByTo {
   '/workspace-branding': typeof WorkspaceBrandingRoute
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
+  '/leads': typeof LeadsLazyRoute
+  '/tracking': typeof TrackingLazyRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -857,7 +844,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/academy': typeof AcademyRouteWithChildren
-  '/analytics': typeof AnalyticsRoute
   '/auth': typeof AuthRouteWithChildren
   '/billing': typeof BillingRoute
   '/contact': typeof ContactRoute
@@ -870,7 +856,6 @@ export interface FileRoutesById {
   '/insights': typeof InsightsRouteWithChildren
   '/install': typeof InstallRoute
   '/kyc': typeof KycRoute
-  '/leads': typeof LeadsRoute
   '/live': typeof LiveRouteWithChildren
   '/nev-ai': typeof NevAiRoute
   '/notifications': typeof NotificationsRoute
@@ -883,12 +868,10 @@ export interface FileRoutesById {
   '/refund-policy': typeof RefundPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
   '/robots.txt': typeof RobotsDottxtRoute
-  '/settings': typeof SettingsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
   '/tools': typeof ToolsRoute
-  '/tracking': typeof TrackingRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -896,6 +879,8 @@ export interface FileRoutesById {
   '/workspace-branding': typeof WorkspaceBrandingRoute
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
+  '/leads': typeof LeadsLazyRoute
+  '/tracking': typeof TrackingLazyRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -960,7 +945,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/academy'
-    | '/analytics'
     | '/auth'
     | '/billing'
     | '/contact'
@@ -973,7 +957,6 @@ export interface FileRouteTypes {
     | '/insights'
     | '/install'
     | '/kyc'
-    | '/leads'
     | '/live'
     | '/nev-ai'
     | '/notifications'
@@ -986,12 +969,10 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/reset-password'
     | '/robots.txt'
-    | '/settings'
     | '/sitemap.xml'
     | '/team'
     | '/terms'
     | '/tools'
-    | '/tracking'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -999,6 +980,8 @@ export interface FileRouteTypes {
     | '/workspace-branding'
     | '/workspace-members'
     | '/workspace-settings'
+    | '/leads'
+    | '/tracking'
     | '/academy/$id'
     | '/admin/applications'
     | '/admin/kyc'
@@ -1061,7 +1044,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/academy'
-    | '/analytics'
     | '/auth'
     | '/billing'
     | '/contact'
@@ -1074,7 +1056,6 @@ export interface FileRouteTypes {
     | '/insights'
     | '/install'
     | '/kyc'
-    | '/leads'
     | '/live'
     | '/nev-ai'
     | '/notifications'
@@ -1087,12 +1068,10 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/reset-password'
     | '/robots.txt'
-    | '/settings'
     | '/sitemap.xml'
     | '/team'
     | '/terms'
     | '/tools'
-    | '/tracking'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -1100,6 +1079,8 @@ export interface FileRouteTypes {
     | '/workspace-branding'
     | '/workspace-members'
     | '/workspace-settings'
+    | '/leads'
+    | '/tracking'
     | '/academy/$id'
     | '/admin/applications'
     | '/admin/kyc'
@@ -1160,7 +1141,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/academy'
-    | '/analytics'
     | '/auth'
     | '/billing'
     | '/contact'
@@ -1173,7 +1153,6 @@ export interface FileRouteTypes {
     | '/insights'
     | '/install'
     | '/kyc'
-    | '/leads'
     | '/live'
     | '/nev-ai'
     | '/notifications'
@@ -1186,12 +1165,10 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/reset-password'
     | '/robots.txt'
-    | '/settings'
     | '/sitemap.xml'
     | '/team'
     | '/terms'
     | '/tools'
-    | '/tracking'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -1199,6 +1176,8 @@ export interface FileRouteTypes {
     | '/workspace-branding'
     | '/workspace-members'
     | '/workspace-settings'
+    | '/leads'
+    | '/tracking'
     | '/academy/$id'
     | '/admin/applications'
     | '/admin/kyc'
@@ -1262,7 +1241,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AcademyRoute: typeof AcademyRouteWithChildren
-  AnalyticsRoute: typeof AnalyticsRoute
   AuthRoute: typeof AuthRouteWithChildren
   BillingRoute: typeof BillingRoute
   ContactRoute: typeof ContactRoute
@@ -1275,7 +1253,6 @@ export interface RootRouteChildren {
   InsightsRoute: typeof InsightsRouteWithChildren
   InstallRoute: typeof InstallRoute
   KycRoute: typeof KycRoute
-  LeadsRoute: typeof LeadsRoute
   LiveRoute: typeof LiveRouteWithChildren
   NevAiRoute: typeof NevAiRoute
   NotificationsRoute: typeof NotificationsRoute
@@ -1288,12 +1265,10 @@ export interface RootRouteChildren {
   RefundPolicyRoute: typeof RefundPolicyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
-  SettingsRoute: typeof SettingsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRouteWithChildren
   TermsRoute: typeof TermsRoute
   ToolsRoute: typeof ToolsRoute
-  TrackingRoute: typeof TrackingRoute
   UpgradeRoute: typeof UpgradeRoute
   VerifyWhatsappRoute: typeof VerifyWhatsappRoute
   VideosRoute: typeof VideosRouteWithChildren
@@ -1301,6 +1276,8 @@ export interface RootRouteChildren {
   WorkspaceBrandingRoute: typeof WorkspaceBrandingRoute
   WorkspaceMembersRoute: typeof WorkspaceMembersRoute
   WorkspaceSettingsRoute: typeof WorkspaceSettingsRoute
+  LeadsLazyRoute: typeof LeadsLazyRoute
+  TrackingLazyRoute: typeof TrackingLazyRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminPlansRoute: typeof AdminPlansRoute
@@ -1348,6 +1325,20 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tracking': {
+      id: '/tracking'
+      path: '/tracking'
+      fullPath: '/tracking'
+      preLoaderRoute: typeof TrackingLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsLazyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/workspace-settings': {
       id: '/workspace-settings'
       path: '/workspace-settings'
@@ -1397,13 +1388,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UpgradeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tracking': {
-      id: '/tracking'
-      path: '/tracking'
-      fullPath: '/tracking'
-      preLoaderRoute: typeof TrackingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/tools': {
       id: '/tools'
       path: '/tools'
@@ -1430,13 +1414,6 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/robots.txt': {
@@ -1523,13 +1500,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LiveRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/leads': {
-      id: '/leads'
-      path: '/leads'
-      fullPath: '/leads'
-      preLoaderRoute: typeof LeadsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/kyc': {
       id: '/kyc'
       path: '/kyc'
@@ -1612,13 +1582,6 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/analytics': {
-      id: '/analytics'
-      path: '/analytics'
-      fullPath: '/analytics'
-      preLoaderRoute: typeof AnalyticsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/academy': {
@@ -2148,7 +2111,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AcademyRoute: AcademyRouteWithChildren,
-  AnalyticsRoute: AnalyticsRoute,
   AuthRoute: AuthRouteWithChildren,
   BillingRoute: BillingRoute,
   ContactRoute: ContactRoute,
@@ -2161,7 +2123,6 @@ const rootRouteChildren: RootRouteChildren = {
   InsightsRoute: InsightsRouteWithChildren,
   InstallRoute: InstallRoute,
   KycRoute: KycRoute,
-  LeadsRoute: LeadsRoute,
   LiveRoute: LiveRouteWithChildren,
   NevAiRoute: NevAiRoute,
   NotificationsRoute: NotificationsRoute,
@@ -2174,12 +2135,10 @@ const rootRouteChildren: RootRouteChildren = {
   RefundPolicyRoute: RefundPolicyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
-  SettingsRoute: SettingsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRouteWithChildren,
   TermsRoute: TermsRoute,
   ToolsRoute: ToolsRoute,
-  TrackingRoute: TrackingRoute,
   UpgradeRoute: UpgradeRoute,
   VerifyWhatsappRoute: VerifyWhatsappRoute,
   VideosRoute: VideosRouteWithChildren,
@@ -2187,6 +2146,8 @@ const rootRouteChildren: RootRouteChildren = {
   WorkspaceBrandingRoute: WorkspaceBrandingRoute,
   WorkspaceMembersRoute: WorkspaceMembersRoute,
   WorkspaceSettingsRoute: WorkspaceSettingsRoute,
+  LeadsLazyRoute: LeadsLazyRoute,
+  TrackingLazyRoute: TrackingLazyRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminKycRoute: AdminKycRoute,
   AdminPlansRoute: AdminPlansRoute,

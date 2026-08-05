@@ -34,7 +34,7 @@ const baseNavItems = [
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: Video, label: "My Videos", path: "/videos" },
   { icon: Activity, label: "Insights", path: "/insights" },
-  { icon: Target, label: "Tracking", path: "/tracking" },
+  { icon: Target, label: "Tracking", path: "/insights", search: { tab: "tracking" } },
   { icon: Users, label: "My Team", path: "/team" },
 ];
 const tailNavItems = [
