@@ -56,14 +56,18 @@ function DashboardPage() {
 
         <ViewsOverviewCard />
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/insights" })}>
             <BarChart3 size={18} className="text-primary" />
-            <span className="text-[11px] font-bold uppercase tracking-tight">Insights</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight">Insights</span>
+          </Button>
+          <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/videos" })}>
+            <Plus size={18} className="text-primary" />
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight">Upload</span>
           </Button>
           <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/tools" })}>
             <Wrench size={18} className="text-primary" />
-            <span className="text-[11px] font-bold uppercase tracking-tight">Tools</span>
+            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-tight">Tools</span>
           </Button>
         </div>
 

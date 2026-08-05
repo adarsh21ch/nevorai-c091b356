@@ -98,8 +98,8 @@ export function StepAssetManager({ funnelId, stepId }: StepAssetManagerProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("File size must be under 10MB");
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error("File size must be under 25MB");
         return;
       }
       uploadMutation.mutate(file);

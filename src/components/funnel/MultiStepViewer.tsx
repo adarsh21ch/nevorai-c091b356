@@ -1324,53 +1324,57 @@ const StepAssetsViewer = ({ stepId, isDark }: { stepId: string; isDark: boolean 
   if (assets.length === 0) return null;
 
   return (
-    <div className="mb-6 space-y-3">
-      <div className="flex items-center gap-2 mb-2">
-        <Paperclip size={14} className={isDark ? "text-white/60" : "text-black/60"} />
-        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}>
-          Resources & Downloads
-        </span>
+    <div className={`mt-4 p-4 rounded-2xl border ${isDark ? "bg-white/5 border-white/10" : "bg-gray-50 border-gray-200"}`}>
+      <div className="flex items-center gap-2 mb-3">
+        <Paperclip size={16} className={isDark ? "text-primary/70" : "text-primary"} />
+        <h3 className="text-sm font-bold uppercase tracking-tight">Resources & Downloads</h3>
       </div>
       <div className="grid gap-2">
         {assets.map((asset) => (
           <div
             key={asset.id}
-            className="flex items-center justify-between p-3 rounded-xl border transition-all hover:scale-[1.01]"
-            style={{
-              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
-              borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
-            }}
+            className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+              isDark ? "bg-black/20 border-white/5 hover:border-white/10" : "bg-white border-gray-100 hover:border-gray-300"
+            }`}
           >
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }}>
-                {asset.file_type === "pdf" ? (
-                  <FileText size={20} className="text-red-500" />
-                ) : asset.file_type === "image" ? (
-                  <ImageIcon size={20} className="text-blue-500" />
-                ) : (
-                  <Paperclip size={20} className="text-amber-500" />
-                )}
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center border shrink-0 ${
+                isDark ? "bg-white/5 border-white/10" : "bg-gray-50 border-gray-100"
+              }`}>
+                {asset.file_type === "pdf" ? <FileText size={18} className="text-red-500" /> : <ImageIcon size={18} className="text-blue-500" />}
               </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold truncate" style={{ color: isDark ? "#fff" : "#000" }}>
-                  {asset.title}
-                </p>
-                <p className="text-[10px] uppercase font-bold tracking-tight" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)" }}>
-                  {asset.file_type} Resource
-                </p>
+                <p className={`text-sm font-semibold truncate ${isDark ? "text-white" : "text-gray-900"}`}>{asset.title}</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{asset.file_type} • {asset.file_size_bytes ? (asset.file_size_bytes / (1024 * 1024)).toFixed(1) + "MB" : "RESOURCE"}</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="sm"
-              className="rounded-full h-10 w-10 p-0"
-              onClick={() => window.open(asset.file_url, "_blank")}
-              style={{ color: "#F97316" }}
+              className={`h-10 px-4 rounded-lg gap-2 ${isDark ? "hover:bg-white/5 text-white" : "hover:bg-gray-100 text-gray-900"}`}
+              onClick={() => {
+                const link = document.createElement("a");
+                link.href = asset.file_url;
+                link.download = asset.title;
+                link.target = "_blank";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
             >
-              <Download size={18} />
+              <Download size={16} />
+              <span className="hidden sm:inline font-bold uppercase text-[10px]">Download</span>
             </Button>
           </div>
         ))}
+      </div>
+      <div className={`mt-3 pt-3 border-t flex items-center gap-2 ${isDark ? "border-white/5" : "border-gray-100"}`}>
+        <div className="flex -space-x-1">
+           <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center">
+             <Sparkles size={10} className="text-primary" />
+           </div>
+        </div>
+        <p className="text-[10px] text-muted-foreground italic">Resources help your prospects take action. Check them out!</p>
       </div>
     </div>
   );
