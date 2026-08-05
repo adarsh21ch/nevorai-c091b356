@@ -49,12 +49,17 @@ const ProfilePage = () => {
   const { isAdmin } = useAdmin();
   const trial = useTrialStatus();
   const router = useRouter();
+  const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
   const [publicOpen, setPublicOpen] = useState(false);
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [savingPublic, setSavingPublic] = useState(false);
   const [emailSaving, setEmailSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const paths = ["/billing", "/payments", "/pricing", "/kyc", "/notifications", "/settings", "/help", "/install"];
