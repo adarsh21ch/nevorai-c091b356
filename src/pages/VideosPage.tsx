@@ -338,7 +338,7 @@ const VideosPage = () => {
 
 
         {/* Search */}
-        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-card border border-border shadow-sm">
           <Search size={14} className="text-muted-foreground flex-shrink-0" />
           <input
             type="text"
@@ -428,7 +428,7 @@ const VideosPage = () => {
                     onClick={(e) => { e.stopPropagation(); goPreview(); }}
                     disabled={!isReady}
                     aria-label={isReady ? "Play video preview" : "Video not ready"}
-                    className="group relative flex-shrink-0 w-32 sm:w-40 md:w-44 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/60 disabled:cursor-not-allowed"
+                    className="group relative flex-shrink-0 w-24 sm:w-32 md:w-40 rounded-lg overflow-hidden focus:outline-none focus:ring-2 focus:ring-primary/60 disabled:cursor-not-allowed h-[54px] sm:h-[72px]"
                   >
                     <VideoThumbnail thumbnailUrl={v.thumbnail_url} videoUrl={v.public_url} title={title} />
                     {isReady && (
