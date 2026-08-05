@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Layers, Video, IndianRupee, BarChart2,
   User, LogOut, ChevronLeft, ChevronRight, Shield,
   Radio, FileText, Crown, GraduationCap, Home, Wrench, Activity,
-  GitBranch, Layout, Sparkles, Users, Target,
+  GitBranch, Layout, Sparkles, Users, Target, Info,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -54,6 +54,7 @@ const tailNavItems: NavItem[] = [
 
 const bottomItems: NavItem[] = [
   { icon: User, label: "Profile", path: "/profile" },
+  { icon: Info, label: "What's New", path: "/help" },
 ];
 
 export const DashboardLayout = ({ children, editorMode = false }: { children: React.ReactNode; editorMode?: boolean }) => {
@@ -270,8 +271,8 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
             {[
               { icon: Home, label: "Home", path: "/dashboard", match: "exact" as const },
               { icon: GitBranch, label: "Funnels", path: "/funnels", match: "prefix" as const },
+              { icon: Layout, label: "Pages", path: "/landing-pages", match: "prefix" as const },
               { icon: Video, label: "Videos", path: "/videos", match: "prefix" as const },
-              { icon: Activity, label: "Insights", path: "/insights", match: "prefix" as const },
               { icon: User, label: "Profile", path: "/profile", match: "prefix" as const },
             ].map((item) => {
               const active = item.match === "exact"
