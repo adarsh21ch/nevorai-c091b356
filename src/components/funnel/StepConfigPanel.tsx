@@ -513,7 +513,13 @@ export const StepConfigPanel = ({ open, onClose, step, stepIndex, totalSteps, on
         <div className="mt-4 space-y-5">
           {step.step_type !== "payment" && renderCommon()}
           {renderBody()}
+          {funnelId && step.id && (
+            <div className="pt-2 border-t border-border/60">
+              <StepAssetManager funnelId={funnelId} stepId={step.id} />
+            </div>
+          )}
           {step.step_type !== "payment" && renderExtraGates()}
+
         </div>
         <div className="pt-6 mt-6 border-t border-border">
           <Button onClick={onClose} className="w-full h-11">
