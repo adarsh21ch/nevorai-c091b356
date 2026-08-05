@@ -41,31 +41,34 @@ export const ViewsOverviewCard = () => {
   return (
     <section className="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/[0.06] via-card to-accent/[0.03]">
       {/* ROW 1 — everything on one line on desktop, wraps cleanly on mobile */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Crown size={12} className="text-primary" />
-          <span className="text-[11px] font-semibold">{display.name}</span>
-          <span className={`rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider ${display.badgeClass}`}>
-            {plan.isPaid ? "ACTIVE" : plan.tier === "trial" ? "TRIAL" : "FREE"}
-          </span>
+      <div className="flex flex-col px-4 py-4 gap-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Crown size={12} className="text-primary" />
+            <span className="text-[11px] font-semibold">{display.name}</span>
+          </div>
+          <Link to="/insights" className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline shrink-0">
+            Insights <ArrowRight size={11} />
+          </Link>
         </div>
 
-        <div className="flex flex-1 items-center justify-between gap-2 px-2">
+        <div className="grid grid-cols-4 gap-2 w-full">
           {stats.map((s) => (
             <Link
               key={s.label}
               to="/insights"
-              className="flex flex-col items-center gap-0.5 min-w-0 hover:opacity-80 transition-opacity"
+              className="flex flex-col items-center gap-1 min-w-0 hover:opacity-80 transition-opacity"
             >
-              <span className={`font-heading font-extrabold tracking-tight leading-none ${s.primary ? "text-2xl sm:text-3xl text-foreground" : "text-xl sm:text-2xl text-foreground/80"}`}>
+              <span className={`font-heading font-extrabold tracking-tight leading-none ${s.primary ? "text-2xl text-foreground" : "text-xl text-foreground/80"}`}>
                 {fmt(s.value)}
               </span>
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <span className="text-[9px] font-bold uppercase tracking-tight text-muted-foreground whitespace-nowrap">
                 {s.label}
               </span>
             </Link>
           ))}
         </div>
+      </div>
 
         <Link to="/insights" className="flex items-center gap-1 text-[11px] font-medium text-primary hover:underline shrink-0">
           Insights <ArrowRight size={11} />
