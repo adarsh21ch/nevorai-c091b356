@@ -3,11 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import {
   Play, Lock, Check, CheckCircle2, Circle, ExternalLink,
   Calendar, CreditCard, ClipboardList, UserCheck, ChevronRight,
-  Loader2, MessageCircle, Phone as PhoneIcon, BadgeCheck, Info, Sparkles, Instagram
+  Loader2, MessageCircle, Phone as PhoneIcon, BadgeCheck, Info, Sparkles, Instagram,
+  FileText, Image as ImageIcon, Download, Paperclip
 } from "lucide-react";
+
 
 import { CopyNevoraiLinkButton } from "@/components/CopyNevoraiLinkButton";
 import { sanitizeText } from "@/lib/sanitize";
@@ -922,6 +925,10 @@ export const MultiStepViewer = ({
                 )}
               </div>
 
+              {/* Step Assets (Viewer side) */}
+              <StepAssetsViewer stepId={activeStep.id} isDark={isDark} />
+
+
               {getStepStatus(activeStep.id) === "locked" && (
                 <div className="flex items-start gap-3 p-4 rounded-xl" style={{ background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)" }}>
                   <Lock size={16} className="text-amber-400 shrink-0 mt-0.5" />
@@ -1299,3 +1306,73 @@ export const MultiStepViewer = ({
     </div>
   );
 };
+
+const StepAssetsViewer = ({ stepId, isDark }: { stepId: string; isDark: boolean }) => {
+  const { data: assets = [] } = useQuery({
+    queryKey: ["step-assets", stepId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("funnel_step_assets" as any)
+        .select("*")
+        .eq("funnel_step_id", stepId)
+        .order("display_order", { ascending: true });
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  if (assets.length === 0) return null;
+
+  return (
+    <div className="mb-6 space-y-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Paperclip size={14} className={isDark ? "text-white/60" : "text-black/60"} />
+        <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: isDark ? "rgba(255,255,255,0.6)" : "rgba(0,0,0,0.5)" }}>
+          Resources & Downloads
+        </span>
+      </div>
+      <div className="grid gap-2">
+        {assets.map((asset) => (
+          <div
+            key={asset.id}
+            className="flex items-center justify-between p-3 rounded-xl border transition-all hover:scale-[1.01]"
+            style={{
+              background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+              borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)",
+            }}
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)" }}>
+                {asset.file_type === "pdf" ? (
+                  <FileText size={20} className="text-red-500" />
+                ) : asset.file_type === "image" ? (
+                  <ImageIcon size={20} className="text-blue-500" />
+                ) : (
+                  <Paperclip size={20} className="text-amber-500" />
+                )}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate" style={{ color: isDark ? "#fff" : "#000" }}>
+                  {asset.title}
+                </p>
+                <p className="text-[10px] uppercase font-bold tracking-tight" style={{ color: isDark ? "rgba(255,255,255,0.5)" : "rgba(0,0,0,0.4)" }}>
+                  {asset.file_type} Resource
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="rounded-full h-10 w-10 p-0"
+              onClick={() => window.open(asset.file_url, "_blank")}
+              style={{ color: "#F97316" }}
+            >
+              <Download size={18} />
+            </Button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
