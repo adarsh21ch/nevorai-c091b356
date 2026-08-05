@@ -33,18 +33,16 @@ const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: Video, label: "My Videos", path: "/videos" },
-  { icon: Users, label: "My Team", path: "/team" },
-  { icon: Activity, label: "Activity", path: "/insights" },
-  { icon: Layers, label: "Tools", path: "/tools" },
+  { icon: Activity, label: "Insights", path: "/insights" },
   { icon: Target, label: "Tracking", path: "/tracking" },
+  { icon: Users, label: "My Team", path: "/team" },
 ];
 const tailNavItems = [
-  { icon: Crown, label: "Upgrade Plan", path: "/billing" },
-  { icon: IndianRupee, label: "Payments", path: "/payments" },
+  { icon: GraduationCap, label: "Academy", path: "/help" },
+  { icon: Crown, label: "Billing", path: "/billing" },
 ];
 
 const bottomItems = [
-  { icon: GraduationCap, label: "Nevorai Academy", path: "/help" },
   { icon: User, label: "Profile", path: "/profile" },
 ];
 

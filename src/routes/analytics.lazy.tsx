@@ -1,6 +1,7 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
-import AnalyticsPage from "@/pages/AnalyticsPage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createLazyFileRoute("/analytics")({
-  component: AnalyticsPage,
+export const Route = createFileRoute("/analytics")({
+  beforeLoad: () => {
+    throw redirect({ to: "/insights" });
+  },
 });

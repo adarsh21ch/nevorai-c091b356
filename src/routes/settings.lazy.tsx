@@ -1,6 +1,7 @@
-import { createLazyFileRoute } from "@tanstack/react-router";
-import SettingsPage from "@/pages/SettingsPage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createLazyFileRoute("/settings")({
-  component: SettingsPage,
+export const Route = createFileRoute("/settings")({
+  beforeLoad: () => {
+    throw redirect({ to: "/profile" });
+  },
 });

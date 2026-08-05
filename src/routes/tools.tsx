@@ -1,6 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import ToolsPage from "@/pages/ToolsPage";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/tools")({
-  component: ToolsPage,
+  beforeLoad: () => {
+    throw redirect({ to: "/insights", search: { tab: "funnels" } });
+  },
 });
