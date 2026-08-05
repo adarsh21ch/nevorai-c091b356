@@ -29,7 +29,15 @@ import { WorkspaceSwitcher } from "@/components/WorkspaceSwitcher";
 import { WorkspaceBrandingApplier } from "@/components/WorkspaceBrandingApplier";
 import { SafeIcon } from "@/components/SafeIcon";
 
-const baseNavItems = [
+interface NavItem {
+  icon: any;
+  label: string;
+  path: string;
+  search?: { tab: string };
+  matchExact?: boolean;
+}
+
+const baseNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: GitBranch, label: "Funnels", path: "/funnels" },
@@ -39,12 +47,12 @@ const baseNavItems = [
   { icon: Activity, label: "Insights", path: "/insights" },
   { icon: Users, label: "My Team", path: "/team" },
 ];
-const tailNavItems = [
+const tailNavItems: NavItem[] = [
   { icon: GraduationCap, label: "Academy", path: "/help" },
   { icon: Crown, label: "Billing", path: "/billing" },
 ];
 
-const bottomItems = [
+const bottomItems: NavItem[] = [
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
