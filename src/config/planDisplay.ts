@@ -8,7 +8,7 @@ export interface PlanDisplay {
 }
 
 export const PLAN_DISPLAY: Record<string, PlanDisplay> = {
-  free: { name: "Free", color: "#6B7A99", gradient: "from-slate-500 to-slate-600", badgeClass: "bg-muted text-muted-foreground" },
+  free: { name: "No plan", color: "#6B7A99", gradient: "from-slate-500 to-slate-600", badgeClass: "bg-muted text-muted-foreground" },
   basic: { name: "Starter", color: "#818CF8", gradient: "from-indigo-500 to-purple-600", badgeClass: "bg-indigo-500/15 text-indigo-300 border border-indigo-400/30" },
   starter: { name: "Starter", color: "#818CF8", gradient: "from-indigo-500 to-purple-600", badgeClass: "bg-indigo-500/15 text-indigo-300 border border-indigo-400/30" },
   pro: { name: "Growth", color: "#A78BFA", gradient: "from-violet-500 to-emerald-500", badgeClass: "bg-violet-500/15 text-violet-300 border border-violet-400/30" },
