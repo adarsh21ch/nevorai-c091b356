@@ -876,6 +876,40 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           ) : <InsightsEmptyState icon={Radio} title="No live sessions yet" hint="Schedule a live session to engage your audience in real time." ctaLabel="Create live session" ctaTo="/live" />}
         </TabsContent>
 
+        <TabsContent value="leads" className="space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-heading font-semibold">Contact Feed</h3>
+            <Button variant="outline" size="sm" onClick={() => {
+              const rows = [["Name", "At", "Type", "Title"], ...feedItems.map(i => [i.who || "Anon", i.at, i.entityType, i.entityTitle])];
+              const csv = rows.map(r => r.join(",")).join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url; a.download = "leads.csv"; a.click();
+            }}>
+              <Download size={14} className="mr-2" /> Export CSV
+            </Button>
+          </div>
+          <div className="premium-card overflow-hidden">
+            <ActivityFeed items={feedItems} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="tracking" className="space-y-4 pt-4">
+          <div className="premium-card p-5 space-y-4">
+            <div>
+              <h3 className="text-sm font-heading font-semibold">Global Tracking</h3>
+              <p className="text-[11px] text-muted-foreground mt-1">Configure your Meta Pixel and other tracking integrations across all funnels.</p>
+            </div>
+            <div className="max-w-md">
+               <MetaPixelIdField
+                 scope="account"
+                 value={""}
+                 onChange={() => toast.info("Go to Profile to edit your global Meta Pixel ID")}
+               />
+               <p className="mt-4 text-[11px] text-muted-foreground italic">Note: To update your primary tracking ID, visit your Profile settings.</p>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
