@@ -89,9 +89,13 @@ export const usePlanLimits = () => {
 
   const tier = plan.tier;
   const lookupTier = tier === "trial" ? "growth" : tier;
-  const config = planConfigs.find(c => c.plan_name === lookupTier) || FREE_FALLBACK;
-
   const isFree = tier === "free" || (!plan.isPaid && tier !== "trial");
+
+  // No free tier: unentitled accounts always resolve to the zeroed fallback,
+  // never to a leftover `free` row in subscription_plans.
+  const config = isFree
+    ? FREE_FALLBACK
+    : (planConfigs.find(c => c.plan_name === lookupTier) || FREE_FALLBACK);
 
   const teamCapableTier = tier === "pro" || tier === "growth" || tier === "leader";
 

@@ -30,10 +30,12 @@ export interface PlanInfo {
   limits: PlanLimits;
 }
 
+// No free tier exists any more: an account without an active paid plan (and
+// without an active trial) gets zero entitlements everywhere.
 const FREE_LIMITS_FALLBACK: PlanLimits = {
-  funnel_limit: 1,
-  video_max_size_mb: 100,
-  landing_page_limit: 1,
+  funnel_limit: 0,
+  video_max_size_mb: 0,
+  landing_page_limit: 0,
   live_session_limit: 0,
   multi_step_funnel_enabled: false,
 };
@@ -96,7 +98,9 @@ export const usePlan = () => {
     staleTime: 10 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
   });
-  const freePlanCfg = allPlanCfgs.find((c: any) => c.plan_name === "free");
+  // Deliberately NOT reading any legacy `free` row from subscription_plans —
+  // free accounts get zero entitlements regardless of leftover DB config.
+  const freePlanCfg = null as any;
 
 
   const freeLimits: PlanLimits = freePlanCfg ? {

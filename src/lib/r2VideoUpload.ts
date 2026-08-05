@@ -118,7 +118,17 @@ export const uploadFileToR2 = async ({
     });
 
     if (error || !data?.uploadUrl) {
-      throw new Error(data?.error || error?.message || "Failed to start upload");
+      // Non-2xx responses (403 quota / no active plan) arrive as FunctionsHttpError
+      // with the JSON body on error.context — surface the real message.
+      let serverMessage: string | null = data?.error ?? null;
+      const ctx = (error as any)?.context;
+      if (!serverMessage && ctx && typeof ctx.json === "function") {
+        try {
+          const body = await ctx.json();
+          serverMessage = body?.error || null;
+        } catch { /* ignore */ }
+      }
+      throw new Error(serverMessage || error?.message || "Failed to start upload");
     }
 
     videoId = data.videoId || null;

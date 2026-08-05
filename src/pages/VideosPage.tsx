@@ -71,11 +71,15 @@ const VideosPage = () => {
   const [linkModalOpen, setLinkModalOpen] = useState(false);
   const [youtubeModalOpen, setYoutubeModalOpen] = useState(false);
   const [youtubeUpgradeOpen, setYoutubeUpgradeOpen] = useState(false);
+  const [uploadUpgradeOpen, setUploadUpgradeOpen] = useState(false);
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const uploadInputRef = useRef<HTMLInputElement>(null);
 
-  const openUploadFlow = () => uploadInputRef.current?.click();
+  const openUploadFlow = () => {
+    if (isFree) { setUploadUpgradeOpen(true); return; }
+    uploadInputRef.current?.click();
+  };
   const handleUploadPicked = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0] || null;
     e.target.value = "";
@@ -89,7 +93,7 @@ const VideosPage = () => {
   const [deleteVideo, setDeleteVideo] = useState<{ id: string; title: string } | null>(null);
   const [statusFilter, setStatusFilter] = useState<"all" | "ready" | "processing" | "failed">("all");
   const [skipUpgradeOpen, setSkipUpgradeOpen] = useState(false);
-  const { features, tier } = usePlanLimits();
+  const { features, tier, isFree } = usePlanLimits();
 
   const { data: ownVideos = [], isLoading, error, refetch } = useQuery({
     queryKey: ["videos", user?.id],
@@ -305,7 +309,7 @@ const VideosPage = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
-                    if (!features.youtubeImport) {
+                    if (isFree || !features.youtubeImport) {
                       setYoutubeUpgradeOpen(true);
                       return;
                     }
@@ -698,6 +702,13 @@ const VideosPage = () => {
         <UpgradeModal
           open={skipUpgradeOpen}
           onClose={() => setSkipUpgradeOpen(false)}
+          type="upgrade"
+          tier={tier}
+        />
+
+        <UpgradeModal
+          open={uploadUpgradeOpen}
+          onClose={() => setUploadUpgradeOpen(false)}
           type="upgrade"
           tier={tier}
         />
