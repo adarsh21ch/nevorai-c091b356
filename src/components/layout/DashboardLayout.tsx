@@ -131,6 +131,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
       <Link
         key={item.path}
         to={item.path}
+        search={item.search}
         onMouseEnter={() => preloadRoute(item.path)}
         onFocus={() => preloadRoute(item.path)}
         className={cn(
