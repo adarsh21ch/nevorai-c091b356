@@ -82,6 +82,13 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const isMobile = useIsMobile();
   const location = useLocation();
   useDocumentTitle(embedded ? "Tools" : isMobile ? "Activity" : "Insights");
+  const { user, loading: authLoading } = useAuth();
+  const visible = usePageVisible();
+  const { features } = usePlanLimits();
+
+  const [tab, setTab] = useState<Tab>(getInitialTab);
+  const [period, setPeriod] = useState<Period>(getInitialPeriod);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const sp = new URLSearchParams(location.search);
@@ -93,12 +100,6 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       setTab("overview");
     }
   }, [location.search, tab]);
-  const { user, loading: authLoading } = useAuth();
-  const visible = usePageVisible();
-  const { features } = usePlanLimits();
-
-  const [tab, setTab] = useState<Tab>(getInitialTab);
-  const [period, setPeriod] = useState<Period>(getInitialPeriod);
   const [sort, setSort] = useState<SortKey>("recent");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
