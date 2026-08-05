@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useAuth } from "@/hooks/useAuth";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { uploadVideoToR2 } from "@/lib/r2VideoUpload";
 import { uploadVideoThumbnailFromSource } from "@/lib/videoThumbnail";
 import { supabase } from "@/integrations/supabase/client";
@@ -48,6 +49,7 @@ const FORMAT_REJECT_MSG = "Please upload a video file.";
 export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = false, initialFile = null }: Props) => {
   const autoPickRef = useRef(false);
   const { user } = useAuth();
+  const { features } = usePlanLimits();
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
   const startTimeRef = useRef<number>(0);
@@ -309,6 +311,23 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
           </div>
         ) : (
         <div className="space-y-4">
+          {!features.videoUpload && (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-4 text-center space-y-3">
+              <div className="flex justify-center">
+                <AlertTriangle size={32} className="text-amber-400" />
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-foreground">Video uploads are locked</p>
+                <p className="text-xs text-muted-foreground leading-relaxed px-2">
+                  Please upgrade to a paid plan to start uploading videos and building your funnels.
+                </p>
+              </div>
+              <Button asChild variant="hero" size="sm" className="h-9 px-6 rounded-full">
+                <Link to="/billing">Upgrade My Plan</Link>
+              </Button>
+            </div>
+          )}
+
           {/* Pro Tip collapsible — dismissible */}
           {!tipDismissed && (
             <Collapsible open={tipOpen} onOpenChange={setTipOpen}>
@@ -359,8 +378,15 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
 
           {!file ? (
             <button
-              onClick={() => fileRef.current?.click()}
-              className="w-full border-2 border-dashed border-border rounded-2xl p-10 flex flex-col items-center gap-3 hover:border-primary/60 hover:bg-primary/5 transition-all group"
+              onClick={() => {
+                if (!features.videoUpload) {
+                  toast.error("Please upgrade your plan to upload videos");
+                  return;
+                }
+                fileRef.current?.click();
+              }}
+              disabled={!features.videoUpload}
+              className={`w-full border-2 border-dashed border-border rounded-2xl p-10 flex flex-col items-center gap-3 transition-all group ${!features.videoUpload ? 'opacity-60 grayscale-[0.5] cursor-not-allowed bg-muted/30' : 'hover:border-primary/60 hover:bg-primary/5'}`}
             >
               <div className="size-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
                 <Upload size={26} className="text-primary" />
@@ -491,7 +517,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
 
           <Button
             onClick={runUpload}
-            disabled={!file || !title.trim() || busy}
+            disabled={!file || !title.trim() || busy || !features.videoUpload}
             className="w-full h-11 rounded-xl text-sm font-semibold"
             variant="hero"
           >
