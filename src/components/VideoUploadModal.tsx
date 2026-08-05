@@ -176,6 +176,8 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
       const result = await uploadVideoToR2({
         file,
         title: cleanTitle,
+        // Explicitly pass current user's personal tenant if GUC fallback fails
+        tenantId: (user as any)?.personal_tenant_id,
         onProgress: (percent: number, meta?: { loaded: number; total: number }) => {
           setProgress(percent);
           if (meta && meta.loaded > 0) {
@@ -268,7 +270,7 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && handleClose()}>
-      <DialogContent className="bg-card border-border max-w-md max-h-[85svh] overflow-y-auto rounded-2xl p-6 sm:p-7 shadow-2xl">
+      <DialogContent className="bg-card border-border w-[calc(100%-1.5rem)] sm:w-full max-w-md max-h-[92svh] overflow-y-auto rounded-2xl p-5 sm:p-7 shadow-2xl flex flex-col">
         <DialogHeader className="space-y-1">
           <DialogTitle className="font-heading text-center text-xl">{doneVideoId ? "Video ready 🎉" : "Upload video"}</DialogTitle>
           {!doneVideoId && (
@@ -371,13 +373,13 @@ export const VideoUploadModal = ({ open, onClose, onSuccess, skipStorageCheck = 
               </span>
             </button>
           ) : (
-            <div className="flex items-center gap-3 p-3.5 bg-muted rounded-xl border border-border">
-              <div className="size-10 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                <FileVideo size={18} className="text-primary" />
+            <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl border border-border overflow-hidden">
+              <div className="size-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                <FileVideo size={16} className="text-primary" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{file.name}</p>
-                <p className="text-xs text-muted-foreground">{formatSize(file.size)}</p>
+                <p className="text-[13px] font-medium truncate leading-tight">{file.name}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{formatSize(file.size)}</p>
               </div>
               {!busy && (
                 <button onClick={() => { setFile(null); setTitle(""); setError(null); setFormatWarning(null); }} className="size-7 rounded-full bg-muted-foreground/10 hover:bg-muted-foreground/20 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
