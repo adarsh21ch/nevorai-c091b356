@@ -69,9 +69,9 @@ function DashboardPage() {
             <BarChart3 size={18} className="text-primary" />
             <span className="text-[11px] font-bold uppercase tracking-tight">Insights</span>
           </Button>
-          <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/live" })}>
-            <Radio size={18} className="text-primary" />
-            <span className="text-[11px] font-bold uppercase tracking-tight">Go Live</span>
+          <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/tools" })}>
+            <Wrench size={18} className="text-primary" />
+            <span className="text-[11px] font-bold uppercase tracking-tight">Tools</span>
           </Button>
         </div>
 
