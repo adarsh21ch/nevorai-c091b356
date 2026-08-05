@@ -16,7 +16,6 @@ import { Route as WhatsappTestRouteImport } from './routes/whatsapp-test'
 import { Route as VideosRouteImport } from './routes/videos'
 import { Route as VerifyWhatsappRouteImport } from './routes/verify-whatsapp'
 import { Route as UpgradeRouteImport } from './routes/upgrade'
-import { Route as ToolsRouteImport } from './routes/tools'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as TeamRouteImport } from './routes/team'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -142,11 +141,6 @@ const UpgradeRoute = UpgradeRouteImport.update({
   path: '/upgrade',
   getParentRoute: () => rootRouteImport,
 } as any).lazy(() => import('./routes/upgrade.lazy').then((d) => d.Route))
-const ToolsRoute = ToolsRouteImport.update({
-  id: '/tools',
-  path: '/tools',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -659,7 +653,6 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
-  '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -756,7 +749,6 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
-  '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -852,7 +844,6 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/team': typeof TeamRouteWithChildren
   '/terms': typeof TermsRoute
-  '/tools': typeof ToolsRoute
   '/upgrade': typeof UpgradeRoute
   '/verify-whatsapp': typeof VerifyWhatsappRoute
   '/videos': typeof VideosRouteWithChildren
@@ -951,7 +942,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/terms'
-    | '/tools'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -1048,7 +1038,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/terms'
-    | '/tools'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -1143,7 +1132,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/team'
     | '/terms'
-    | '/tools'
     | '/upgrade'
     | '/verify-whatsapp'
     | '/videos'
@@ -1241,7 +1229,6 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TeamRoute: typeof TeamRouteWithChildren
   TermsRoute: typeof TermsRoute
-  ToolsRoute: typeof ToolsRoute
   UpgradeRoute: typeof UpgradeRoute
   VerifyWhatsappRoute: typeof VerifyWhatsappRoute
   VideosRoute: typeof VideosRouteWithChildren
@@ -1343,13 +1330,6 @@ declare module '@tanstack/react-router' {
       path: '/upgrade'
       fullPath: '/upgrade'
       preLoaderRoute: typeof UpgradeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tools': {
-      id: '/tools'
-      path: '/tools'
-      fullPath: '/tools'
-      preLoaderRoute: typeof ToolsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -2095,7 +2075,6 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TeamRoute: TeamRouteWithChildren,
   TermsRoute: TermsRoute,
-  ToolsRoute: ToolsRoute,
   UpgradeRoute: UpgradeRoute,
   VerifyWhatsappRoute: VerifyWhatsappRoute,
   VideosRoute: VideosRouteWithChildren,
