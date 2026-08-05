@@ -267,7 +267,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
               { icon: Home, label: "Home", path: "/dashboard", match: "exact" as const },
               { icon: Video, label: "Videos", path: "/videos", match: "prefix" as const },
               { icon: GitBranch, label: "Funnels", path: "/funnels", match: "prefix" as const },
-              { icon: Wrench, label: "Tools", path: "/tools", match: "prefix" as const },
+              { icon: Layout, label: "Pages", path: "/landing-pages", match: "prefix" as const },
               { icon: User, label: "Profile", path: "/profile", match: "prefix" as const },
             ].map((item) => {
               const active = item.match === "exact"
