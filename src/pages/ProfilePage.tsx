@@ -305,11 +305,11 @@ const ProfilePage = () => {
                   </div>
                   <button
                     onClick={() => setEditOpen(true)}
-                    className="shrink-0 w-7 h-7 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
+                    className="shrink-0 w-8 h-8 rounded-full border border-border flex items-center justify-center bg-muted/30 hover:bg-muted transition-colors"
                     title="Edit personal details"
                     aria-label="Edit personal details"
                   >
-                    <Pencil size={12} />
+                    <Pencil size={12} className="text-foreground" />
                   </button>
                 </div>
               </div>

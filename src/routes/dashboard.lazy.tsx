@@ -50,16 +50,14 @@ function DashboardPage() {
   return (
     <DashboardLayout>
       <div className="flex flex-col gap-6 p-1 sm:p-2">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{greet}, {firstName} 👋</h1>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => uploadInputRef.current?.click()}>
-              <Upload size={16} className="mr-2" /> Upload
+        <div className="flex items-center justify-between gap-4">
+          <h1 className="text-xl font-bold truncate">{greet}, {firstName} 👋</h1>
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="h-9 px-3" onClick={() => uploadInputRef.current?.click()}>
+              <Upload size={15} className="mr-1.5" /> Upload
             </Button>
-            <Button variant="default" size="sm" className="flex-1 sm:flex-none" onClick={() => navigate({ to: "/funnels/create" })}>
-              <Plus size={16} className="mr-2" /> Funnel
+            <Button variant="default" size="sm" className="h-9 px-3" onClick={() => navigate({ to: "/funnels/create" })}>
+              <Plus size={15} className="mr-1.5" /> Funnel
             </Button>
           </div>
         </div>
@@ -67,13 +65,13 @@ function DashboardPage() {
         <ViewsOverviewCard />
 
         <div className="grid grid-cols-2 gap-3">
-          <Button variant="secondary" className="h-auto py-3 flex flex-col items-center gap-1.5" onClick={() => navigate({ to: "/insights" })}>
-            <BarChart3 size={18} />
-            <span className="text-[11px] font-medium">Insights</span>
+          <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/insights" })}>
+            <BarChart3 size={18} className="text-primary" />
+            <span className="text-[11px] font-bold uppercase tracking-tight">Insights</span>
           </Button>
-          <Button variant="secondary" className="h-auto py-3 flex flex-col items-center gap-1.5" onClick={() => navigate({ to: "/live" })}>
-            <Radio size={18} />
-            <span className="text-[11px] font-medium">Go Live</span>
+          <Button variant="secondary" className="h-auto py-3.5 flex flex-col items-center gap-2" onClick={() => navigate({ to: "/live" })}>
+            <Radio size={18} className="text-primary" />
+            <span className="text-[11px] font-bold uppercase tracking-tight">Go Live</span>
           </Button>
         </div>
 
