@@ -54,7 +54,7 @@ const bottomItems: NavItem[] = [
   { icon: GraduationCap, label: "Academy", path: "/help" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: User, label: "Profile", path: "/profile" },
-  { icon: Info, label: "What's New", path: "/help" },
+  { icon: Info, label: "What's New", path: "/updates" },
 ];
 
 export const DashboardLayout = ({ children, editorMode = false }: { children: React.ReactNode; editorMode?: boolean }) => {
