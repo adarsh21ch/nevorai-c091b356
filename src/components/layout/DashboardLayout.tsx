@@ -33,18 +33,16 @@ const baseNavItems = [
   { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
   { icon: Sparkles, label: "Nev AI", path: "/nev-ai" },
   { icon: Video, label: "My Videos", path: "/videos" },
+  { icon: Activity, label: "Insights", path: "/insights" },
+  { icon: Target, label: "Tracking", path: "/insights", search: { tab: "tracking" } },
   { icon: Users, label: "My Team", path: "/team" },
-  { icon: Activity, label: "Activity", path: "/insights" },
-  { icon: Layers, label: "Tools", path: "/tools" },
-  { icon: Target, label: "Tracking", path: "/tracking" },
 ];
 const tailNavItems = [
-  { icon: Crown, label: "Upgrade Plan", path: "/billing" },
-  { icon: IndianRupee, label: "Payments", path: "/payments" },
+  { icon: GraduationCap, label: "Academy", path: "/help" },
+  { icon: Crown, label: "Billing", path: "/billing" },
 ];
 
 const bottomItems = [
-  { icon: GraduationCap, label: "Nevorai Academy", path: "/help" },
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
@@ -166,49 +164,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
           </div>
 
           <nav className="flex-1 space-y-1 overflow-y-auto px-2 py-4">
-            {navItems.map((item) => {
-              if (item.path === "/tools") {
-                const onTools = location.pathname.startsWith("/tools");
-                const search = location.search || (typeof window !== "undefined" ? window.location.search : "");
-                const activeTab = onTools ? (new URLSearchParams(search).get("tab") || "funnels") : null;
-                const subItems = [
-                  { key: "funnels", label: "Funnels", icon: GitBranch, feature: "funnelCreation" as const },
-                  { key: "landing-pages", label: "Landing Pages", icon: Layout, feature: "landingPages" as const },
-                  { key: "live", label: "Live", icon: Radio, feature: "goLive" as const },
-                ];
-                return (
-                  <div key={item.path}>
-                    {renderNavItem(item)}
-                    {!collapsed && onTools && (
-                      <div className="ml-6 mt-1 space-y-0.5 border-l border-border pl-2">
-                        {subItems.map((sub) => {
-                          const subActive = activeTab === sub.key;
-                          return (
-                            <Link
-                              key={sub.key}
-                              to={`/tools?tab=${sub.key}`}
-                              onMouseEnter={() => preloadRoute("/tools")}
-                              className={cn(
-                                "flex items-center gap-2 rounded-md px-2.5 py-1.5 text-xs font-medium transition-all",
-                                subActive
-                                  ? "bg-muted text-foreground font-semibold"
-                                  : "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-                              )}
-                              style={subActive ? { color: "var(--accent-saffron)" } : undefined}
-                            >
-                              <SafeIcon icon={sub.icon} size={14} />
-                              <span className="flex-1">{sub.label}</span>
-                              <PlanFeatureBadge feature={sub.feature} />
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-              return renderNavItem(item);
-            })}
+            {navItems.map((item) => renderNavItem(item))}
             {isAdmin && (
               <div className="px-3 pb-2 pt-4">
                 <Link

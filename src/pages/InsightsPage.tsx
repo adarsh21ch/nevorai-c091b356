@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List, Eye } from "lucide-react";
+import { toast } from "sonner";
+import { MetaPixelIdField } from "@/components/pixel/MetaPixelIdField";
+import { Users, UserCheck, Radio, Layers, FileText, Video, BarChart3, TrendingUp, Target, Search, LayoutGrid, List, Eye, Download } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, AreaChart, Area, CartesianGrid,
@@ -31,9 +33,9 @@ const COLORS = ["hsl(var(--primary))", "#6366F1", "#10B981", "#F59E0B", "#EF4444
 type SortKey = "recent" | "views" | "leads" | "alpha";
 
 type Period = "today" | "7d" | "30d" | "all";
-type Tab = "overview" | "videos" | "funnels" | "landing-pages" | "live";
+type Tab = "overview" | "leads" | "videos" | "funnels" | "landing-pages" | "live" | "tracking";
 
-const VALID_TABS: Tab[] = ["overview", "videos", "funnels", "landing-pages", "live"];
+const VALID_TABS: Tab[] = ["overview", "leads", "videos", "funnels", "landing-pages", "live", "tracking"];
 
 function getInitialTab(): Tab {
   if (typeof window === "undefined") return "overview";
@@ -571,10 +573,12 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           <TabsList className="inline-flex h-auto items-center gap-1 rounded-lg bg-transparent p-0">
             {[
               { v: "overview", l: "Overview" },
+              { v: "leads", l: "Leads" },
               { v: "videos", l: "Videos" },
               { v: "funnels", l: "Funnels" },
               ...(features.landingPages ? [{ v: "landing-pages", l: "Landing" }] : []),
               ...(features.goLive ? [{ v: "live", l: "Live" }] : []),
+              { v: "tracking", l: "Tracking" },
             ].map((t) => (
               <TabsTrigger
                 key={t.v}
@@ -586,7 +590,6 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
             ))}
           </TabsList>
         </div>
-
 
         {/* OVERVIEW */}
         <TabsContent value="overview" className="space-y-5">
@@ -875,6 +878,40 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
           ) : <InsightsEmptyState icon={Radio} title="No live sessions yet" hint="Schedule a live session to engage your audience in real time." ctaLabel="Create live session" ctaTo="/live" />}
         </TabsContent>
 
+        <TabsContent value="leads" className="space-y-4 pt-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-heading font-semibold">Contact Feed</h3>
+            <Button variant="outline" size="sm" onClick={() => {
+              const rows = [["Name", "At", "Type", "Title"], ...feedItems.map(i => [i.who || "Anon", i.at, i.entityType, i.entityTitle])];
+              const csv = rows.map(r => r.join(",")).join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a"); a.href = url; a.download = "leads.csv"; a.click();
+            }}>
+              <Download size={14} className="mr-2" /> Export CSV
+            </Button>
+          </div>
+          <div className="premium-card overflow-hidden">
+            <ActivityFeed items={feedItems} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="tracking" className="space-y-4 pt-4">
+          <div className="premium-card p-5 space-y-4">
+            <div>
+              <h3 className="text-sm font-heading font-semibold">Global Tracking</h3>
+              <p className="text-[11px] text-muted-foreground mt-1">Configure your Meta Pixel and other tracking integrations across all funnels.</p>
+            </div>
+            <div className="max-w-md">
+               <MetaPixelIdField
+                 scope="account"
+                 value={""}
+                 onChange={() => toast.info("Go to Profile to edit your global Meta Pixel ID")}
+               />
+               <p className="mt-4 text-[11px] text-muted-foreground italic">Note: To update your primary tracking ID, visit your Profile settings.</p>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
     </div>
   );

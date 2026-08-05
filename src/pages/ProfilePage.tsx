@@ -20,10 +20,10 @@ import {
   Crown, CreditCard, FileCheck, IndianRupee,
   Bell, Settings, Download, ChevronRight, Pencil,
   Sun, Moon, LogOut, Shield, Infinity as InfinityIcon, GraduationCap,
-  LifeBuoy, ChevronDown, Globe, Target, Mail,
+  LifeBuoy, ChevronDown, Globe, Target, Mail, Trash2, Sparkles,
 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
-import { Link } from "@/lib/router-compat";
+import { Link, useNavigate } from "@/lib/router-compat";
 import { useRouter } from "@tanstack/react-router";
 import { usePlan } from "@/hooks/usePlan";
 import { useAdmin } from "@/hooks/useAdmin";
@@ -49,12 +49,17 @@ const ProfilePage = () => {
   const { isAdmin } = useAdmin();
   const trial = useTrialStatus();
   const router = useRouter();
+  const navigate = useNavigate();
 
   const [editOpen, setEditOpen] = useState(false);
   const [publicOpen, setPublicOpen] = useState(false);
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [savingPublic, setSavingPublic] = useState(false);
   const [emailSaving, setEmailSaving] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const paths = ["/billing", "/payments", "/pricing", "/kyc", "/notifications", "/settings", "/help", "/install"];
@@ -182,6 +187,43 @@ const ProfilePage = () => {
     setAvatarUrl(null);
     await refreshProfile();
     toast.success("Photo removed");
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("user-data-controls", { body: { action: "export" } });
+      if (error) throw error;
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Nevorai-data-${user?.id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Your data has been downloaded.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Export failed. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (deleteConfirm !== "DELETE") return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke("user-data-controls", { body: { action: "delete", confirm: "DELETE" } });
+      if (error) throw error;
+      toast.success("Account deleted.");
+      await signOut();
+      navigate("/");
+    } catch (e) {
+      console.error(e);
+      toast.error("Delete failed. Please contact support.");
+      setDeleting(false);
+    }
   };
 
   const initials = (profile?.full_name || "U")
@@ -379,7 +421,7 @@ const ProfilePage = () => {
           </div>
         </Collapsible>
 
-        {/* APP */}
+        {/* APP SETTINGS */}
         <Group>
           <div className="flex items-center gap-3 px-3 py-2.5">
             <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -392,12 +434,27 @@ const ProfilePage = () => {
             <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
           </div>
           <Row icon={Bell} label="Notifications" path="/notifications" hint="Alerts & updates" />
-          <Row icon={Settings} label="Settings" path="/settings" hint="App preferences" />
+          <Row
+            icon={Sparkles}
+            label="Onboarding tour"
+            hint="Replay the 60-second magic moment"
+            onClick={async () => {
+              if (!user) return;
+              await supabase.from("profiles").update({ onboarding_completed: false }).eq("id", user.id);
+              toast.success("Onboarding reset");
+              navigate("/onboarding");
+            }}
+          />
+        </Group>
+
+        {/* DATA CONTROLS */}
+        <Group>
+          <Row icon={Download} label="Download my data" hint="JSON copy of your profile & activity" onClick={handleExport} />
+          <Row icon={Trash2} label="Delete account" hint="Permanently remove everything" danger onClick={() => setDeleteOpen(true)} />
         </Group>
 
         {/* MORE */}
         <Group>
-          <Row icon={Target} label="Tracking" path="/tracking" hint="Pixels & analytics" />
           <Row icon={GraduationCap} label="Nevorai Academy" path="/help" hint="Tutorials & FAQs" />
           <Row icon={LifeBuoy} label="Contact support" path="/help" hint="We're here to help" />
           <Row icon={Download} label="Install app" path="/install" hint="Add to home screen" />
@@ -457,6 +514,26 @@ const ProfilePage = () => {
             <Button variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
             <Button variant="hero" onClick={savePersonal} disabled={savingPersonal}>
               {savingPersonal ? "Saving…" : "Save"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DELETE ACCOUNT DIALOG */}
+      <Dialog open={deleteOpen} onOpenChange={(o) => { setDeleteOpen(o); if (!o) setDeleteConfirm(""); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete account permanently?</DialogTitle>
+            <DialogDescription>
+              This will permanently remove your profile, funnels, leads, landing pages and all related data. This cannot be undone.
+              Type <span className="font-mono font-semibold">DELETE</span> to confirm.
+            </DialogDescription>
+          </DialogHeader>
+          <Input value={deleteConfirm} onChange={(e) => setDeleteConfirm(e.target.value)} placeholder="DELETE" autoFocus />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteConfirm !== "DELETE" || deleting}>
+              {deleting ? "Deleting…" : "Delete forever"}
             </Button>
           </DialogFooter>
         </DialogContent>
