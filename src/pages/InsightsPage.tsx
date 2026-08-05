@@ -120,9 +120,11 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
   // Sync tab → URL
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !tab) return;
     const sp = new URLSearchParams(window.location.search);
-    if (sp.get("tab") !== tab) {
+    const currentTabInUrl = sp.get("tab");
+    if (currentTabInUrl !== tab) {
+      console.log('[Insights] Syncing state tab to URL:', tab);
       sp.set("tab", tab);
       window.history.replaceState({}, "", `${window.location.pathname}?${sp.toString()}`);
     }
