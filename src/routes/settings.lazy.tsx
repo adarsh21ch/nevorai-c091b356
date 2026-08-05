@@ -1,6 +1,6 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createLazyFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/settings")({
+export const Route = createLazyFileRoute("/settings")({
   beforeLoad: () => {
     throw redirect({ to: "/profile" });
   },
