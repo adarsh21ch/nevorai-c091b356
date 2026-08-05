@@ -52,14 +52,6 @@ function DashboardPage() {
       <div className="flex flex-col gap-6 p-1 sm:p-2">
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-xl font-bold truncate">{greet}, {firstName} 👋</h1>
-          <div className="flex gap-2 shrink-0">
-            <Button variant="outline" size="sm" className="h-9 px-3" onClick={() => uploadInputRef.current?.click()}>
-              <Upload size={15} className="mr-1.5" /> Upload
-            </Button>
-            <Button variant="default" size="sm" className="h-9 px-3" onClick={() => navigate({ to: "/funnels/create" })}>
-              <Plus size={15} className="mr-1.5" /> Funnel
-            </Button>
-          </div>
         </div>
 
         <ViewsOverviewCard />
