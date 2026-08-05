@@ -42,6 +42,7 @@ function getInitialTab(): Tab {
   if (typeof window === "undefined") return "overview";
   const sp = new URLSearchParams(window.location.search);
   const t = sp.get("tab");
+  if (t === "live") return "live"; // Prioritize explicit live tab
   return (VALID_TABS.includes(t as Tab) ? t : "overview") as Tab;
 }
 
@@ -82,10 +83,12 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   useDocumentTitle(embedded ? "Tools" : isMobile ? "Activity" : "Insights");
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const sp = new URLSearchParams(window.location.search);
+    const sp = new URLSearchParams(location.search);
     const t = sp.get("tab");
     if (t && VALID_TABS.includes(t as Tab)) {
       setTab(t as Tab);
+    } else if (!t) {
+      setTab("overview");
     }
   }, [location.search]);
   const { user, loading: authLoading } = useAuth();

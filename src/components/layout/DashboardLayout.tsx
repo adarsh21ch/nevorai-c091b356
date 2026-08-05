@@ -122,7 +122,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
     const currentTab = new URLSearchParams(location.search).get("tab");
     
     const active = isInsightsWithTab
-      ? location.pathname === "/insights" && currentTab === item.search?.tab
+      ? location.pathname === "/insights" && (currentTab === item.search?.tab || (!currentTab && item.search?.tab === "overview"))
       : matchExact 
         ? location.pathname === item.path 
         : location.pathname.startsWith(item.path);
