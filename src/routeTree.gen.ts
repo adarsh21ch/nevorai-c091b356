@@ -8,8 +8,6 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { createFileRoute } from '@tanstack/react-router'
-
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WorkspaceSettingsRouteImport } from './routes/workspace-settings'
 import { Route as WorkspaceMembersRouteImport } from './routes/workspace-members'
@@ -107,19 +105,6 @@ import { Route as ApiPublicCapiFireRouteImport } from './routes/api/public/capi/
 import { Route as ApiPublicCapiDrainRouteImport } from './routes/api/public/capi/drain'
 import { Route as ApiAdminWhatsappMessagesLeadIdRouteImport } from './routes/api/admin/whatsapp-messages/$leadId'
 
-const TrackingLazyRouteImport = createFileRoute('/tracking')()
-const LeadsLazyRouteImport = createFileRoute('/leads')()
-
-const TrackingLazyRoute = TrackingLazyRouteImport.update({
-  id: '/tracking',
-  path: '/tracking',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/tracking.lazy').then((d) => d.Route))
-const LeadsLazyRoute = LeadsLazyRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => rootRouteImport,
-} as any).lazy(() => import('./routes/leads.lazy').then((d) => d.Route))
 const WorkspaceSettingsRoute = WorkspaceSettingsRouteImport.update({
   id: '/workspace-settings',
   path: '/workspace-settings',
@@ -682,8 +667,6 @@ export interface FileRoutesByFullPath {
   '/workspace-branding': typeof WorkspaceBrandingRoute
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
-  '/leads': typeof LeadsLazyRoute
-  '/tracking': typeof TrackingLazyRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -781,8 +764,6 @@ export interface FileRoutesByTo {
   '/workspace-branding': typeof WorkspaceBrandingRoute
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
-  '/leads': typeof LeadsLazyRoute
-  '/tracking': typeof TrackingLazyRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -879,8 +860,6 @@ export interface FileRoutesById {
   '/workspace-branding': typeof WorkspaceBrandingRoute
   '/workspace-members': typeof WorkspaceMembersRoute
   '/workspace-settings': typeof WorkspaceSettingsRoute
-  '/leads': typeof LeadsLazyRoute
-  '/tracking': typeof TrackingLazyRoute
   '/academy/$id': typeof AcademyIdRoute
   '/admin/applications': typeof AdminApplicationsRoute
   '/admin/kyc': typeof AdminKycRoute
@@ -980,8 +959,6 @@ export interface FileRouteTypes {
     | '/workspace-branding'
     | '/workspace-members'
     | '/workspace-settings'
-    | '/leads'
-    | '/tracking'
     | '/academy/$id'
     | '/admin/applications'
     | '/admin/kyc'
@@ -1079,8 +1056,6 @@ export interface FileRouteTypes {
     | '/workspace-branding'
     | '/workspace-members'
     | '/workspace-settings'
-    | '/leads'
-    | '/tracking'
     | '/academy/$id'
     | '/admin/applications'
     | '/admin/kyc'
@@ -1176,8 +1151,6 @@ export interface FileRouteTypes {
     | '/workspace-branding'
     | '/workspace-members'
     | '/workspace-settings'
-    | '/leads'
-    | '/tracking'
     | '/academy/$id'
     | '/admin/applications'
     | '/admin/kyc'
@@ -1276,8 +1249,6 @@ export interface RootRouteChildren {
   WorkspaceBrandingRoute: typeof WorkspaceBrandingRoute
   WorkspaceMembersRoute: typeof WorkspaceMembersRoute
   WorkspaceSettingsRoute: typeof WorkspaceSettingsRoute
-  LeadsLazyRoute: typeof LeadsLazyRoute
-  TrackingLazyRoute: typeof TrackingLazyRoute
   AdminApplicationsRoute: typeof AdminApplicationsRoute
   AdminKycRoute: typeof AdminKycRoute
   AdminPlansRoute: typeof AdminPlansRoute
@@ -1325,20 +1296,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tracking': {
-      id: '/tracking'
-      path: '/tracking'
-      fullPath: '/tracking'
-      preLoaderRoute: typeof TrackingLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leads': {
-      id: '/leads'
-      path: '/leads'
-      fullPath: '/leads'
-      preLoaderRoute: typeof LeadsLazyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/workspace-settings': {
       id: '/workspace-settings'
       path: '/workspace-settings'
@@ -2146,8 +2103,6 @@ const rootRouteChildren: RootRouteChildren = {
   WorkspaceBrandingRoute: WorkspaceBrandingRoute,
   WorkspaceMembersRoute: WorkspaceMembersRoute,
   WorkspaceSettingsRoute: WorkspaceSettingsRoute,
-  LeadsLazyRoute: LeadsLazyRoute,
-  TrackingLazyRoute: TrackingLazyRoute,
   AdminApplicationsRoute: AdminApplicationsRoute,
   AdminKycRoute: AdminKycRoute,
   AdminPlansRoute: AdminPlansRoute,
