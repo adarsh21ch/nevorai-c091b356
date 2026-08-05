@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Trophy,
   Download,
+  QrCode,
   Calendar,
   Eye,
   ArrowLeft,
@@ -214,6 +215,26 @@ const MemberDashboard = () => {
               welcomeMessage={funnel.description}
               onContinue={continueToProgram}
             />
+
+            {/* Quick Actions for Students */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                variant="outline"
+                className="h-20 rounded-2xl flex flex-col gap-2 bg-hero-surface border-white/10 hover:bg-white/5"
+                onClick={() => navigate(`/f/${funnel.slug}`)}
+              >
+                <QrCode size={24} className="text-primary" />
+                <span className="text-xs font-semibold">Scan QR Code</span>
+              </Button>
+              <Button
+                variant="outline"
+                className="h-20 rounded-2xl flex flex-col gap-2 bg-hero-surface border-white/10 hover:bg-white/5"
+                onClick={continueToProgram}
+              >
+                <Play size={20} className="text-primary" />
+                <span className="text-xs font-semibold">Continue Video</span>
+              </Button>
+            </div>
 
             {/* Progress card */}
             <div className="rounded-2xl p-6 bg-hero-surface border border-white/10">
