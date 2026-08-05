@@ -78,6 +78,7 @@ const PERIOD_LABELS: Record<Period, string> = { today: "Today", "7d": "7 days", 
 
 const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const isMobile = useIsMobile();
+  const location = useLocation();
   useDocumentTitle(embedded ? "Tools" : isMobile ? "Activity" : "Insights");
   useEffect(() => {
     if (typeof window === "undefined") return;
