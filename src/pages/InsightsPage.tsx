@@ -42,7 +42,7 @@ function getInitialTab(): Tab {
   if (typeof window === "undefined") return "overview";
   const sp = new URLSearchParams(window.location.search);
   const t = sp.get("tab");
-  if (t === "live") return "live"; // Prioritize explicit live tab
+  console.log('[Insights] getInitialTab search:', window.location.search, 'extracted:', t);
   return (VALID_TABS.includes(t as Tab) ? t : "overview") as Tab;
 }
 
@@ -81,22 +81,24 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const isMobile = useIsMobile();
   const location = useLocation();
   useDocumentTitle(embedded ? "Tools" : isMobile ? "Activity" : "Insights");
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const sp = new URLSearchParams(location.search);
-    const t = sp.get("tab");
-    if (t && VALID_TABS.includes(t as Tab)) {
-      setTab(t as Tab);
-    } else if (!t) {
-      setTab("overview");
-    }
-  }, [location.search]);
   const { user, loading: authLoading } = useAuth();
   const visible = usePageVisible();
   const { features } = usePlanLimits();
 
   const [tab, setTab] = useState<Tab>(getInitialTab);
   const [period, setPeriod] = useState<Period>(getInitialPeriod);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const sp = new URLSearchParams(location.search);
+    const t = sp.get("tab") as Tab | null;
+    console.log('[Insights] URL sync effect. Tab in URL:', t, 'Current state tab:', tab);
+    if (t && VALID_TABS.includes(t) && t !== tab) {
+      setTab(t);
+    } else if (!t && tab !== "overview") {
+      setTab("overview");
+    }
+  }, [location.search, tab]);
   const [sort, setSort] = useState<SortKey>("recent");
   const [search, setSearch] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
@@ -117,9 +119,11 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
 
   // Sync tab → URL
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !tab) return;
     const sp = new URLSearchParams(window.location.search);
-    if (sp.get("tab") !== tab) {
+    const currentTabInUrl = sp.get("tab");
+    if (currentTabInUrl !== tab) {
+      console.log('[Insights] Syncing state tab to URL:', tab);
       sp.set("tab", tab);
       window.history.replaceState({}, "", `${window.location.pathname}?${sp.toString()}`);
     }

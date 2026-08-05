@@ -31,7 +31,7 @@ const adminTabFallback = <div className="glass-card p-4 text-sm text-muted-foreg
 const isSubExpired = (s: { expires_at?: string | null }) =>
   !!s.expires_at && new Date(s.expires_at).getTime() <= Date.now();
 const effectiveSubStatus = (s: { status: string | null; expires_at?: string | null }) =>
-  isSubExpired(s) && s.status === "active" ? "expired" : (s.status || "unknown");
+  isSubExpired(s) ? "expired" : (s.status || "unknown");
 const isSubActive = (s: { status: string | null; expires_at?: string | null }) =>
   s.status === "active" && !isSubExpired(s);
 
@@ -250,7 +250,7 @@ const AdminSubscriptionsPage = () => {
   // Hide superseded/failed rows from the admin list entirely — user only wants
   // one row per subscriber, grouped by current lifecycle status.
   const visibleSubs = subscriptions.filter(
-    (s) => s.status !== "replaced" && s.status !== "payment_failed",
+    (s) => s.status !== "replaced" && s.status !== "payment_failed" && (s.status === "active" || isSubExpired(s)),
   );
 
   const filtered = visibleSubs.filter((s) => {
