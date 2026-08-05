@@ -204,18 +204,18 @@ const Dashboard = () => {
           className="hidden"
           onChange={handleUploadPicked}
         />
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="hero"
             size="lg"
             onClick={openUploadFlow}
-            className="h-12 rounded-2xl text-xs font-semibold sm:text-sm sm:px-6"
+            className="h-12 rounded-2xl text-sm font-semibold sm:px-6"
           >
-            <Upload size={14} className="mr-1.5 sm:size-4 sm:mr-2" /> Upload Video
+            <Upload size={16} className="mr-2" /> Upload Video
           </Button>
           <Link to="/funnels/create">
-            <Button variant="outline" size="lg" className="h-12 w-full rounded-2xl text-xs sm:text-sm sm:px-6">
-              <Layers size={14} className="mr-1.5 sm:size-4 sm:mr-2" /> Create Funnel
+            <Button variant="outline" size="lg" className="h-12 rounded-2xl text-sm sm:px-6">
+              <Layers size={16} className="mr-2" /> Create Funnel
             </Button>
           </Link>
         </div>
