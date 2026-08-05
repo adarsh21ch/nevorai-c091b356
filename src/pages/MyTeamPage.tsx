@@ -162,7 +162,8 @@ export default function MyTeamPage() {
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-semibold flex items-center gap-2">
-              <Users className="h-6 w-6 text-primary" /> My Downline
+              <Users className="h-6 w-6 text-primary" /> My Team
+
             </h1>
             <p className="text-sm text-muted-foreground">
               Share your connect link. When downline members join, all your funnels
@@ -178,63 +179,81 @@ export default function MyTeamPage() {
 
         {/* Connect link + QR */}
         <Card>
-          <CardHeader>
+          <CardHeader className="py-3 px-4">
             <CardTitle className="flex items-center gap-2 text-base">
-              <LinkIcon className="h-4 w-4 text-primary" /> Invite someone to your downline
+              <LinkIcon className="h-4 w-4 text-primary" /> Invite to Team
             </CardTitle>
             <CardDescription>
-              Same link forever — anyone who opens it and signs in joins your team.
+              Anyone who signs in via this link joins your team.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid gap-6 md:grid-cols-[1fr_auto] items-start">
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <Input readOnly value={connectLink} className="font-mono text-sm" />
-                <Button onClick={() => copy(connectLink, "Connect link copied")}>
-                  <Copy className="h-4 w-4 mr-1" /> Copy
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    shareWa(
-                      `Join my downline on ${BRAND.name} — you'll instantly get your personal funnel links to send to prospects.\n\n${connectLink}`,
-                    )
-                  }
-                >
-                  <Share2 className="h-4 w-4 mr-1" /> Share on WhatsApp
-                </Button>
-                {qrDataUrl && (
+          <CardContent className="px-4 pb-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex-1 min-w-0 space-y-2">
+                <div className="flex gap-1.5">
+                  <Input readOnly value={connectLink} className="font-mono text-[11px] h-8 bg-muted/20" />
+                  <Button size="sm" className="h-8 px-3 text-xs" onClick={() => copy(connectLink, "Connect link copied")}>
+                    <Copy className="h-3.5 w-3.5 mr-1.5" /> Copy
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
                   <Button
                     variant="outline"
-                    onClick={() => {
+                    size="sm"
+                    className="h-7 px-2.5 text-[11px] font-medium"
+                    onClick={() =>
+                      shareWa(
+                        `Join my team on ${BRAND.name} — you'll instantly get your personal funnel links to send to prospects.\n\n${connectLink}`,
+                      )
+                    }
+                  >
+                    <Share2 className="h-3 w-3 mr-1.5 text-[#25D366]" /> WhatsApp
+                  </Button>
+                  {qrDataUrl && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2.5 text-[11px] font-medium"
+                      onClick={() => {
+                        const a = document.createElement("a");
+                        a.href = qrDataUrl;
+                        a.download = "connect-qr.png";
+                        a.click();
+                      }}
+                    >
+                      <Download className="h-3 w-3 mr-1.5" /> QR Code
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              {qrDataUrl && (
+                <div className="flex items-center gap-3 rounded-xl border bg-muted/30 p-1.5 pr-4 self-start sm:self-center">
+                  <div className="relative group cursor-pointer" onClick={() => {
                       const a = document.createElement("a");
                       a.href = qrDataUrl;
                       a.download = "connect-qr.png";
                       a.click();
-                    }}
-                  >
-                    <Download className="h-4 w-4 mr-1" /> Download QR
-                  </Button>
-                )}
-              </div>
+                  }}>
+                    <img src={qrDataUrl} alt="Connect QR" className="w-14 h-14 bg-white rounded-lg border shadow-sm transition-transform active:scale-95" />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                        <Download className="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-center">
+                    <span className="text-[9px] font-bold uppercase tracking-widest text-primary/70">Scan to join</span>
+                    <span className="text-[11px] font-semibold text-foreground leading-tight">Instant Team<br/>Connection</span>
+                  </div>
+                </div>
+              )}
             </div>
-            {qrDataUrl ? (
-              <div className="rounded-lg border bg-card p-3 flex flex-col items-center gap-2">
-                <img src={qrDataUrl} alt="Connect QR" className="w-40 h-40" />
-                <span className="text-xs text-muted-foreground flex items-center gap-1">
-                  <QrCode className="h-3 w-3" /> Scan to join
-                </span>
-              </div>
-            ) : null}
           </CardContent>
         </Card>
 
         <Tabs defaultValue="members">
           <TabsList>
-            <TabsTrigger value="members">Downline Members ({members.length})</TabsTrigger>
-            <TabsTrigger value="tracking">Downline Tracking</TabsTrigger>
+            <TabsTrigger value="members">Team Members ({members.length})</TabsTrigger>
+            <TabsTrigger value="tracking">Team Tracking</TabsTrigger>
           </TabsList>
 
           {/* MEMBERS TAB */}

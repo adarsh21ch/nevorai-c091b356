@@ -86,7 +86,7 @@ export default function DownlinePage() {
       <div className="container-app py-6 space-y-6">
         <div>
           <h1 className="text-2xl font-semibold flex items-center gap-2">
-            <Users className="h-6 w-6 text-primary" /> My Downline
+            <Users className="h-6 w-6 text-primary" /> My Team
           </h1>
           <p className="text-sm text-muted-foreground">
             Sub-members inherit your Leader plan access (Starter-level features) while your subscription is active.
@@ -110,7 +110,7 @@ export default function DownlinePage() {
           <Card>
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
-                <UserPlus className="h-4 w-4 text-primary" /> Invite a downline member
+                <UserPlus className="h-4 w-4 text-primary" /> Invite a team member
               </CardTitle>
               <CardDescription>
                 {isUnlimited
@@ -148,7 +148,7 @@ export default function DownlinePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Downline members ({members.length})</CardTitle>
+            <CardTitle className="text-base">Team members ({members.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {membersQ.isLoading ? (
@@ -157,8 +157,9 @@ export default function DownlinePage() {
               </div>
             ) : members.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                No downline members yet. {isLeader ? "Invite someone above." : "Upgrade to Leader to start building your downline."}
+                No team members yet. {isLeader ? "Invite someone above." : "Upgrade to Leader to start building your team."}
               </p>
+
             ) : (
               <ul className="divide-y">
                 {members.map((m) => (
