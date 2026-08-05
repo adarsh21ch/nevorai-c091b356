@@ -163,6 +163,7 @@ export default function MyTeamPage() {
           <div>
             <h1 className="text-2xl font-semibold flex items-center gap-2">
               <Users className="h-6 w-6 text-primary" /> My Team
+
             </h1>
             <p className="text-sm text-muted-foreground">
               Share your connect link. When downline members join, all your funnels
@@ -178,7 +179,7 @@ export default function MyTeamPage() {
 
         {/* Connect link + QR */}
         <Card>
-          <CardHeader className="pb-3">
+          <CardHeader className="py-3 px-4">
             <CardTitle className="flex items-center gap-2 text-base">
               <LinkIcon className="h-4 w-4 text-primary" /> Invite to Team
             </CardTitle>
