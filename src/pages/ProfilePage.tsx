@@ -421,7 +421,7 @@ const ProfilePage = () => {
           </div>
         </Collapsible>
 
-        {/* APP */}
+        {/* APP SETTINGS */}
         <Group>
           <div className="flex items-center gap-3 px-3 py-2.5">
             <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center shrink-0">
@@ -434,12 +434,27 @@ const ProfilePage = () => {
             <Switch checked={theme === "dark"} onCheckedChange={toggleTheme} aria-label="Toggle dark mode" />
           </div>
           <Row icon={Bell} label="Notifications" path="/notifications" hint="Alerts & updates" />
-          <Row icon={Settings} label="Settings" path="/settings" hint="App preferences" />
+          <Row
+            icon={Sparkles}
+            label="Onboarding tour"
+            hint="Replay the 60-second magic moment"
+            onClick={async () => {
+              if (!user) return;
+              await supabase.from("profiles").update({ onboarding_completed: false }).eq("id", user.id);
+              toast.success("Onboarding reset");
+              navigate("/onboarding");
+            }}
+          />
+        </Group>
+
+        {/* DATA CONTROLS */}
+        <Group>
+          <Row icon={Download} label="Download my data" hint="JSON copy of your profile & activity" onClick={handleExport} />
+          <Row icon={Trash2} label="Delete account" hint="Permanently remove everything" danger onClick={() => setDeleteOpen(true)} />
         </Group>
 
         {/* MORE */}
         <Group>
-          <Row icon={Target} label="Tracking" path="/tracking" hint="Pixels & analytics" />
           <Row icon={GraduationCap} label="Nevorai Academy" path="/help" hint="Tutorials & FAQs" />
           <Row icon={LifeBuoy} label="Contact support" path="/help" hint="We're here to help" />
           <Row icon={Download} label="Install app" path="/install" hint="Add to home screen" />
