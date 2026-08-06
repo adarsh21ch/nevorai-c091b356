@@ -20,9 +20,8 @@ export const getRouter = () => {
     context: { queryClient },
     scrollRestoration: true,
     defaultPreload: "intent",
-    defaultPreloadDelay: 50, // fast preloading
-    defaultPreloadMaxAge: 60_000,
-    preloadRouteOnMount: true, // preload adjacent routes on mount
+    defaultPreloadDelay: 50,
+    preloadRouteOnMount: true,
     defaultPendingMs: 0,
     defaultPendingMinMs: 0,
     defaultPreloadStaleTime: 30_000,  // reuse preload data for 30s instead of re-fetching
