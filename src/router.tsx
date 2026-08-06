@@ -21,7 +21,6 @@ export const getRouter = () => {
     scrollRestoration: true,
     defaultPreload: "intent",
     defaultPreloadDelay: 50,
-    preloadRouteOnMount: true,
     defaultPendingMs: 0,
     defaultPendingMinMs: 0,
     defaultPreloadStaleTime: 30_000,  // reuse preload data for 30s instead of re-fetching
