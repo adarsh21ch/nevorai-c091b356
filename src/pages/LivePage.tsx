@@ -236,7 +236,8 @@ const LivePage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     },
     placeholderData: keepPreviousData,
     enabled: !!user?.id,
-    refetchInterval: 60_000,
+    refetchInterval: 5 * 60_000,
+    staleTime: 2 * 60_000,
   });
 
   const liveStateRef = useRef<Record<string, boolean>>({});

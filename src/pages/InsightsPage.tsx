@@ -188,8 +188,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.order("submitted_at", { ascending: false }).limit(500)).data || [];
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
-    refetchInterval: visible ? 120_000 : false,
+    staleTime: 5 * 60_000,
+    refetchInterval: visible ? 5 * 60_000 : false,
   });
 
   const { data: leadsPrev = [] } = useQuery({
@@ -212,8 +212,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.order("submitted_at", { ascending: false }).limit(500)).data || [];
     },
     enabled: !!user?.id,
-    staleTime: 30_000,
-    refetchInterval: visible ? 120_000 : false,
+    staleTime: 5 * 60_000,
+    refetchInterval: visible ? 5 * 60_000 : false,
   });
 
   const { data: regsPrev = [] } = useQuery({
@@ -237,8 +237,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
-    staleTime: 15_000,
-    refetchInterval: visible ? 120_000 : false,
+    staleTime: 5 * 60_000,
+    refetchInterval: visible ? 10 * 60_000 : false,
   });
 
   // Funnel views come from link_events (single source of truth — every funnel
@@ -262,8 +262,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       }));
     },
     enabled: !!user?.id,
-    staleTime: 15_000,
-    refetchInterval: visible ? 120_000 : false,
+    staleTime: 5 * 60_000,
+    refetchInterval: visible ? 10 * 60_000 : false,
   });
 
 
@@ -276,8 +276,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
-    staleTime: 15_000,
-    refetchInterval: visible ? 120_000 : false,
+    staleTime: 5 * 60_000,
+    refetchInterval: visible ? 10 * 60_000 : false,
   });
 
   const { data: liveViews = [] } = useQuery({
@@ -289,8 +289,8 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
       return (await q.limit(2000)).data || [];
     },
     enabled: !!user?.id,
-    staleTime: 15_000,
-    refetchInterval: visible ? 120_000 : false,
+    staleTime: 5 * 60_000,
+    refetchInterval: visible ? 10 * 60_000 : false,
   });
 
   // === Live viewer counts per entity (15s polling) ===
