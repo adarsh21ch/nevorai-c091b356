@@ -149,28 +149,28 @@ const InsightsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     queryKey: ["my-funnels", user?.id],
     queryFn: async () => (await supabase.from("funnels").select("id,title,slug,total_views,total_leads,is_published,created_at").eq("owner_id", user!.id)).data || [],
     enabled: !!user?.id,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
   });
 
   const { data: landingPages = [], isLoading: lpLoading, error: lpError, refetch: refetchLPs } = useQuery({
     queryKey: ["my-landing-pages", user?.id],
     queryFn: async () => (await supabase.from("landing_pages").select("id,title,slug,total_views,total_registrations,status,created_at").eq("owner_id", user!.id)).data || [],
     enabled: !!user?.id,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
   });
 
   const { data: videos = [] } = useQuery({
     queryKey: ["my-videos-insights", user?.id],
     queryFn: async () => (await supabase.from("video_assets").select("id,title,view_count,duration_seconds,thumbnail_url,created_at").eq("owner_id", user!.id)).data || [],
     enabled: !!user?.id,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
   });
 
   const { data: liveSessions = [] } = useQuery({
     queryKey: ["my-live-sessions", user?.id],
     queryFn: async () => (await supabase.from("live_sessions").select("id,title,slug,status,total_views,registration_count,scheduled_at,created_at,thumbnail_url,is_published").eq("owner_id", user!.id)).data || [],
     enabled: !!user?.id,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
   });
 
   const funnelIds = funnels.map((f) => f.id);
