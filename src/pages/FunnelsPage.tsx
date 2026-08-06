@@ -39,6 +39,7 @@ const FunnelsPage = ({ embedded = false }: { embedded?: boolean } = {}) => {
     },
     placeholderData: keepPreviousData,
     enabled: !!user?.id,
+    staleTime: 2 * 60_000,
   });
 
   const deleteMutation = useMutation({

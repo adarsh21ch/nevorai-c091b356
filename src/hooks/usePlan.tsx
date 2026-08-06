@@ -65,8 +65,8 @@ export const usePlan = () => {
       return data;
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 
   const activePlanKey = trialActive ? "growth_monthly" : (subscription?.plan_key || "free");

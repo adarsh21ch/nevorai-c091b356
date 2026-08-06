@@ -83,13 +83,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   // useTenant() but nothing in the app reads it yet. Failures (e.g. the
   // workspaces table doesn't exist before the migration runs) return null
   // and the app behaves exactly as before.
-  loader: async (): Promise<{ tenant: ResolvedTenant | null }> => {
-    try {
-      const tenant = await getCurrentTenant();
-      return { tenant: tenant ?? null };
-    } catch {
-      return { tenant: null };
-    }
+  loader: async ({ context }) => {
+    const tenantPromise = getCurrentTenant();
+    return {
+      tenant: await tenantPromise,
+    };
   },
   head: () => ({
     meta: [

@@ -26,7 +26,8 @@ export const useTrialSettings = () => {
         trialDays: parseInt(map.trial_days || "7", 10),
       };
     },
-    staleTime: 60_000,
+    staleTime: 30 * 60_000,
+    gcTime: 60 * 60_000,
   });
 };
 
@@ -61,7 +62,7 @@ export const useTrialStatus = (): TrialStatus => {
       };
     },
     enabled: !!user,
-    staleTime: 30_000,
+    staleTime: 5 * 60_000,
     refetchOnWindowFocus: true,
   });
 

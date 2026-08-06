@@ -19,7 +19,8 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
-    defaultPreload: "intent",         // preload on hover/focus, not on every render
+    defaultPreload: "intent",
+    defaultPreloadDelay: 50,
     defaultPendingMs: 0,
     defaultPendingMinMs: 0,
     defaultPreloadStaleTime: 30_000,  // reuse preload data for 30s instead of re-fetching

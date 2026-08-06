@@ -49,7 +49,7 @@ export const useOwnerUniquePeople = (
   const { data } = useQuery({
     queryKey: ["owner-unique-people", user?.id, bounds.from, bounds.to],
     enabled: !!user?.id,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     refetchOnWindowFocus: true,
     queryFn: async (): Promise<OwnerUniquePeople> => {
       const { data, error } = await (supabase as any).rpc("get_owner_unique_people", {
@@ -82,7 +82,7 @@ export const useUniquePeopleTrend = () => {
   const { data } = useQuery({
     queryKey: ["unique-people-trend", user?.id],
     enabled: !!user?.id,
-    staleTime: 60_000,
+    staleTime: 10 * 60_000,
     queryFn: async () => {
       const from = istDateStr(30);
       const to = istDateStr(0);
@@ -121,7 +121,7 @@ export const useEntityUniquePeople = (
   const { data } = useQuery({
     queryKey: ["entity-unique-people", entityType, entityId, range?.fromIso, range?.toIso],
     enabled: !!entityId,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
     queryFn: async (): Promise<number> => {
       const { data, error } = await (supabase as any).rpc("get_unique_people", {
         p_entity_type: entityType,

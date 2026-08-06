@@ -103,6 +103,7 @@ const VideosPage = () => {
     },
     placeholderData: keepPreviousData,
     enabled: !!user?.id,
+    staleTime: 2 * 60_000,
   });
 
   const { data: sharedVideos = [] } = useQuery({
