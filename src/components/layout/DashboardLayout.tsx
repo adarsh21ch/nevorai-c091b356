@@ -88,7 +88,7 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
     refetchInterval: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
