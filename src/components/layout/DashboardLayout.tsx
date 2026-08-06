@@ -156,8 +156,8 @@ export const DashboardLayout = ({ children, editorMode = false }: { children: Re
       <WorkspaceBrandingApplier />
       <div className="flex h-full w-full max-w-full overflow-hidden">
         <aside className={cn(
-          "hidden h-full flex-col border-r border-border bg-sidebar transition-all duration-200 lg:flex",
-          collapsed ? "w-16" : "w-60"
+          "hidden h-full flex-col border-r border-border bg-sidebar transition-[width] duration-300 ease-in-out lg:flex",
+          collapsed ? "w-16" : "w-64"
         )}>
           <div className="h-0.5 w-full bg-gradient-brand-rich" style={{ marginTop: 'env(safe-area-inset-top)' }} />
           <div className="flex h-16 items-center justify-between border-b border-border px-4 shrink-0">

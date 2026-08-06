@@ -37,7 +37,8 @@ function DashboardPage() {
       return (data as any) ?? { funnels: [], total_leads: 0, active_live_session: null };
     },
     enabled: !!user?.id,
-    staleTime: 60_000,
+    staleTime: 2 * 60_000,
+    gcTime: 10 * 60_000,
     placeholderData: keepPreviousData,
   });
 
